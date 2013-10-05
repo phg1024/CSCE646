@@ -145,6 +145,49 @@ function fillCircle( data, bg, fg )
     var r = 0.375 * h;
     var r2 = r * r;
     var center = {x: w/2, y:h/2};
+
+    var aa = document.getElementById("antialiasing");
+    if( aa.checked )
+    {
+        console.log('using antialiasing ...');
+        var samples = 8;
+        var hh = 1.0 / samples;
+        var samples2 = samples * samples;
+        for(var y=0;y<h;y++)
+        {
+            for(var x=0;x<w;x++)
+            {
+                var idx = (y * w + x) * 4;
+
+                var cnt = 0;
+                var dy = y - center.y + 0.5 * hh;
+
+                for(var i=0;i<samples;i++)
+                {
+                    var dx = x - center.x + 0.5 * hh;
+
+                    for(var j=0;j<samples;j++)
+                    {
+                        if( dx * dx + dy * dy <= r2 )
+                            cnt++;
+                        dx += hh;
+                    }
+                    dy += hh;
+                }
+
+                var t = (cnt * 1.0) / (samples2);
+                var c = interpolate(fg, bg, t);
+
+                data[idx] = c.r;
+                data[idx+1] = c.g;
+                data[idx+2] = c.b;
+                data[idx+3] = c.a;
+            }
+        }
+
+    }
+    else
+    {
     for(var y=0;y<h;y++)
     {
         var dy = y - center.y;
@@ -165,6 +208,7 @@ function fillCircle( data, bg, fg )
             data[idx+2] = c.b;
             data[idx+3] = c.a;
         }
+    }
     }
 }
 
@@ -241,10 +285,10 @@ function fillTexture() {
         }
         case 'all':
         {
-            fillRegion(texData, 0, 0, w/2, h/2, {r:255, g:255, b:0, a:255});
-            fillRegion(texData, w/2, 0, w, h/2, {r:255, g:0, b:0, a:255});
-            fillRegion(texData, 0, h/2, w/2, h, {r:0, g:255, b:0, a:255});
-            fillRegion(texData, w/2, h/2, w, h, {r:0, g:0, b:255, a:255});
+            fillRegion(texData, 0, 0, w/2, h/2, {r:0, g:0, b:255, a:255});
+            fillRegion(texData, w/2, 0, w, h/2, {r:255, g:255, b:0, a:255});
+            fillRegion(texData, 0, h/2, w/2, h, {r:255, g:0, b:0, a:255});
+            fillRegion(texData, w/2, h/2, w, h, {r:0, g:255, b:0, a:255});
 
             break;
         }
@@ -266,14 +310,21 @@ function fillTexture() {
     }
 
     // upload the texture
+    uploadTexture(texData);
+}
+
+function uploadTexture( data )
+{
+    var w = gl.viewportWidth;
+    var h = gl.viewportHeight;
+
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D, 0,  gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, texData);
+    gl.texImage2D(gl.TEXTURE_2D, 0,  gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
 }
-
 
 function drawScene() {
     gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
