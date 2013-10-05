@@ -359,6 +359,7 @@ function webGLStart() {
     initBuffers();
 
     var op = document.getElementById('op');
+    op.onfocus= (function(){this.selectedIndex = -1;});
     op.onchange = drawScene;
 
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
