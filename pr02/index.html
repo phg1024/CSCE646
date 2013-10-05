@@ -2,8 +2,37 @@
 	<title>Viza654/CSCE646 - Digital Image</title>
 	<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
 	<link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
+	
+    <script type="text/javascript" src="glmatrix.js"></script>
+
+    <script id="shader-fs" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec2 vTex;
+    uniform sampler2D sampler0;
+
+    void main(void) {
+        gl_FragColor = texture2D(sampler0, vTex);
+    }
+    </script>
+
+    <script id="shader-vs" type="x-shader/x-vertex">
+    varying vec2 vTex;
+    attribute vec2 aVertex;
+    attribute vec2 aUV;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertex, 0.0, 1.0);
+        vTex = aUV;
+    }
+    </script>
+    <script type="text/javascript" src="shape.js"></script>
+    <script type="text/javascript" src="image.js"></script>
+    <script type="text/javascript" src="pr02.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
 </head>
-<body text="#000000" bgcolor="#ffffff">
+<body text="#000000" bgcolor="#ffffff" onload="webGLStart();">
 	<header>
 		<div id="main">
 			<h1>Peihong Guo's CSCE 646 Projects</h1>
@@ -25,6 +54,27 @@
 				</div>
 
 				<p>Source files: <a href="pr02.zip">pr02.zip</a> (README included)</p>
+                <p>
+                    WebGL version
+
+                <div align="center">
+                <div>
+                    <canvas id="lesson01-canvas" style="border: none;" width="640" height="480"></canvas>
+                </div>
+                <p>Choose an image to show:<select id="op">
+                    <option value="circle">Circle</option>
+                    <option value="convex">Convex</option>
+                    <option value="concave">Concave</option>
+					<option value="star">Star</option>
+					<option value="blobby">Blobby</option>
+                    <option value="function">Function</option>
+                    <option value="shaded">Shaded</option>
+                </select>
+                <input type="checkbox" id="ata">Anitialiasing
+				Samples<input type="textbox" id="nsamples" value="4">
+                </p>
+            </div>
+                </p>				
 				<p>Images</p>
 				<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
 
