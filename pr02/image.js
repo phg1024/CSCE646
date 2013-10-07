@@ -52,7 +52,7 @@ Color.prototype.mul = function(c)
     return new Color(this.r * c, this.g * c, this.b * c, this.a * c);
 }
 
-Color.prototype.interpolate = function(c1, c2, t)
+Color.interpolate = function(c1, c2, t)
 {
     return c1.mul(t).add(c2.mul(1-t));
 }

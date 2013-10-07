@@ -112,16 +112,6 @@ function initBuffers() {
     texImg = new RGBAImage(w, h);
 }
 
-function interpolate(c1, c2, t)
-{
-    var c = {};
-    c.r = c1.r * t + c2.r * (1.0-t);
-    c.g = c1.g * t + c2.g * (1.0-t);
-    c.b = c1.b * t + c2.b * (1.0-t);
-    c.a = c1.a * t + c2.a * (1.0-t);
-    return c;
-}
-
 function fillShaded( img, c1, c2, c3, c4 )
 {
     var w = img.w;
@@ -158,13 +148,13 @@ function fillShaded( img, c1, c2, c3, c4 )
                 var t = cnt / samples2;
                 var tIn = Math.sqrt( ((x-shadeX)*(x-shadeX) + (y-shadeY)*(y-shadeY)) / shadeR2 );
                 tIn = clamp(tIn, 0.0, 1.0);
-                var cIn = interpolate(c1, c2, tIn);
+                var cIn = Color.interpolate(c1, c2, tIn);
 
                 var tOut = ((x / w) + (y / h)) / 2.0;
                 tOut = clamp(tOut, 0.0, 1.0);
 
-                var cOut = interpolate(c3, c4, tOut);
-                var c = interpolate(cIn, cOut, t);
+                var cOut = Color.interpolate(c3, c4, tOut);
+                var c = Color.interpolate(cIn, cOut, t);
 
                 img.setPixel(x, y, c);
             }
@@ -186,7 +176,7 @@ function fillShaded( img, c1, c2, c3, c4 )
 
                 var tOut = ((x / w) + (y / h)) / 2.0;
                 tOut = clamp(tOut, 0.0, 1.0);
-                var cOut = interpolate(c3, c4, tOut);
+                var cOut = Color.interpolate(c3, c4, tOut);
 
                 var c = cOut;
                 if( circle.isInside(x, y) )
@@ -228,7 +218,7 @@ function fillShape( s, img, fg, bg ) {
                 }
 
                 var t = cnt / samples2;
-                var c = interpolate(fg, bg, t);
+                var c = Color.interpolate(fg, bg, t);
 
                 img.setPixel(x, y, c);
             }
