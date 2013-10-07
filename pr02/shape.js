@@ -80,7 +80,7 @@ function Shape()
     }
     this.isInside = function(x, y)
     {
-        return ( this.distanceTo(x, y) <= 0 );
+        return ( this.distanceTo(x, y) < 0 );
     }
 }
 
@@ -102,13 +102,16 @@ function Edge(p, n, dir)
 /*
     Polygon
  */
-function Polygon()
+function Polygon( isConcave )
 {
     var that = new Shape();
 
+	that.isConcave = isConcave;
     that.e = [];
     that.v = [];
 
+	if( !isConcave || (isConcave === undefined))
+	{
     that.distanceTo = function(x, y) {
         var res = -1e32;
         for(var i=0; i<this.e.length; i++) {
@@ -117,6 +120,38 @@ function Polygon()
         }
         return res;
     }
+	}
+	else
+	{
+		// ray casting
+		that.distanceTo = function(x, y){
+			var THRES = 0;//1e-3;
+			var cnt = 0;
+			for(var i=0;i<this.e.length;i++)
+			{
+				var dir = this.e[i].dir;
+				var flag = false;
+				if( Math.abs(dir.y) < THRES )
+				{
+					if( Math.abs(this.e[i].p.y - y) < THRES )
+						flag = true;
+				}
+				else
+				{
+					var t = (y - this.e[i].p.y) / dir.y;
+					if( (t > -THRES) && (t <= 1 - THRES) )
+					{
+						var xi = this.e[i].p.x + t * dir.x;
+						if( xi >= x )
+							flag = true;
+					}
+				}
+				
+				if( flag ) cnt++;
+			}
+			return (cnt % 2 === 1)?-1:1;
+		}
+	}
 
     that.genEdges = function() {
         this.e = [];

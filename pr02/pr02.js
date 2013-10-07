@@ -240,7 +240,7 @@ function fillShape( s, img, fg, bg ) {
                 var idx = (y * w + x) * 4;
 
                 var c = bg;
-                if( s.isInside(x, y) )
+                if( s.isInside(x + 0.5, y + 0.5) )
                     c = fg;
 
                 img.setPixel(x, y, c);
@@ -275,6 +275,19 @@ function fillImage() {
             break;
         }
         case 'concave': {
+			
+            var poly = new Polygon(true);
+            poly.addVertex(new Point2(256, 20));
+            poly.addVertex(new Point2(420, 128));
+            poly.addVertex(new Point2(250, 300));
+			poly.addVertex(new Point2(375, 420));
+            poly.addVertex(new Point2(128, 375));
+            poly.addVertex(new Point2(100, 160));
+
+            poly.genEdges();
+			
+            fillShape(poly, texImg, Color.YELLOW, Color.BLUE);
+			
             break;
         }
         case 'function': {
