@@ -142,10 +142,10 @@ function fillShaded( img, c1, c2, c3, c4 )
                 var idx = (y * w + x) * 4;
 
                 var cnt = 0;
-                var yy = y + 0.5 * hh;
+                var yy = y + Math.random() * hh;
 
                 for(var i=0;i<samples;i++) {
-                    var xx = x + 0.5 * hh;
+                    var xx = x + Math.random() * hh;
 
                     for(var j=0;j<samples;j++) {
                         if( circle.isInside(xx, yy) )
@@ -214,10 +214,10 @@ function fillShape( s, img, fg, bg ) {
                 var idx = (y * w + x) * 4;
 
                 var cnt = 0;
-                var yy = y + 0.5 * hh;
+                var yy = y + Math.random()*hh;
 
                 for(var i=0;i<samples;i++) {
-                    var xx = x + 0.5 * hh;
+                    var xx = x + Math.random() * hh;
 
                     for(var j=0;j<samples;j++) {
                         if( s.isInside(xx, yy) )
