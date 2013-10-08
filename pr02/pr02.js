@@ -85,6 +85,7 @@ var texData;
 var vloc, tloc;
 var texImg;
 var antialiasing = false;
+var interfill = false;
 
 function initBuffers() {
     vertexBuffer = gl.createBuffer();
@@ -239,6 +240,23 @@ function fillShape( s, img, fg, bg ) {
     }
 }
 
+function fillShape_inter( s, img, fg, bg ) {
+    var w = img.w;
+    var h = img.h;
+
+    for(var y=0;y<h;y++) {
+        for(var x=0;x<w;x++) {
+            var idx = (y * w + x) * 4;
+
+            var t = s.distanceTo(x + 0.5, y+0.5) / Math.pow((w + h), 0.75);
+            t = clamp(Math.abs(t), 0, 1);
+            var c = Color.interpolate(fg, bg, t);
+
+            img.setPixel(x, y, c);
+        }
+    }
+}
+
 function fillImage() {
     var op = document.getElementById('op');
 
@@ -249,7 +267,10 @@ function fillImage() {
     switch( op.value ) {
         case 'circle': {
             var circle = new Circle(w/2, h/2, h*0.375);
-            fillShape(circle, texImg, Color.PURPLE, Color.CYAN);
+            if( interfill )
+                fillShape_inter(circle, texImg, Color.PURPLE, Color.CYAN);
+            else
+                fillShape(circle, texImg, Color.PURPLE, Color.CYAN);
             break;
         }
         case 'convex': {
@@ -261,23 +282,26 @@ function fillImage() {
             poly.addVertex(new Point2(100, 160));
 
             poly.genEdges();
-            fillShape(poly, texImg, Color.YELLOW, Color.BLUE);
+            if( interfill )
+                fillShape_inter(poly, texImg, Color.YELLOW, Color.BLUE);
+            else
+                fillShape(poly, texImg, Color.YELLOW, Color.BLUE);
             break;
         }
         case 'concave': {
-			
+
             var poly = new Polygon(true);
             poly.addVertex(new Point2(256, 20));
             poly.addVertex(new Point2(420, 128));
             poly.addVertex(new Point2(250, 300));
-			poly.addVertex(new Point2(375, 420));
+            poly.addVertex(new Point2(375, 420));
             poly.addVertex(new Point2(128, 375));
             poly.addVertex(new Point2(100, 160));
 
             poly.genEdges();
-			
+
             fillShape(poly, texImg, Color.YELLOW, Color.BLUE);
-			
+
             break;
         }
         case 'function': {
@@ -364,7 +388,13 @@ function webGLStart() {
     ata.onchange = function(){
         antialiasing = this.checked;
         drawScene();
-    }
+    };
+
+    var inter = document.getElementById('inter');
+    inter.onchange = function(){
+        interfill = this.checked;
+        drawScene();
+    };
 
     var ns = document.getElementById('nsamples');
     ns.onchange = function(){
