@@ -16,15 +16,15 @@ Point2.prototype.distanceTo = function( that ) {
     var dx = this.x - that.x;
     var dy = this.y - that.y;
     return Math.sqrt(dx * dx + dy * dy);
-}
+};
 
 Point2.prototype.add = function( that ) {
     return new Point2(this.x + that.x, this.y + that.y);
-}
+};
 
 Point2.prototype.mul = function( factor ) {
     return new Point2(this.x * factor, this.y * factor);
-}
+};
 
 function Vector2(x, y) {
     if (arguments.length != 2) {
@@ -37,27 +37,27 @@ function Vector2(x, y) {
 
 Vector2.prototype.add = function( that ) {
     return new Vector2(this.x + that.x, this.y + that.y);
-}
+};
 
 Vector2.prototype.mul = function( factor ) {
     return new Vector2(this.x * factor, this.y * factor);
-}
+};
 
-Vector2.prototype.dot = function( that ) {
+Vector2.prototype.dot = function (that) {
     return this.x * that.x + this.y * that.y;
-}
+};
 
 Vector2.prototype.cross = function( that ) {
     return this.x * that.y - this.y * that.x;
-}
+};
 
 Vector2.prototype.normSquared = function() {
     return this.x * this.x + this.y * this.y;
-}
+};
 
 Vector2.prototype.norm = function() {
     return Math.sqrt( this.x * this.x + this.y * this.y );
-}
+};
 
 Vector2.prototype.normalize = function() {
     var L = this.norm();
@@ -67,25 +67,25 @@ Vector2.prototype.normalize = function() {
         this.y /= L;
     }
     return this;
-}
+};
 
 /*
-    Shape base class
+ Shape base class
  */
 function Shape()
 {
     this.distanceTo = function(x, y)
     {
         return 0;
-    }
+    };
     this.isInside = function(x, y)
     {
         return ( this.distanceTo(x, y) < 0 );
-    }
+    };
 }
 
 /*
-    Edge
+ Edge
  */
 function Edge(p, n, dir)
 {
@@ -95,63 +95,63 @@ function Edge(p, n, dir)
     that.dir = dir;
     that.distanceTo = function(x, y) {
         return n.dot( new Vector2(x - p.x, y - p.y) );
-    }
+    };
     return that;
 }
 
 /*
-    Polygon
+ Polygon
  */
 function Polygon( isConcave )
 {
     var that = new Shape();
 
-	that.isConcave = isConcave;
+    that.isConcave = isConcave;
     that.e = [];
     that.v = [];
 
-	if( !isConcave || (isConcave === undefined))
-	{
-    that.distanceTo = function(x, y) {
-        var res = -1e32;
-        for(var i=0; i<this.e.length; i++) {
-            var dist = this.e[i].distanceTo(x, y);
-            res = Math.max(res, dist);
-        }
-        return res;
+    if( !isConcave || (isConcave === undefined))
+    {
+        that.distanceTo = function(x, y) {
+            var res = -1e32;
+            for(var i=0; i<this.e.length; i++) {
+                var dist = this.e[i].distanceTo(x, y);
+                res = Math.max(res, dist);
+            }
+            return res;
+        };
     }
-	}
-	else
-	{
-		// ray casting
-		that.distanceTo = function(x, y){
-			var THRES = 0;//1e-3;
-			var cnt = 0;
-			for(var i=0;i<this.e.length;i++)
-			{
-				var dir = this.e[i].dir;
-				var flag = false;
-				if( Math.abs(dir.y) < THRES )
-				{
-					if( Math.abs(this.e[i].p.y - y) < THRES )
-						flag = true;
-				}
-				else
-				{
-					var t = (y - this.e[i].p.y) / dir.y;
-					if( (t > -THRES) && (t <= 1 - THRES) )
-					{
-						var xi = this.e[i].p.x + t * dir.x;
-						if( xi >= x )
-							flag = true;
-					}
-				}
-				
-				if( flag ) cnt++;
-			}
-			return (cnt % 2 === 1)?-1:1;
-		}
-	}
+    else
+    {
+        // ray casting
+        that.distanceTo = function(x, y){
+            var THRES = 0;//1e-3;
+            var cnt = 0;
+            for(var i=0;i<this.e.length;i++)
+            {
+                var dir = this.e[i].dir;
+                var flag = false;
+                if( Math.abs(dir.y) < THRES )
+                {
+                    if( Math.abs(this.e[i].p.y - y) < THRES )
+                        flag = true;
+                }
+                else
+                {
+                    var t = (y - this.e[i].p.y) / dir.y;
+                    if( (t > -THRES) && (t <= 1 - THRES) )
+                    {
+                        var xi = this.e[i].p.x + t * dir.x;
+                        if( xi >= x )
+                            flag = true;
+                    }
+                }
+
+                if( flag ) cnt++;
+            }
+            return (cnt % 2 === 1)?-1:1;
+        };
+    }
 
     that.genEdges = function() {
         this.e = [];
@@ -162,17 +162,17 @@ function Polygon( isConcave )
             var ed = new Edge(this.v[i], n, dir);
             this.e.push(ed);
         }
-    }
+    };
 
     that.addVertex = function( p ) {
         this.v.push(p);
-    }
+    };
 
     return that;
 }
 
 /*
-    Circle
+ Circle
  */
 
 function Circle(x, y, r) {
@@ -187,13 +187,13 @@ function Circle(x, y, r) {
         var dx = x - this.x;
         var dy = y - this.y;
         return (Math.sqrt(dx*dx+dy*dy) - r);
-    }
+    };
 
     return that;
 }
 
 /*
-    Star
+ Star
  */
 function Star(x, y, r, corners) {
     var that = new Shape();
@@ -221,13 +221,13 @@ function Star(x, y, r, corners) {
                 cnt++;
         }
         return ((cnt >= (corners-1))?-1:1);
-    }
+    };
 
     return that;
 }
 
 /*
-    Blobby
+ Blobby
  */
 function Blobby() {
     var that = new Shape();
@@ -237,7 +237,7 @@ function Blobby() {
     that.addCircle = function( c ) {
         this.circles.push( c );
         console.log(this.circles.length);
-    }
+    };
 
     that.distanceTo = function( x, y ) {
         var alpha = 1.5e-4;
@@ -250,7 +250,7 @@ function Blobby() {
         }
         res = -1.0 / alpha * Math.log(res);
         return res;
-    }
+    };
 
     return that;
 }
@@ -260,7 +260,7 @@ function FunctionShape( fun ) {
 
     that.distanceTo = function( x, y ) {
         return fun(x, y);
-    }
+    };
 
     return that;
 }

@@ -40,22 +40,22 @@ Color.prototype.setColor = function(that)
     }
     else
         return null;
-}
+};
 
 Color.prototype.add = function(that)
 {
     return new Color(this.r + that.r, this.g + that.g, this.b + that.b, this.a + that.a);
-}
+};
 
 Color.prototype.mul = function(c)
 {
     return new Color(this.r * c, this.g * c, this.b * c, this.a * c);
-}
+};
 
 Color.interpolate = function(c1, c2, t)
 {
     return c1.mul(t).add(c2.mul(1-t));
-}
+};
 
 function RGBAImage( w, h )
 {
@@ -84,4 +84,4 @@ RGBAImage.prototype.uploadTexture = function( ctx, texId )
     ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
     ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
     ctx.texImage2D(ctx.TEXTURE_2D, 0,  ctx.RGBA, w, h, 0, ctx.RGBA, ctx.UNSIGNED_BYTE, this.data);
-}
+};
