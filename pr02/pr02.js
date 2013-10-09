@@ -173,7 +173,7 @@ function fillShaded( img, c1, c2, c3, c4 )
                     cnt++;
 
                 tIn = clamp(tIn, 0.0, 1.0);
-                var cIn = interpolate(c1, c2, tIn);
+                var cIn = Color.interpolate(c1, c2, tIn);
 
                 var tOut = ((x / w) + (y / h)) / 2.0;
                 tOut = clamp(tOut, 0.0, 1.0);
@@ -390,11 +390,11 @@ function webGLStart() {
         drawScene();
     };
 
-    var inter = document.getElementById('inter');
-    inter.onchange = function(){
-        interfill = this.checked;
-        drawScene();
-    };
+//    var inter = document.getElementById('inter');
+//    inter.onchange = function(){
+//        interfill = this.checked;
+//        drawScene();
+//    };
 
     var ns = document.getElementById('nsamples');
     ns.onchange = function(){
