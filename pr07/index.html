@@ -1,62 +1,79 @@
 <head>
-<title>Viza654/CSCE646 - Digital Image</title>
-<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
-<link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
+    <title>Viza654/CSCE646 - Digital Image</title>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+    <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
+    <link rel='stylesheet' type='text/css' href='webgl.css' media="screen, print, projection">
+    <script type="text/javascript" src="filter.js"></script>
+    <script type="text/javascript" src="image.js"></script>
+    <script type="text/javascript" src="transformation.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="main.js"></script>
 </head>
 <body text="#000000" bgcolor="#ffffff">
-	<header>
-		<div id="main">
-		<h1>Peihong Guo's CSCE 646 Projects</h1>
-		<div id="navbar" class="stretchx">
-					<table id="navtable" class="left">
-						<tr><td><a class="navlink" href="../index.html" id="nav_bio">Projects</a></td>
-					</table>
-		</div>
-	</header>
+<header>
+    <h1>Peihong Guo's CSCE 646 Projects</h1>
+    <div id="navbar" class="stretchx">
+        <table id="navtable" class="left">
+            <tr><td><a class="navlink" href="../index.html" id="nav_bio">Projects</a></td></tr>
+        </table>
+    </div>
+</header>
 <article>
-<div id="maincontent">
-<div class="content">
+    <div id="maincontent">
+        <div class="content">
 
-<div align=center>
-<h2>Project 07
-<h3>XXXX
-</div>
+            <div align=center>
+                <h2>Project 05</h2>
+                <h3>Filters</h3>
+            </div>
 
-<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
 
-<tr>
-<td align=center>
-<img class="submissionimg" src=01.jpg><br>
-<div class="submissiondes">
-This is the last image of the project. The last image will always be top one. 
-If you name your images 00.jpg, 01.jpg, it will be easy to remember the order. 
-Always write some description, which will also be helpful for you to remember what the image was about.    
-</div>
-</td>
-</tr> 
+                <tr>
+                    <td align=center>
+                        <div>
+                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
+                        </div>
+                        <div class="submissiondes">
+                            <p>Please try apply different filters to the above image.</p>
+                            <p>
+                                Image:
+                                <select id="imgselect">
+                                    <option value="landscape">Landscape</option>
+                                    <option value="seal">Seal</option>
+                                    <option value="buck">Buck</option>
+                                    <option value="waterfall">Waterfall</option>
+                                </select>
+                                &nbsp or &nbsp Upload image:
+                                <input type="file" id="files" name="files[]" />
+                                <output id="list"></output>
+                            </p>
+                            <p>Transformation parameters <button id="transbutton">Apply Transformation</button></p>
+                            <p>
+                            <form><p>
+                                <input type="radio" id="forwardbutton" name="maptype" value="forward" checked="checked">Forward Map
+                                <input type="radio" id="inversebutton" name="maptype" value="inverse">Inverse Map
+                            </p></form>
+                            </p>
+                            <p>
+                                <textarea id="operations" rows="8" cols="16">Please input the operations here.</textarea>
+                            </p>
+                        </div>
+                    </td>
+                </tr>
 
-<tr>
-<td align=center>
-<img class="submissionimg" src=00.jpg><br>
-<div class="submissiondes">
-This is the first image of the project. The first image will always be bottom. The improvements will be added to top.  
-</div>
-</td>
-</tr> 
+            </table>
 
-</table>
-
-</div>
-</div>
-	</div>
-</div>
-	<script type="text/javascript" src="phgscript.js"></script>
+        </div>
+    </div>
+    </div>
+    </div>
 </article>
 <footer>
-			<div class="info">
-					Last Modified: <script type="text/javascript">document.write(document.lastModified)</script><br>
-					&copy 2009-2013, Peihong Guo
-			</div>	
+    <div class="info">
+        Last Modified: <script type="text/javascript">document.write(document.lastModified)</script><br>
+        &copy 2009-2013, Peihong Guo
+    </div>
 </footer>
 </body>
 </html>
