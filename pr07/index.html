@@ -3,8 +3,12 @@
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
     <link rel='stylesheet' type='text/css' href='webgl.css' media="screen, print, projection">
+    <script type="text/javascript" src="point.js"></script>
+    <script type="text/javascript" src="vector.js"></script>
+    <script type="text/javascript" src="matrix.js"></script>
     <script type="text/javascript" src="filter.js"></script>
     <script type="text/javascript" src="image.js"></script>
+    <script type="text/javascript" src="imageutils.js"></script>
     <script type="text/javascript" src="transformation.js"></script>
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="main.js"></script>
@@ -35,7 +39,6 @@
                             <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
                         </div>
                         <div class="submissiondes">
-                            <p>Please try apply different filters to the above image.</p>
                             <p>
                                 Image:
                                 <select id="imgselect">
@@ -54,6 +57,7 @@
                                 <input type="radio" id="forwardbutton" name="maptype" value="forward" checked="checked">Forward Map
                                 <input type="radio" id="inversebutton" name="maptype" value="inverse">Inverse Map
                             </p></form>
+                            <input type="checkbox" id="supersampling">Super Sampling
                             </p>
                             <p>
                                 <textarea id="operations" rows="8" cols="16">Please input the operations here.</textarea>

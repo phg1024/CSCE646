@@ -1,4 +1,5 @@
-var img, origImgData, myMat;
+var img, origImgData;
+var curImg;
 var imgIdx = 0;
 var imgsrc = ['landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
@@ -10,11 +11,8 @@ function loadImage()
     console.log('loading image ' + imgsrc[imgIdx]);
     img = new Image();
     img.onload = function(){
-        myMat = image2Matrix(img);
-        origMat = myMat;
-        console.log(myMat);
-        origImgData = matrix2ImageData( myMat );
-        context.putImageData(origImgData, 0, 0);
+        curImg = RGBAImage.fromImage(img, context);
+        context.putImageData(curImg.toImageData(context), 0, 0);
     };
 
     img.src = imgsrc[imgIdx];
@@ -24,19 +22,16 @@ function applyTransformation() {
     var trans = document.getElementById('operations').value;
     var ops = trans.split('\n');
     console.log(ops);
-    var newMat = myMat;
+    var newImg = curImg;
     for(var i=0;i<ops.length;i++) {
         var parts = ops[i].split(/\s+/);
         console.log(parts);
         var t = parts[0];
         var params = parts.slice(1, parts.length);
-        newMat = Transformations.op[t](newMat, params);
+        newImg = Transformations.op[t](newImg, params);
     }
-    var newimg = matrix2ImageData( newMat );
-    filteredImgData = newimg;
-    canvas.width = newMat.col;
-    canvas.height = newMat.row;
-    context.putImageData(newimg, 0, 0);
+    canvasresize(newImg.w, newImg.h);
+    context.putImageData(newImg.toImageData(context), 0, 0);
 }
 
 function applyFilter()
@@ -50,66 +45,66 @@ function applyFilter()
         case "invert":
         {
             console.log('inverting the image ...');
-            newimg = matrix2ImageData(	filter(myMat, Filter.invert) );
+            newimg = filter(curImg, Filter.invert);
             break;
         }
         case "grayscale":
         {
             console.log('converting the image to grayscale ...');
-            newimg = matrix2ImageData(	grayscale(myMat) );
+            newimg = grayscale(curImg);
             break;
         }
 		case "adaptiveequal":
 		{
-            console.log('equalizing the image ...');
-            newimg = matrix2ImageData(	ahe(myMat) );
+            console.log('adaptive equalizing the image ...');
+            newimg = ahe(curImg);
             break;
 		}
 		case "equal":
 		{
             console.log('equalizing the image ...');
-            newimg = matrix2ImageData(	equalize(myMat) );
+            newimg = equalize(curImg);
             break;			
 		}
 		case "equalblend":
 		{
             console.log('equalizing the image with blending ...');
-            newimg = matrix2ImageData(	equalize_blend(myMat) );
+            newimg = equalize_blend(curImg);
             break;						
 		}
         case "gradient":
         {
-            newimg = matrix2ImageData( filter(myMat, Filter.gradient) );
+            newimg = filter(curImg, Filter.gradient);
             break;
         }
         case 'hsobel':
         {
-            newimg = matrix2ImageData( filter(myMat, Filter.hsobel) );
+            newimg = filter(curImg, Filter.hsobel);
             break;
         }
         case 'vsobel':
         {
-            newimg = matrix2ImageData( filter(myMat, Filter.vsobel) );
+            newimg = filter(curImg, Filter.vsobel);
             break;
         }
         case 'emboss':
         {
-            newimg = matrix2ImageData( filter(myMat, Filter.emboss) );
+            newimg = filter(curImg, Filter.emboss);
             break;
         }
         case 'blur':
         {
-            newimg = matrix2ImageData( filter(myMat, Filter.blur) );
+            newimg = filter(curImg, Filter.blur);
             break;
         }
         case 'sharpen':
         {
-            newimg = matrix2ImageData( filter(myMat, Filter.sharpen) );
+            newimg = filter(curImg, Filter.sharpen);
             break;
         }
         case 'motion':
         {
-            newimg = matrix2ImageData( filter(myMat, Filter.motion) );
+            newimg = filter(myMat, Filter.motion);
             break;
         }
         case 'customized':
@@ -120,12 +115,11 @@ function applyFilter()
             var params = cf.value.split(/[\s]+/);
             var f = new Filter( params );
             console.log(f);
-            newimg = matrix2ImageData( filter(myMat, f) );
+            newimg = filter(curImg, f);
             break;
         }
     }
-    filteredImgData = newimg;
-    context.putImageData(newimg, 0, 0);
+    context.putImageData(newimg.toImageData(context), 0, 0);
 }
 
 var canvas, context;

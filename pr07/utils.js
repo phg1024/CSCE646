@@ -10,17 +10,16 @@ Array.prototype.min = function() {
 
 Array.prototype.mean = function() {
     return this.sum() / this.length;
-}
+};
 
 Array.prototype.sum = function() {
     return this.reduce(function(a, b) { return a + b });
-}
+};
 
-function clamp(val, lower, upper)
+function canvasresize(__width, __height)
 {
-    if( val < lower ) return lower;
-    else if( val > upper ) return upper;
-    return val;
+    canvas.width = __width;
+    canvas.height = __height;
 }
 
 function handleFileSelect(evt) {
@@ -59,27 +58,27 @@ function uploadImage( file ) {
     }
 
     function imageLoaded() {
-	    myMat = image2Matrix(img);
-		var width = myMat.col;
-		var height = myMat.row;
+        curImg = RGBAImage.fromImage(img, context);
+
+		var width = curImg.w;
+		var height = curImg.h;
 		if( width > 640 )
 		{
 			height = Math.floor(height * (640.0/width));
 			width = 640;
-			myMat = imresize(myMat, width, height);
+            curImg = imresize(curImg, width, height);
 		}
 		
 		if( height > 640 )
 		{
 			width = Math.floor(width * (640.0/height));
 			height = 640;
-			myMat = imresize(myMat, width, height);
+            curImg = imresize(curImg, width, height);
 		}
 			
-		console.log(origMat);
-		origImgData = matrix2ImageData( myMat );
+		console.log(curImg);
 		canvasresize(width, height);
-		
-		context.putImageData(origImgData, 0, 0);
+
+        context.putImageData(curImg.toImageData(context), 0, 0);
     }
 }
