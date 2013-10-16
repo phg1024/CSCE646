@@ -7,7 +7,8 @@ var transformation = function(){
         's': scale,
         't': translate,
         'r': rotate,
-        'sh': shear
+        'sh': shear,
+        'p': perspective
     }
 
     var mapping = 'forward';
@@ -21,12 +22,20 @@ var transformation = function(){
         supersampling = v;
     }
 
+    function perspective(img, params) {
+        var px = parseFloat(params[0]);
+        var py = parseFloat(params[1]);
+        console.log('perspective transformation with px = ' + px + ' and py = ' + py);
+
+        return affine(img, 1, 1, 0, 0, 0, 0, px, py);
+    }
+
     function shear(img, params) {
         var shx = parseFloat(params[0]);
         var shy = parseFloat(params[1]);
 
         console.log('shear transformation with shx = ' + shx + ' and shy = ' + shy);
-        return affine(img, 1, 1, 0, 0, shx, shy);
+        return affine(img, 1, 1, 0, 0, shx, shy, 0, 0);
     }
 
     function scale(img, params) {
@@ -35,7 +44,7 @@ var transformation = function(){
 
         console.log('scaling the image with sx = ' + sx + ' and sy = ' + sy);
 
-        return affine(img, sx, sy, 0, 0, 0, 0);
+        return affine(img, sx, sy, 0, 0, 0, 0, 0, 0);
     }
 
     function translate(img, params) {
@@ -44,7 +53,7 @@ var transformation = function(){
 
         console.log('translating the image with tx = ' + tx + ' and ty = ' + ty);
 
-        return affine(img, 1, 1, tx, ty, 0, 0);
+        return affine(img, 1, 1, tx, ty, 0, 0, 0, 0);
     }
 
     function rotate(img, params) {
@@ -55,15 +64,15 @@ var transformation = function(){
         var theta = deg / 180.0 * Math.PI + Math.epsilon;
         var cosTheta = Math.cos(theta);
         var sinTheta = Math.sin(theta);
-        return affine(img, cosTheta, cosTheta, 0, 0, -sinTheta, sinTheta);
+        return affine(img, cosTheta, cosTheta, 0, 0, -sinTheta, sinTheta, 0, 0);
     }
 
     function affineTransform(u, v, mat) {
         var p = new Point3(u, v, 1);
         var pp = mat.mul(p);
         return {
-            x : pp.x,
-            y : pp.y
+            x : pp.x / pp.z,
+            y : pp.y / pp.z
         };
     }
 
@@ -72,12 +81,12 @@ var transformation = function(){
         var pp = invMat.mul(p);
 
         return {
-            u : pp.x,
-            v : pp.y
+            u : pp.x / pp.z,
+            v : pp.y / pp.z
         };
     }
 
-    function affine(src, sx, sy, tx, ty, shx, shy) {
+    function affine(src, sx, sy, tx, ty, shx, shy, px, py) {
         // compute the corners first, create a larger image if the size is larger than current size
         var w = src.w;
         var h = src.h;
@@ -85,7 +94,7 @@ var transformation = function(){
         var mat = Matrix3x3.zero();
         mat.setElement(0, 0, sx); mat.setElement(0, 1, shx); mat.setElement(0, 2, tx);
         mat.setElement(1, 0, shy); mat.setElement(1, 1, sy); mat.setElement(1, 2, ty);
-        mat.setElement(2, 0, 0); mat.setElement(2, 1, 0); mat.setElement(2, 2, 1);
+        mat.setElement(2, 0, px); mat.setElement(2, 1, py); mat.setElement(2, 2, 1);
 
         var invmat = mat.inv();
 
