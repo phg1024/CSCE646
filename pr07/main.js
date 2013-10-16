@@ -27,7 +27,29 @@ function applyTransformation() {
         var parts = ops[i].split(/\s+/);
         console.log(parts);
         var t = parts[0];
-        var params = parts.slice(1, parts.length);
+        var params;
+        if( t == 'cbegin' ) {
+            // collect all operations until cend
+            // if cend does not appear, process until the end
+            params = [];
+            for(var j=i;j<ops.length;j++) {
+                var cparts = ops[j].split(/\s+/);
+                if( cparts[0] == 'cend' ) {
+                    break;
+                }
+                else {
+                    params.push(cparts);
+                }
+            }
+            t = 'c';
+        }
+        else if( !(t in Transformations.op) ) {
+            console.log('Unsupported operation!');
+            continue;
+        }
+        else {
+            params = parts.slice(1, parts.length);
+        }
         var startT = new Date();
         newImg = Transformations.op[t](newImg, params);
         var endT = new Date();

@@ -12,6 +12,17 @@
     <script type="text/javascript" src="transformation.js"></script>
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="main.js"></script>
+    <style>
+        p.operations{
+            font-size: 11
+        }
+        table.operations{
+            font-size: 11
+        }
+        td{
+            text-align: center
+        }
+    </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
 <header>
@@ -56,12 +67,82 @@
                             <form><p>
                                 <input type="radio" id="forwardbutton" name="maptype" value="forward" checked="checked">Forward Map
                                 <input type="radio" id="inversebutton" name="maptype" value="inverse">Inverse Map
+
+                                <input type="checkbox" id="supersampling">Super Sampling
                             </p></form>
-                            <input type="checkbox" id="supersampling">Super Sampling
-                            </p>
                             <p>
                                 <textarea id="operations" rows="8" cols="16">Please input the operations here.</textarea>
                             </p>
+                            <div>
+                                <p>
+                                    Operations supported:<br>
+                                <table class="operations" border=1 cellspacing=5 cellpadding=5 width=60% align=center>
+                                    <tr><td width="20%">Operation</td><td width="20%">Command format</td><td width="60%">Example</td></tr>
+                                    <tr><td>Scaling</td><td><em>s sx sy</em></td>
+                                        <td>
+                                            Scaling by 0.5 in <em>x</em> direction and 0.75 in <em>y</em> direction:<br>
+                                            <em>s 0.5 0.75</em>
+                                        </td></tr>
+                                    <tr><td>Translation</td><td> <em>t tx ty</em></td>
+                                        <td>
+                                            Translation by 32 in <em>x</em> direction and 64 in <em>y</em> direction:<br>
+                                            <em>t 32 64</em>
+                                        </td>
+                                    </tr>
+                                    <tr><td>Rotation</td><td> <em>r deg</em></td>
+                                        <td>
+                                            Rotation by 45 degree counter clockwise:<br>
+                                            <em>r 45</em>
+                                        </td>
+                                    </tr>
+                                    <tr><td>Shear</td><td> <em>sh shx shy</em></td>
+                                        <td>
+                                            Shear transformation with 0.5 in <em>x</em> direction and 0.25 in <em>y</em> direction:<br>
+                                            <em>sh 0.5 0.25</em>
+                                        </td>
+                                    </tr>
+                                    <tr><td>Mirror</td><td> <em>m axis</em></td>
+                                        <td>
+                                            Mirror along <em>x</em> axis:<br>
+                                            <em>m x</em><br>
+                                            <em>Note: axis can only be x or y</em>
+                                        </td>
+                                    </tr>
+                                    <tr><td>Perspective</td><td> <em>p px py</em></td>
+                                        <td>
+                                            Perspective transformation with vanishing point at <em>(1.0/a,0)</em> and <em>(0, 1.0/b)</em>:<br>
+                                            <em>p a b</em>
+                                        </td>
+                                    </tr>
+                                    <tr><td>Bilinear</td><td> <em>b x0 y0 x1 y1 x2 y2 x3 y3</em></td>
+                                        <td>
+                                            Bilinear transformation with 4 corners(top left, bottom left, top right, bottom right) at
+                                            (0, 0), (256, 16), (32, 200), (200, 168):<br>
+                                            <em>b 0 0 256 16 32 200 200 168</em>
+                                        </td>
+                                    </tr>
+                                    <tr><td>Composition</td>
+                                        <td>
+                                            <em>cbegin<br>
+                                                op1 params<br>
+                                                op2 params<br>
+                                                ...<br>
+                                                cend</em>
+                                        </td>
+                                        <td>
+                                            <em>
+                                                cbegin<br>
+                                                s 0.5 1.5<br>
+                                                t 32 64<br>
+                                                sh 0.1 0.2<br>
+                                                p 0.001 0.002<br>
+                                                cend
+                                            </em>
+                                        </td>
+                                    </tr>
+                                </table>
+                                </p>
+                            </div>
                         </div>
                     </td>
                 </tr>
