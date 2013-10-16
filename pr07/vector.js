@@ -7,6 +7,10 @@ function Vector2(x, y) {
     }
 }
 
+Vector2.fromPoint2 = function( p1, p2 ) {
+    return new Vector2(p2.x-p1.x, p2.y-p1.y);
+};
+
 Vector2.prototype.add = function( that ) {
     return new Vector2(this.x + that.x, this.y + that.y);
 };
@@ -39,6 +43,12 @@ Vector2.prototype.normalize = function() {
         this.y /= L;
     }
     return this;
+};
+
+Vector2.prototype.normalized = function() {
+    var v = new Vector2(this.x, this.y);
+    v.normalize();
+    return v;
 };
 
 function Vector3(x, y, z) {
