@@ -1,44 +1,20 @@
 function imresize(__src, w, h)
 {
+    var iw = __src.w, ih = __src.h;
     // bilinear interpolation
-    var ih = __src.h,
-        iw = __src.w;
     var dst = new RGBAImage(w, h);
-    var ddata = dst.data,
-        sdata = __src.data;
 
-    var ystep = 1.0 / h;
-    var xstep = 1.0 / w;
+    var ystep = 1.0 / (h-1);
+    var xstep = 1.0 / (w-1);
     for(var i=0;i<h;i++)
     {
         var y = i * ystep;
-        var yPos = y * ih;
-        var ty = Math.floor(yPos);
-        var dy = Math.ceil(yPos);
 
-        var fy = yPos - ty;
         for(var j=0;j<w;j++)
         {
             var x = j * xstep;
-            var xPos = x * iw;
-            var lx = Math.floor(xPos);
-            var rx = Math.ceil(xPos);
 
-            var fx = xPos - lx;
-
-            var idx = (i*w+j)*4;
-            var idxlt = (ty*iw+lx)*4;
-            var idxrt = (ty*iw+rx)*4;
-            var idxld = (dy*iw+lx)*4;
-            var idxrd = (dy*iw+rx)*4;
-            for(var k=0;k<3;k++)
-            {
-                ddata[idx+k] = sdata[idxlt+k] * (1-fy) * (1-fx)
-                    + sdata[idxrt+k] * (1-fy) * fx
-                    + sdata[idxld+k] * fy * (1-fx)
-                    + sdata[idxrd+k] * fy * fx;
-            }
-            ddata[idx+3] = sdata[idx+3];
+            dst.setPixel(j, i, __src.sample(x * (iw-1), y * (ih-1)));
         }
     }
     return dst;

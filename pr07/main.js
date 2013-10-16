@@ -28,7 +28,10 @@ function applyTransformation() {
         console.log(parts);
         var t = parts[0];
         var params = parts.slice(1, parts.length);
+        var startT = new Date();
         newImg = Transformations.op[t](newImg, params);
+        var endT = new Date();
+        console.log( endT - startT );
     }
     canvasresize(newImg.w, newImg.h);
     context.putImageData(newImg.toImageData(context), 0, 0);
@@ -148,6 +151,8 @@ window.onload = (function(){
     transbutton = document.getElementById('transbutton');
     transbutton.onclick = applyTransformation;
 
+    document.getElementById('forwardbutton').checked = true;
+
     // set up the callbacks for mapping method selection
     document.getElementById('forwardbutton').onclick = function() {
         console.log('using forward mapping');
@@ -157,6 +162,11 @@ window.onload = (function(){
         console.log('using inverse mapping');
         Transformations.setMapping( 'inverse' );
     };
+
+    document.getElementById('supersampling').onclick = function() {
+        console.log(((this.checked)?'':'not ') + 'using supersampling');
+        Transformations.setSupersampling( this.checked );
+    }
 
     // set up callbacks for image selection
     imgselect = document.getElementById("imgselect");

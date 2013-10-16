@@ -117,8 +117,8 @@ var transformation = function(){
                             continue;
                         }
                         else {
-                            // set the pixel
-                            dst.setPixel(j, i, src.getPixel(Math.round(a*(w-1)), Math.round(b*(h-1))));
+                            // set the pixel by bilinearly sampling the source image
+                            dst.setPixel(j, i, src.sample(a*(w-1), b*(h-1)));
                         }
                     }
                 }
@@ -152,7 +152,7 @@ var transformation = function(){
                     }
                     else
                     {
-                        // set the pixel
+                        // set the pixel by bilinearly sampling the source image
                         dst.setPixel(Math.round(p.x), Math.round(p.y), src.getPixel(x, y));
                     }
                 }
@@ -320,21 +320,43 @@ var transformation = function(){
 
         if( mapping == 'inverse' ) {
             console.log('inverse mapping');
+            var nsamples = 1;
+            var samples = [new Point2(0, 0)];
+
+            if( supersampling ) {
+                nsamples = 9;
+                samples = [
+                    new Point2(0, 0), new Point2(1/3, 0), new Point2(2/3, 0),
+                    new Point2(0, 1/3), new Point2(1/3, 1/3), new Point2(2/3, 1/3),
+                    new Point2(0, 2/3), new Point2(1/3, 2/3), new Point2(2/3, 2/3),
+                ];
+            }
+
             // inverse mapping
             for(var i= 0, idx=0;i<newh;i++) {
                 var y = i + offset.y;
                 for(var j=0;j<neww;j++, idx+=dst.channels) {
                     var x = j + offset.x;
 
-                    var p  = inverseAffineTransform(x, y, invmat);
-                    if( p.u < 0 || p.v < 0 || p.u >= w || p.v >= h ) {
-                        // set the pixel to black
-                        dst.setPixel(j, i, Color.BLACK);
+                    var c = new Color(0, 0, 0, 0);
+                    for(var ns = 0; ns<samples.length;ns++){
+                        var xx = x + samples[ns].x;
+                        var yy = y + samples[ns].y;
+
+                        var p  = inverseAffineTransform(xx, yy, invmat);
+
+
+                        if( p.u < 0 || p.v < 0 || p.u >= w || p.v >= h ) {
+                            // set the pixel to black
+                            c = c.add(Color.BLACK);
+                        }
+                        else {
+                            // set the pixel
+                            c = c.add(src.sample(p.u, p.v));
+                        }
                     }
-                    else {
-                        // set the pixel
-                        dst.setPixel(j, i, src.getPixel(Math.round(p.u), Math.round(p.v)));
-                    }
+
+                    dst.setPixel(j, i, c.mul(1.0/nsamples));
                 }
             }
         }

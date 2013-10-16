@@ -55,6 +55,14 @@ Color.prototype.mul = function(c)
     return new Color(this.r * c, this.g * c, this.b * c, this.a * c);
 };
 
+Color.prototype.clamp = function() {
+    this.r = clamp(this.r, 0, 255);
+    this.g = clamp(this.g, 0, 255);
+    this.b = clamp(this.b, 0, 255);
+    this.a = clamp(this.a, 0, 255);
+    return this;
+}
+
 Color.interpolate = function(c1, c2, t)
 {
     return c1.mul(t).add(c2.mul(1-t));
@@ -78,6 +86,28 @@ RGBAImage.prototype.getPixel = function(x, y) {
         this.data[idx+3]
     );
 }
+
+// bilinear sample of the image
+RGBAImage.prototype.sample = function(x, y) {
+    var w = this.w, h = this.h;
+    var ty = Math.floor(y);
+    var dy = Math.ceil(y);
+
+    var lx = Math.floor(x);
+    var rx = Math.ceil(x);
+
+    var fx = x - lx;
+    var fy = y - ty;
+
+    var c = this.getPixel(lx, ty).mul((1-fy) * (1-fx))
+        .add(this.getPixel(lx, dy).mul(fy * (1-fx)))
+        .add(this.getPixel(rx, ty).mul((1-fy) * fx))
+        .add(this.getPixel(rx, dy).mul(fy * fx));
+
+    c.clamp();
+
+    return c;
+};
 
 RGBAImage.prototype.setPixel = function(x, y, c) {
     var idx = (y * this.w + x) * this.channels;
