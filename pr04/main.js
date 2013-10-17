@@ -214,13 +214,63 @@ function replaceColor() {
 }
 
 function reduceColor() {
-    var row = myMat.row,
-        col = myMat.col;
-    var newmat = new Mat(row, col);
+    var h = myMat.row,
+        w = myMat.col;
+    var newmat = new Mat(h, w);
     var data = newmat.data,
         sdata = myMat.data;
 
     // reduce color
+    // store all colors presented in the image
+    var inColors = [];
+    for(var y= 0, idx=0;y<h;y++) {
+        for(var x=0;x<w;x++,idx+=4) {
+            inColors.push({
+                r: sdata[idx+0],
+                g: sdata[idx+1],
+                b: sdata[idx+2]
+            });
+        }
+    }
+
+    var targetCount = $('#colors').val();
+    console.log('target colors = ' + targetCount);
+
+    // reduce the colors to desired number by k-means clustering
+    var colors = medianCut( inColors );
+
+    console.log('done');
+    console.log(colors);
+
+    for(var y= 0, idx=0;y<h;y++) {
+        for(var x=0;x<w;x++,idx+=4) {
+            var r = sdata[idx+0];
+            var g = sdata[idx+1];
+            var b = sdata[idx+2];
+
+            // find the closest color in the table
+            var minIdx = 0, minDist = Number.MAX_VALUE;
+            for(var i=0;i<colors.length;i++) {
+                // find the closest color
+                var cref = hex2rgb(colors[i].color);
+                var dr = r - cref.r;
+                var dg = g - cref.g;
+                var db = b - cref.b;
+
+                var dist = dr * dr + dg * dg + db * db;
+                if( dist < minDist ) {
+                    minDist = dist;
+                    minIdx = i;
+                }
+            }
+
+            var cMin = hex2rgb(colors[minIdx].color);
+            data[idx+0] = cMin.r;
+            data[idx+1] = cMin.g;
+            data[idx+2] = cMin.b;
+            data[idx+3] = sdata[idx+3];
+        }
+    }
 
     var newimg = matrix2ImageData( newmat );
 
@@ -413,6 +463,18 @@ function changeCurveType()
 	console.log('manipulating ' + curvename + ' channel');
 }
 
+function sampleColorFromCanvas(e) {
+    console.log('sampling from the canvas ...');
+    var pos = findPos(canvas);
+    var x = e.pageX - pos.x;
+    var y = e.pageY - pos.y;
+    var coord = "x=" + x + ", y=" + y;
+    var p = context.getImageData(x, y, 1, 1).data;
+    console.log(coord + ": " + p[0] + ', ' + p[1] + ', ' + p[2]);
+
+    $('.colorpatch.active').css('background-color', 'rgb('+p[0]+','+p[1]+','+p[2]+')');
+}
+
 window.onload = (function(){
 	console.log('document loaded');
 
@@ -420,14 +482,21 @@ window.onload = (function(){
 	canvas = document.getElementById("mycanvas");
 	context = canvas.getContext("2d");
 
-	canvas.onmousedown = (function(){
+	canvas.onmousedown = (function(e){
 		console.log('mouse down');
-		context.putImageData(origImgData, 0, 0);
+        if(e.shiftKey) {
+            // sample color from image
+            sampleColorFromCanvas(e);
+        }
+        else {
+            context.putImageData(origImgData, 0, 0);
+        }
 	});
 
-	canvas.onmouseup = (function(){
+	canvas.onmouseup = (function(e){
 		console.log('mouse up');
-		context.putImageData(filteredImgData, 0, 0);
+        if(e.shiftKey) return;
+        else context.putImageData(filteredImgData, 0, 0);
 	});
 
 	// set up callbacks for filter selection

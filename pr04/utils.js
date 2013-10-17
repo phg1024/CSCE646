@@ -1,3 +1,31 @@
+function rgb2hex( c ) {
+    return ("0" + c.r.toString(16)).slice(-2) +
+        ("0" + c.g.toString(16)).slice(-2) +
+        ("0" + c.b.toString(16)).slice(-2);
+}
+
+function hex2rgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if( !result ) console.log( hex );
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+function rgb2int( c ) {
+    return c.r << 16 | c.g << 8 | c.b;
+}
+
+function int2rgb( v ) {
+    return {
+        r: (v >> 16) & 0xff,
+        g: (v >> 8 ) & 0xff,
+        b: v & 0xff
+    }
+}
+
 function rgb2hsv(c){
     //***Returns an hsv object from RGB values
     //***The r (red), g (green), and b (blue) should be values in the range 0 to 1
@@ -55,6 +83,18 @@ function hsv2rgb( c ){
         }
     }
     return {r:r,g:g,b:b};
+}
+
+function findPos(obj) {
+    var curleft = 0, curtop = 0;
+    if (obj.offsetParent) {
+        do {
+            curleft += obj.offsetLeft;
+            curtop += obj.offsetTop;
+        } while (obj = obj.offsetParent);
+        return { x: curleft, y: curtop };
+    }
+    return undefined;
 }
 
 function handleFileSelect(evt) {
