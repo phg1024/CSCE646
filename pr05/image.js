@@ -113,6 +113,7 @@ function filter(__src, f)
 		var hf = Math.floor(f.height / 2);
 		var bias = f.bias;
 		var factor = f.factor;
+        var p = f.p || 1.0;
 		for (var y=0;y<row;y++)
 		{
 			for (var x=0;x<col;x++)
@@ -132,15 +133,15 @@ function filter(__src, f)
 						
 						var weight = f.value[fidx++];
 						
-						r += data2[pidx] * weight;
-						g += data2[pidx+1] * weight;
-						b += data2[pidx+2] * weight;												
+						r += Math.pow(data2[pidx] * weight, p);
+						g += Math.pow(data2[pidx+1] * weight, p);
+						b += Math.pow(data2[pidx+2] * weight, p);
 					}
 				}
 				
-				r = clamp(r/factor+bias, 0.0, 255.0);
-				g = clamp(g/factor+bias, 0.0, 255.0);
-				b = clamp(b/factor+bias, 0.0, 255.0);
+				r = clamp(Math.pow(r, 1/p)/factor+bias, 0.0, 255.0);
+				g = clamp(Math.pow(g, 1/p)/factor+bias, 0.0, 255.0);
+				b = clamp(Math.pow(b, 1/p)/factor+bias, 0.0, 255.0);
 																
 				data[idx] = r;
 				data[idx+1] = g;
@@ -171,6 +172,45 @@ function grayscale(__src)
 		return __src;
 	}
 	return dst;
+}
+
+function edge( __src ) {
+    if(__src.type && __src.type === "IMG_RGBA"){
+
+        var gx = grayscale( filter(__src, Filter.hsobel) );
+        var gy = grayscale( filter(__src, Filter.vsobel) );
+
+        // sqrt(gx^2 + gy^2)
+        var row = gx.row,
+            col = gx.col;
+        var g = new Mat(row, col);
+        var data = g.data,
+            data1 = gx.data,
+            data2 = gy.data;
+
+        for (var idx=0;idx<row*col*4;idx++)
+        {
+            data[idx] = Math.sqrt(data1[idx] * data1[idx] + data2[idx] * data2[idx]);
+        }
+
+        var dst = new Mat(row, col);
+        var ddata = dst.data, sdata = __src.data;
+        for (var y= 0, idx = 0;y<row;y++)
+        {
+            for (var x=0;x<col;x++, idx+=4)
+            {
+                ddata[idx+0] = sdata[idx+0] * data[idx] / 255.0;
+                ddata[idx+1] = sdata[idx+1] * data[idx] / 255.0;
+                ddata[idx+2] = sdata[idx+2] * data[idx] / 255.0;
+                ddata[idx+3] = 255;
+            }
+        }
+        return dst;
+    }
+    else
+    {
+        return __src;
+    }
 }
 
 function add(img1, img2, w)

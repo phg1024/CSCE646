@@ -28,6 +28,24 @@ function applyFilter()
     var newimg;
     switch( filtername )
     {
+        case "edge":
+        {
+            console.log('edge detection ...');
+            newimg = matrix2ImageData(	edge( myMat ) );
+            break;
+        }
+        case "erosion":
+        {
+            console.log('erosing the image ...');
+            newimg = matrix2ImageData(	filter(myMat, new Filter.erosion(9)) );
+            break;
+        }
+        case "dialation":
+        {
+            console.log('dialating the image ...');
+            newimg = matrix2ImageData(	filter(myMat, new Filter.dialation(9)) );
+            break;
+        }
         case "invert":
         {
             console.log('inverting the image ...');
@@ -60,7 +78,7 @@ function applyFilter()
 		}
         case "gradient":
         {
-            newimg = matrix2ImageData( filter(myMat, Filter.gradient) );
+            newimg = matrix2ImageData( grayscale( filter(myMat, Filter.gradient) ) );
             break;
         }
         case 'hsobel':

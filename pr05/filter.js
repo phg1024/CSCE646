@@ -28,7 +28,7 @@ function Filter( params )
 Filter.gradient = {
 	width : 3,
 	height : 3,
-	value : [-1, -1, -1, 
+	value : [-1, -1, -1,
 	-1, 8, -1, 
 	-1, -1, -1],
 	factor : 1.0,
@@ -113,4 +113,33 @@ Filter.invert = {
 	factor : -1,
 	bias : 255,
 	value : [1.0]
+};
+
+Filter.erosion = function(size){
+    var v = new Float32Array(size*size);
+    for(var i=0;i< v.length;i++)
+        v[i] = 1.0;
+
+    return {
+    width : size,
+    height: size,
+    value : v,
+    p : -20,
+    factor: 1,
+    bias : 0.0
+    };
+};
+
+Filter.dialation = function(size){
+    var v = new Float32Array(size*size);
+    for(var i=0;i< v.length;i++)
+        v[i] = 1.0;
+    return {
+    width : size,
+    height: size,
+    value : v,
+    p : 20,
+    factor: 1,
+    bias : 0.0
+    };
 };
