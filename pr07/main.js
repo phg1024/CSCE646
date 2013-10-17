@@ -31,8 +31,9 @@ function applyTransformation() {
         if( t == 'cbegin' ) {
             // collect all operations until cend
             // if cend does not appear, process until the end
+            t = 'c';
             params = [];
-            for(var j=i;j<ops.length;j++) {
+            for(var j=i+1;j<ops.length;j++,i++) {
                 var cparts = ops[j].split(/\s+/);
                 if( cparts[0] == 'cend' ) {
                     break;
@@ -41,7 +42,6 @@ function applyTransformation() {
                     params.push(cparts);
                 }
             }
-            t = 'c';
         }
         else if( !(t in Transformations.op) ) {
             console.log('Unsupported operation!');

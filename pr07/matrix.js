@@ -19,6 +19,42 @@ Matrix3x3.zero = function() {
     return new Matrix3x3([0, 0, 0, 0, 0, 0, 0, 0, 0]);
 };
 
+Matrix3x3.rotation = function( deg ) {
+    var theta = deg / 180.0 * Math.PI + Math.epsilon;
+    var cosTheta = Math.cos(theta);
+    var sinTheta = Math.sin(theta);
+
+    var mat = Matrix3x3.identity();
+
+    mat.setElement(0, 0, cosTheta); mat.setElement(0, 1, -sinTheta);
+    mat.setElement(1, 0, sinTheta); mat.setElement(1, 1, cosTheta);
+    return mat;
+};
+
+Matrix3x3.perspective = function(px, py) {
+    var mat = Matrix3x3.identity();
+    mat.setElement(2, 0, px); mat.setElement(2, 1, py);
+    return mat;
+};
+
+Matrix3x3.shear = function(shx, shy) {
+    var mat = Matrix3x3.identity();
+    mat.setElement(0, 1, shx); mat.setElement(1, 0, shy);
+    return mat;
+};
+
+Matrix3x3.scale = function(sx, sy) {
+    var mat = Matrix3x3.identity();
+    mat.setElement(0, 0, sx); mat.setElement(1, 1, sy);
+    return mat;
+};
+
+Matrix3x3.translate = function(tx, ty) {
+    var mat = Matrix3x3.identity();
+    mat.setElement(0, 2, tx); mat.setElement(1, 2, ty);
+    return mat;
+};
+
 Matrix3x3.prototype.det = function() {
     var m = this.data;
     return m[0] * (m[4]*m[8] - m[5]*m[7])
