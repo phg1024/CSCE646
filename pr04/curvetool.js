@@ -16,7 +16,7 @@ var svg;
 
 function initCurveTool()
 {
-    svg = d3.select("#mainpanel").append("svg")
+    svg = d3.select("#curvepanel").append("svg")
         .attr("id", "curvetool")
         .attr("width", width)
         .attr("height", height)

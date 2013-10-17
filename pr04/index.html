@@ -2,9 +2,10 @@
     <title>Viza654/CSCE646 - Digital Image</title>
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
+    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="jquery-1.10.2.js"></script>
     <script type="text/javascript" src="filter.js"></script>
     <script type="text/javascript" src="image.js"></script>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript" src="curvetool.js"></script>
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="main.js"></script>
@@ -36,6 +37,60 @@
             fill: #ff7f0e;
             stroke: #ff7f0e;
         }
+
+        #curvepanel {
+            padding: 10px;
+        }
+        
+        .tabcontent{
+            margin: 20px;
+            text-align: center;
+            background: none;
+            min-height: 320px;
+        }
+        
+        .tabcontent p{
+            padding: 5px;
+        }
+
+        ul.tabs {
+            padding: 0;
+        }
+        .tabs li {
+            list-style:none;
+            display:inline;
+        }
+
+        .tabs a {
+            padding:5px 10px;
+            display:inline-block;
+            background:#888888;
+            color:#fff;
+            text-decoration:none;
+            text-shadow: 1px 1px #000000;
+        }
+
+        .tabs a.active {
+            background:#fff;
+            color:#000;
+            text-shadow: 1px 1px #ffffff;
+        }
+
+        .controls {
+            width: 100%;
+        }
+
+        .colorpatch {
+            display: inline-block;
+            width: 48px;
+            height: 32px;
+            background: rgb(0, 0, 0);
+            border: 1px solid #000000;
+        }
+        .colorpatch.active {
+            box-shadow: 0px 0px 16px rgba(160, 200, 250, 1.0);
+            border: 2px solid #ff0000;
+        }
     </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
@@ -59,19 +114,20 @@
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
 
                 <tr>
-                    <td align=center>
+                    <td align=center width="60%">
                         <div id="mainpanel">
                             <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
                         </div>
-                        <div class="submissiondes">
-                            <p>Please try apply different filters to the above image.</p>
-                            <p>
-                                Image:
-                                <select id="imgselect">
-                                    <option value="seal">Seal</option>
-                                    <option value="buck">Buck</option>
-                                    <option value="waterfall">Waterfall</option>
-                                </select>
+                    </td>
+                    <td align=center width="40%">
+                        <div class="controls">
+                            <ul class='tabs'>
+                                <li><a href='#tab1'>Curve</a></li>
+                                <li><a href='#tab2'>Replace</a></li>
+                                <li><a href='#tab3'>Reduce</a></li>
+                            </ul>
+                            <div class='tabcontent' id='tab1'>
+                                <p id="curvepanel"></p>
                                 Curve:
                                 <select id="curveop">
                                     <option value="all">all</option>
@@ -79,17 +135,55 @@
                                     <option value="green">green</option>
                                     <option value="blue">blue</option>
                                 </select>
-                            </p>
-                            <p>Upload image:
-                                <input type="file" id="files" name="files[]" />
-                                <output id="list"></output>
-                            </p>
+                            </div>
+                            <div class='tabcontent' id='tab2'>
+                                S:&nbsp<div id="sourceC" class="colorpatch"></div>&nbspT:&nbsp<div id="targetC" class="colorpatch"></div>
+                                <p>Mode:
+                                    <input type="radio" id="rgbmode" name="rmode" checked="checked">RGB
+                                    <input type="radio" id="hsvmode" name="rmode">HSV
+                                </p>
+                                <p>Red:&nbsp
+                                    <input type="range" id="rrange" name="red" min="0" max="255" value="0">
+                                    <input type="text" id="rtext" size="3" value="0">
+                                </p>
+                                <p>Green:&nbsp
+                                    <input type="range" id="grange" name="green" min="0" max="255" value="0">
+                                    <input type="text" id="gtext" size="3" value="0">
+                                </p>
+                                <p>Blue:&nbsp
+                                    <input type="range" id="brange" name="blue" min="0" max="255" value="0">
+                                    <input type="text" id="btext" size="3" value="0">
+                                </p>
+                                <p>
+                                    Tolerance:
+                                    <input type="range" id="torrange" name="tor" min="0" max="360" value="20">
+                                    <input type="text" id="tortext" size="3" value="20">
+                                </p>
+                                <p><button id="replaceButton">Replace</button></p>
+                            </div>
+                            <div class='tabcontent' id='tab3'>
+                                <p>Colors:&nbsp<input type="text" id="colors" name="colors" width="4" value="65536"></p>
+                                <p><button id="reduceButton">Reduce</button></p>
+                            </div>
                         </div>
-                    </td>
-                </tr>
+                        </td>
+                    </tr>
 
             </table>
 
+            <div class="submissiondes" align="center">
+                            <p>
+                                Image:
+                                <select id="imgselect">
+                                    <option value="seal">Seal</option>
+                                    <option value="buck">Buck</option>
+                                    <option value="waterfall">Waterfall</option>
+                                </select>
+                                Upload image:
+                                <input type="file" id="files" name="files[]" />
+                                <output id="list"></output>
+                            </p>
+            </div>
         </div>
     </div>
     </div>
