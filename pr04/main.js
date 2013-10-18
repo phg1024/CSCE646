@@ -1,6 +1,6 @@
 var img, origImgData, myMat;
 var imgIdx = 0;
-var imgsrc = ['seal.jpg', 'buck.jpg', 'waterfall.jpg'];
+var imgsrc = ['T.png', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
 function loadImage()
 {
