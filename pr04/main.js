@@ -279,6 +279,25 @@ function reduceColor() {
             colors = kmeans( inColors, targetCount, sr );
             break;
         }
+        case 'neural':
+        {
+            var inColors = [];
+            for(var y= 0, idx=0;y<h;y++) {
+                for(var x=0;x<w;x++,idx+=4) {
+                    inColors.push({
+                        r: sdata[idx+0],
+                        g: sdata[idx+1],
+                        b: sdata[idx+2]
+                    });
+                }
+            }
+            console.log(inColors);
+            console.log('input colors = ' + inColors.length);
+
+            var sr = $('#samplingrate').val();
+            colors = neuralnetwork( inColors, targetCount, sr );
+            break;
+        }
         case 'mediancut':
         {
             var inColors = {};

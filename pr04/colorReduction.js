@@ -144,6 +144,55 @@ function population_curved( samples, n ) {
     return colors.slice(0, Math.min(n, zIdx));
 }
 
+function neuralnetwork( inColors, n, sr ) {
+    console.log('color reduction by neural network');
+    // set up the color entries
+    var colors = [];
+    var step = 255 / (n-1);
+    for(var i=0;i<n;i++) {
+        colors.push({
+            r: i * step,
+            g: i * step,
+            b: i * step
+        })
+    }
+
+    // sample the input colors
+
+    var nsamples = inColors.length * sr;
+    console.log(nsamples);
+    var samples = [];
+    for(var i=0;i<nsamples;i++) {
+        samples.push( inColors[Math.round(Math.random() * (inColors.length - 1))] );
+    }
+
+    // update the color entries using the samples
+    for(var i=0;i<samples.length;i++) {
+        var alpha = Math.exp(-0.03 * i);
+
+        // find the best entrie for current color
+        var idx, minDist = Number.MAX_VALUE;
+        for(var j=0;j<colors.length;j++) {
+            var dr = samples[i].r - colors[j].r;
+            var dg = samples[i].g - colors[j].g;
+            var db = samples[i].b - colors[j].b;
+            var dist = dr * dr + dg * dg + db * db;
+            if( dist < minDist ) {
+                minDist = dist;
+                idx = j;
+            }
+        }
+
+
+        // update this entry
+        colors[idx].r = alpha * samples[i].r + (1.0 - alpha) * colors[idx].r;
+        colors[idx].g = alpha * samples[i].g + (1.0 - alpha) * colors[idx].g;
+        colors[idx].b = alpha * samples[i].b + (1.0 - alpha) * colors[idx].b;
+    }
+
+    return colors;
+}
+
 function kmeans( inColors, n, sr ) {
     // sample 1% colors
     var nsamples = inColors.length * sr;
