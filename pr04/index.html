@@ -221,14 +221,16 @@
                     </ol>
                 </p>
                 <p><b>Color Reduction</b></p>
-                <p>Four algorithms for color reduction are implemented: uniform palette, population based reduction, median-cut algorithm and k-means clustering reduction.</p>
+                <p>Four algorithms for color reduction are implemented: uniform palette, population based reduction, median-cut algorithm, k-means clustering reduction and neural network.</p>
                 <p><b><em>Uniform palette</b></em> is a straight-forward discretization of the RGB space by replacing each channel with a fixed number (less than 256) of levels.</p>
                 <p><b><em>Population based reduction</em></b> is a reduction method utilizing the distribution of the colors in an image. A 3D histogram is built using pixels in the image,
                 and only the first <em>n</em> most filled bins are selected. The color map is then built using the center colors of the chosen bins.</p>
                 <p><b><em>Median-Cut color reduction</em></b> is achieved by recursively dividing the color space into two parts and build a color map with the center color of each
                 color subspace. Please refer to <a href="http://dl.acm.org/citation.cfm?id=801294&CFID=238358999&CFTOKEN=52607771">Paul Heckbert's paper</a> for details.</p>
-                <p><b><em>K-means clustering reduction</em></b> is achieved by clustering the pixels in the input image into k groups and generate a color map using the mean colors of each group.
+                <p><b><em>K-means clustering color reduction</em></b> is achieved by clustering the pixels in the input image into k groups and generate a color map using the mean colors of each group.
                     Please refer to <a href="www.cescg.org/CESCG-2007/papers/Brno-Mikolov-Tomas.pdf‎">Tomáš Mikolov's paper</a> for details. </p>
+                <p><b><em>Neural network color reduction</em></b> is a reduction method that constructs the color mapping by adapting an initial color map to minimize the reduction error.
+                    This algorithm is a simplified implementation based on <a href="">Anthony H. Dekker's paper</a>.</p>
             </div>
             <div>
             </div>
