@@ -3,8 +3,15 @@
  */
 
 function uniform( inColors, n ) {
-    // levels^3 colors in total
-    var levels = Math.ceil(Math.pow(n, 1/3));
+    var nsamples = inColors.length / 100;
+    console.log(nsamples);
+    var samples = [];
+    for(var i=0;i<nsamples;i++) {
+        samples.push( inColors[Math.round(Math.random() * (inColors.length - 1))] );
+    }
+
+    var levels = Math.round(Math.pow(n, 1/3));
+
     var colors = [];
     var step = 255 / (levels - 1);
     for(var i=0;i<levels;i++) {
@@ -18,25 +25,7 @@ function uniform( inColors, n ) {
         }
     }
 
-    // assign colors to the bins, and select the most populated bins
-    for(var i=0;i<inColors.length;i++) {
-        var idx, minDist = Number.MAX_VALUE;
-        for(var j=0;j<colors.length;j++) {
-            var dr = inColors[i].r - colors[j].r;
-            var dg = inColors[i].g - colors[j].g;
-            var db = inColors[i].b - colors[j].b;
-            var dist = dr * dr + dg * dg + db * db;
-            if( dist < minDist ) {
-                minDist = dist;
-                idx = j;
-            }
-        }
-        colors[idx].count++;
-    }
-
-    colors.sort(function(a, b){return b.count- a.count;});
-
-    return colors.slice(0, n);
+    return colors;
 }
 
 function buildcdf( hist, num_bins )
@@ -56,7 +45,14 @@ function buildcdf( hist, num_bins )
     return cumuhist;
 }
 
-function population( inColors, n ) {
+function population_curved( inColors, n ) {
+    var nsamples = inColors.length / 100;
+    console.log(nsamples);
+    var samples = [];
+    for(var i=0;i<nsamples;i++) {
+        samples.push( inColors[Math.round(Math.random() * (inColors.length - 1))] );
+    }
+
     var rhist = new Array(256);
     var ghist = new Array(256);
     var bhist = new Array(256);
@@ -65,10 +61,10 @@ function population( inColors, n ) {
         rhist[i] = ghist[i] = bhist[i] = 0;
     }
 
-    for(var i=0;i<inColors.length;i++) {
-        var r = inColors[i].r;
-        var g = inColors[i].g;
-        var b = inColors[i].b;
+    for(var i=0;i<samples.length;i++) {
+        var r = samples[i].r;
+        var g = samples[i].g;
+        var b = samples[i].b;
         rhist[r] ++;
         ghist[g] ++;
         bhist[b] ++;
@@ -78,29 +74,36 @@ function population( inColors, n ) {
     var gcdf = buildcdf(ghist);
     var bcdf = buildcdf(bhist);
 
-    var levels = Math.ceil(Math.pow(n, 1/3));
+    var levels = Math.max(16, Math.round(Math.sqrt(n)));
 
-    var step = 1.0 / levels;
-    var rPoints = [0];
-    var gPoints = [0];
-    var bPoints = [0];
+    var rPoints = [];
+    var gPoints = [];
+    var bPoints = [];
+    var rstep = (1.0 - rcdf[0]) / levels;
+    var gstep = (1.0 - gcdf[0]) / levels;
+    var bstep = (1.0 - bcdf[0]) / levels;
 
     for(var j=0;j<=levels;j++) {
-        var p = step * j;
+
+        var pr = rstep * j + rcdf[0];
         for(var i=1;i<256;i++) {
-            if( rcdf[i-1] <= p && rcdf[i] >= p ) {
+            if( rcdf[i-1] <= pr && rcdf[i] >= pr ) {
                 rPoints.push(i);
                 break;
             }
         }
+
+        var pg = gstep * j + gcdf[0];
         for(var i=1;i<256;i++) {
-            if( gcdf[i-1] <= p && gcdf[i] >= p ) {
+            if( gcdf[i-1] <= pg && gcdf[i] >= pg ) {
                 gPoints.push(i);
                 break;
             }
         }
+
+        var pb = bstep * j + bcdf[0];
         for(var i=1;i<256;i++) {
-            if( bcdf[i-1] <= p && bcdf[i] >= p ) {
+            if( bcdf[i-1] <= pb && bcdf[i] >= pb ) {
                 bPoints.push(i);
                 break;
             }
@@ -122,12 +125,12 @@ function population( inColors, n ) {
     }
 
     // assign colors to the bins, and select the most populated bins
-    for(var i=0;i<inColors.length;i++) {
+    for(var i=0;i<samples.length;i++) {
         var idx, minDist = Number.MAX_VALUE;
         for(var j=0;j<colors.length;j++) {
-            var dr = inColors[i].r - colors[j].r;
-            var dg = inColors[i].g - colors[j].g;
-            var db = inColors[i].b - colors[j].b;
+            var dr = samples[i].r - colors[j].r;
+            var dg = samples[i].g - colors[j].g;
+            var db = samples[i].b - colors[j].b;
             var dist = dr * dr + dg * dg + db * db;
             if( dist < minDist ) {
                 minDist = dist;
@@ -139,15 +142,24 @@ function population( inColors, n ) {
 
     colors.sort(function(a, b){return b.count- a.count;});
 
-    return colors.slice(0, n);
+    // @note this can introduce error
+    // find the last color without any samples in them and discard those colors
+    // since it is very unlikely they will be used
+    var zIdx;
+    for(var i=colors.length-1;i>0;i--) {
+        if( colors[i].count > 0 ){ zIdx = i; break; }
+    }
+
+
+    return colors.slice(0, Math.min(n, zIdx));
 }
 
 function kmeans( inColors, n ) {
     // sample 1% colors
-    var ncolors = inColors.length / 100;
-    console.log(ncolors);
+    var nsamples = inColors.length / 100;
+    console.log(nsamples);
     var samples = [];
-    for(var i=0;i<ncolors;i++) {
+    for(var i=0;i<nsamples;i++) {
         samples.push( inColors[Math.round(Math.random() * (inColors.length - 1))] );
     }
 

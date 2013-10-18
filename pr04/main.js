@@ -232,7 +232,7 @@ function reduceColor() {
         case 'uniform':
         {
             var inColors = [];
-            for(var y= 0, idx=0;y<h;y++) {
+            for(var y=0, idx=0;y<h;y++) {
                 for(var x=0;x<w;x++,idx+=4) {
                     inColors.push({
                         r: sdata[idx+0],
@@ -261,7 +261,7 @@ function reduceColor() {
             console.log(inColors);
             console.log('input colors = ' + inColors.length);
 
-            colors = population( inColors, targetCount );
+            colors = population_curved( inColors, targetCount );
             break;
         }
         case 'kmeans':
