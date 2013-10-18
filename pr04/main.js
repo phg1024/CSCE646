@@ -222,25 +222,35 @@ function reduceColor() {
 
     // reduce color
     // store all colors presented in the image
-    var inColors = [];
+    var inColors = {};
     for(var y= 0, idx=0;y<h;y++) {
         for(var x=0;x<w;x++,idx+=4) {
-            inColors.push({
+            var hex = rgb2hex({
                 r: sdata[idx+0],
                 g: sdata[idx+1],
                 b: sdata[idx+2]
             });
+
+            if( !(hex in inColors) ) {
+                inColors[hex] = true;
+            }
         }
     }
+    inColors = $.map(inColors, function(value, index) {
+        return [hex2rgb(index)];
+    });
+    console.log(inColors);
+    console.log('input colors = ' + inColors.length);
 
     var targetCount = $('#colors').val();
     console.log('target colors = ' + targetCount);
 
     // reduce the colors to desired number by k-means clustering
-    var colors = medianCut( inColors );
+    var colors = medianCut( inColors, targetCount );
 
     console.log('done');
-    console.log(colors);
+    for(var i=0;i<colors.length;i++)
+        console.log(colors[i]);
 
     for(var y= 0, idx=0;y<h;y++) {
         for(var x=0;x<w;x++,idx+=4) {
@@ -249,10 +259,10 @@ function reduceColor() {
             var b = sdata[idx+2];
 
             // find the closest color in the table
-            var minIdx = 0, minDist = Number.MAX_VALUE;
+            var cMin, minDist = Number.MAX_VALUE;
             for(var i=0;i<colors.length;i++) {
                 // find the closest color
-                var cref = hex2rgb(colors[i].color);
+                var cref = colors[i];
                 var dr = r - cref.r;
                 var dg = g - cref.g;
                 var db = b - cref.b;
@@ -260,11 +270,10 @@ function reduceColor() {
                 var dist = dr * dr + dg * dg + db * db;
                 if( dist < minDist ) {
                     minDist = dist;
-                    minIdx = i;
+                    cMin = cref;
                 }
             }
 
-            var cMin = hex2rgb(colors[minIdx].color);
             data[idx+0] = cMin.r;
             data[idx+1] = cMin.g;
             data[idx+2] = cMin.b;

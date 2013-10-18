@@ -2,10 +2,11 @@
  * Created by phg on 10/17/13.
  */
 
-function medianCut( inColors ) {
+function medianCut( inColors, n ) {
 
     function BoundingBox( colors ) {
         var min = {r:255, g:255, b:255}, max = {r:0, g:0, b:0};
+        var bc = [];
         for(var i=0;i<colors.length;i++) {
             var c = colors[i];
             min.r = Math.min(c.r, min.r);
@@ -15,9 +16,14 @@ function medianCut( inColors ) {
             max.r = Math.max(c.r, max.r);
             max.g = Math.max(c.g, max.g);
             max.b = Math.max(c.b, max.b);
+            bc.push({r: c.r, g: c.g, b: c.b});
         }
+
+        console.log(min);
+        console.log(max);
+
         return {
-            colors: colors,
+            colors: bc,
             min: min,
             max: max
         }
@@ -37,59 +43,75 @@ function medianCut( inColors ) {
             if( db > dr ) dir = 'b';
         }
 
+        console.log( dir );
+
         var lBox, rBox;
 
         switch( dir ) {
             case 'r':{
                 // sort the colors along r axis
-                box.colors.sort( function(a, b) {return a.r < b.r;} );
-                // determine the boundary
-                var midR = box.colors[box.colors.length / 2].r;
-
-                // left box
-                lBox.min.r = box.min.r;
-                lBox.min.g = box.min.g;
-                lBox.min.b = box.min.b;
-
-                lBox.max.r = midR;
-                lBox.max.g = box.max.g;
-                lBox.max.b = box.max.b;
-
-                lBox.colors = box.colors.slice(0, box.colors.length/2);
-
-
-                // right box
-                rBox.min.r = midR;
-                rBox.min.g = box.min.g;
-                rBox.min.b = box.min.b;
-
-                rBox.max.r = box.max.r;
-                rBox.max.g = box.max.g;
-                rBox.max.b = box.max.b;
-
-                rBox.colors = box.colors.slice(box.colors.length/2);
-
+                box.colors.sort( function(a, b) {return a.r - b.r;} );
                 break;
             }
             case 'g':{
-                box.colors.sort( function(a, b) {return a.g < b.g;} );
-                var midG = box.colors[box.colors.length / 2].g;
-
+                box.colors.sort( function(a, b) {return a.g - b.g;} );
                 break;
             }
             case 'b':{
-                box.colors.sort( function(a, b) {return a.b < b.b;} );
-                var midG = box.colors[box.colors.length / 2].b;
-
+                box.colors.sort( function(a, b) {return a.b - b.b;} );
                 break;
             }
         }
+
+        var mid = box.colors.length/2;
+        lBox = new BoundingBox(box.colors.slice(0, mid));
+        rBox = new BoundingBox(box.colors.slice(mid));
 
         return {
             left: lBox,
             right: rBox
         }
     }
+
+    function meanColor( box ) {
+        var r = 0, g = 0, b = 0;
+        for(var i=0;i<box.colors.length;i++) {
+            r += box.colors[i].r;
+            g += box.colors[i].g;
+            b += box.colors[i].b;
+        }
+
+        return {
+            r: Math.round(r / box.colors.length),
+            g: Math.round(g / box.colors.length),
+            b: Math.round(b / box.colors.length)
+        }
+    }
+
+    // build the mean cut tree
+    var root = new BoundingBox( inColors );
+    var nodeCount = 1;
+
+    var Q = [];
+    Q.push(root);
+
+    while(Q.length < n ) {
+        // recursively refine the tree
+        var cur = Q[0];
+        Q.shift();
+
+        var children = split(cur);
+
+        Q.push(children.left);
+        Q.push(children.right);
+    }
+
+    var colors = [];
+    for(var i=0;i< Q.length;i++) {
+        colors.push( meanColor(Q[i]) );
+    }
+
+    return colors;
 }
 
 /*
