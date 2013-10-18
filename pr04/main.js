@@ -231,6 +231,11 @@ function reduceColor() {
     switch( method ) {
         case 'uniform':
         {
+            colors = uniform( targetCount );
+            break;
+        }
+        case 'population':
+        {
             var inColors = [];
             for(var y=0, idx=0;y<h;y++) {
                 for(var x=0;x<w;x++,idx+=4) {
@@ -243,25 +248,16 @@ function reduceColor() {
             }
             console.log(inColors);
             console.log('input colors = ' + inColors.length);
-            colors = uniform( inColors, targetCount );
-            break;
-        }
-        case 'population':
-        {
-            var inColors = [];
-            for(var y= 0, idx=0;y<h;y++) {
-                for(var x=0;x<w;x++,idx+=4) {
-                    inColors.push({
-                        r: sdata[idx+0],
-                        g: sdata[idx+1],
-                        b: sdata[idx+2]
-                    });
-                }
-            }
-            console.log(inColors);
-            console.log('input colors = ' + inColors.length);
 
-            colors = population_curved( inColors, targetCount );
+            // sample the input colors
+            var sr = $('#samplingrate').val();
+            var nsamples = inColors.length * sr;
+            var samples = [];
+            for(var i=0;i<nsamples;i++) {
+                samples.push( inColors[Math.round(Math.random() * (inColors.length - 1))] );
+            }
+
+            colors = population_curved( samples, targetCount );
             break;
         }
         case 'kmeans':
@@ -279,7 +275,8 @@ function reduceColor() {
             console.log(inColors);
             console.log('input colors = ' + inColors.length);
 
-            colors = kmeans( inColors, targetCount );
+            var sr = $('#samplingrate').val();
+            colors = kmeans( inColors, targetCount, sr );
             break;
         }
         case 'mediancut':

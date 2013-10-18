@@ -2,14 +2,7 @@
  * Created by phg on 10/17/13.
  */
 
-function uniform( inColors, n ) {
-    var nsamples = inColors.length / 100;
-    console.log(nsamples);
-    var samples = [];
-    for(var i=0;i<nsamples;i++) {
-        samples.push( inColors[Math.round(Math.random() * (inColors.length - 1))] );
-    }
-
+function uniform( n ) {
     var levels = Math.round(Math.pow(n, 1/3));
 
     var colors = [];
@@ -45,13 +38,10 @@ function buildcdf( hist, num_bins )
     return cumuhist;
 }
 
-function population_curved( inColors, n ) {
-    var nsamples = inColors.length / 100;
-    console.log(nsamples);
-    var samples = [];
-    for(var i=0;i<nsamples;i++) {
-        samples.push( inColors[Math.round(Math.random() * (inColors.length - 1))] );
-    }
+function population_curved( samples, n ) {
+
+    console.log('samples used: '+ samples.length);
+
 
     var rhist = new Array(256);
     var ghist = new Array(256);
@@ -154,9 +144,9 @@ function population_curved( inColors, n ) {
     return colors.slice(0, Math.min(n, zIdx));
 }
 
-function kmeans( inColors, n ) {
+function kmeans( inColors, n, sr ) {
     // sample 1% colors
-    var nsamples = inColors.length / 100;
+    var nsamples = inColors.length * sr;
     console.log(nsamples);
     var samples = [];
     for(var i=0;i<nsamples;i++) {
@@ -171,7 +161,7 @@ function kmeans( inColors, n ) {
         b: Math.random() * 255
     })
 
-    var m = 16;
+    var m = 32;
     var initsamples = [];
     while( centroids.length < n ) {
         // get m samples from the input color
