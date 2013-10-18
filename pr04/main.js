@@ -232,13 +232,22 @@ function reduceColor() {
             });
 
             if( !(hex in inColors) ) {
-                inColors[hex] = true;
+                inColors[hex] = 1;
+            }
+            else {
+                inColors[hex] ++;
             }
         }
     }
-    inColors = $.map(inColors, function(value, index) {
-        return [hex2rgb(index)];
-    });
+
+    var tmp = [];
+    for (var hex in inColors) {
+        var c = hex2rgb(hex);
+        c.w = inColors[hex];
+
+        tmp.push(c);
+    }
+    inColors = tmp;
     console.log(inColors);
     console.log('input colors = ' + inColors.length);
 

@@ -2,6 +2,10 @@
  * Created by phg on 10/17/13.
  */
 
+function uniform( levels ) {
+    // levels^3 colors in total
+}
+
 function medianCut( inColors, n ) {
 
     function BoundingBox( colors ) {
@@ -16,11 +20,11 @@ function medianCut( inColors, n ) {
             max.r = Math.max(c.r, max.r);
             max.g = Math.max(c.g, max.g);
             max.b = Math.max(c.b, max.b);
-            bc.push({r: c.r, g: c.g, b: c.b});
+            bc.push({r: c.r, g: c.g, b: c.b, w: c.w});
         }
 
-        console.log(min);
-        console.log(max);
+        //console.log(min);
+        //console.log(max);
 
         return {
             colors: bc,
@@ -43,7 +47,7 @@ function medianCut( inColors, n ) {
             if( db > dr ) dir = 'b';
         }
 
-        console.log( dir );
+        //console.log( dir );
 
         var lBox, rBox;
 
@@ -74,23 +78,27 @@ function medianCut( inColors, n ) {
     }
 
     function meanColor( box ) {
-        var r = 0, g = 0, b = 0;
+        var r = 0, g = 0, b = 0, wSum = 0;
         for(var i=0;i<box.colors.length;i++) {
-            r += box.colors[i].r;
-            g += box.colors[i].g;
-            b += box.colors[i].b;
+            var w = box.colors[i].w;
+            r += box.colors[i].r * w;
+            g += box.colors[i].g * w;
+            b += box.colors[i].b * w;
+            wSum += w;
         }
+        r /= wSum;
+        g /= wSum;
+        b /= wSum;
 
         return {
-            r: Math.round(r / box.colors.length),
-            g: Math.round(g / box.colors.length),
-            b: Math.round(b / box.colors.length)
+            r: Math.round(r),
+            g: Math.round(g),
+            b: Math.round(b)
         }
     }
 
     // build the mean cut tree
     var root = new BoundingBox( inColors );
-    var nodeCount = 1;
 
     var Q = [];
     Q.push(root);
