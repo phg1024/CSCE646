@@ -136,6 +136,8 @@
                                     <option value="green">green</option>
                                     <option value="blue">blue</option>
                                 </select>
+                                &nbsp
+                                <button id="curvereset">Reset</button>
                             </div>
                             <div class='tabcontent' id='tab2'>
                                 S:&nbsp<div id="sourceC" class="colorpatch"></div>&nbspT:&nbsp<div id="targetC" class="colorpatch"></div>
@@ -179,20 +181,25 @@
                     </tr>
 
             </table>
-
-            <div class="submissiondes" align="center">
-                            <p>
-                                Image:
-                                <select id="imgselect">
-                                    <option value="T">Table</option>
-                                    <option value="seal">Seal</option>
-                                    <option value="buck">Buck</option>
-                                    <option value="waterfall">Waterfall</option>
-                                </select>
-                                Upload image:
-                                <input type="file" id="files" name="files[]" />
-                                <output id="list"></output>
-                            </p>
+            <p align="center">
+                Image:
+                <select id="imgselect">
+                    <option value="T">Table</option>
+                    <option value="seal">Seal</option>
+                    <option value="buck">Buck</option>
+                    <option value="waterfall">Waterfall</option>
+                </select>
+                Upload image:
+                <input type="file" id="files" name="files[]" />
+                <output id="list"></output>
+            </p>
+            <div>
+                <p><b>Curve Tool</b></p>
+                <p>The curve tool is implemented using Catmull-Rom curve. It has a simple interface like GIMP. Click on </p>
+                <p><b>Color Replacement</b></p>
+                <p>Two modes of color replacement are supported, RGB mode and HSV mode. </p>
+                <p><b>Color Reduction</b></p>
+                <p>Four algorithms for color reduction are implemented.</p>
             </div>
         </div>
     </div>

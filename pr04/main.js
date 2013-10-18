@@ -561,13 +561,7 @@ window.onload = (function(){
 
 	canvas.onmousedown = (function(e){
 		console.log('mouse down');
-        if(e.shiftKey) {
-            // sample color from image
-            sampleColorFromCanvas(e);
-        }
-        else {
-            context.putImageData(origImgData, 0, 0);
-        }
+        context.putImageData(origImgData, 0, 0);
 	});
 
 	canvas.onmouseup = (function(e){
@@ -575,6 +569,16 @@ window.onload = (function(){
         if(e.shiftKey) return;
         else context.putImageData(filteredImgData, 0, 0);
 	});
+
+    canvas.onmousemove = function(e){
+        if(e.shiftKey ) {
+            canvas.style.cursor="crosshair";
+            sampleColorFromCanvas(e);
+        }
+        else {
+            canvas.style.cursor="auto";
+        }
+    }
 
 	// set up callbacks for filter selection
 	curveop = document.getElementById("curveop");
@@ -599,6 +603,10 @@ window.onload = (function(){
     // set up callback for reduce color
     $('#reduceButton').click(function(){
         reduceColor();
+    });
+
+    $('#curvereset').click(function(){
+        resetCurveTool();
     });
 
 	// set up callback for uploading file

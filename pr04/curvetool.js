@@ -14,6 +14,16 @@ var line = d3.svg.line();
 
 var svg;
 
+function resetCurveTool() {
+    while( points.length > 2)
+        points.splice(1, 1);
+
+    selected = null;
+
+    redraw();
+    applyCurve();
+}
+
 function initCurveTool()
 {
     svg = d3.select("#curvepanel").append("svg")
