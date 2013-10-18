@@ -222,42 +222,104 @@ function reduceColor() {
 
     // reduce color
     // store all colors presented in the image
-    var inColors = {};
-    for(var y= 0, idx=0;y<h;y++) {
-        for(var x=0;x<w;x++,idx+=4) {
-            var hex = rgb2hex({
-                r: sdata[idx+0],
-                g: sdata[idx+1],
-                b: sdata[idx+2]
-            });
-
-            if( !(hex in inColors) ) {
-                inColors[hex] = 1;
-            }
-            else {
-                inColors[hex] ++;
-            }
-        }
-    }
-
-    var tmp = [];
-    for (var hex in inColors) {
-        var c = hex2rgb(hex);
-        c.w = inColors[hex];
-
-        tmp.push(c);
-    }
-    inColors = tmp;
-    console.log(inColors);
-    console.log('input colors = ' + inColors.length);
-
+    var method = $('#reduction').val();
+    console.log('using ' + method + ' for color reduction');
+    var colors;
     var targetCount = $('#colors').val();
     console.log('target colors = ' + targetCount);
 
-    // reduce the colors to desired number by k-means clustering
-    var colors = medianCut( inColors, targetCount );
+    switch( method ) {
+        case 'uniform':
+        {
+            var inColors = [];
+            for(var y= 0, idx=0;y<h;y++) {
+                for(var x=0;x<w;x++,idx+=4) {
+                    inColors.push({
+                        r: sdata[idx+0],
+                        g: sdata[idx+1],
+                        b: sdata[idx+2]
+                    });
+                }
+            }
+            console.log(inColors);
+            console.log('input colors = ' + inColors.length);
+            colors = uniform( inColors, targetCount );
+            break;
+        }
+        case 'population':
+        {
+            var inColors = [];
+            for(var y= 0, idx=0;y<h;y++) {
+                for(var x=0;x<w;x++,idx+=4) {
+                    inColors.push({
+                        r: sdata[idx+0],
+                        g: sdata[idx+1],
+                        b: sdata[idx+2]
+                    });
+                }
+            }
+            console.log(inColors);
+            console.log('input colors = ' + inColors.length);
 
-    console.log('done');
+            colors = population( inColors, targetCount );
+            break;
+        }
+        case 'kmeans':
+        {
+            var inColors = [];
+            for(var y= 0, idx=0;y<h;y++) {
+                for(var x=0;x<w;x++,idx+=4) {
+                    inColors.push({
+                        r: sdata[idx+0],
+                        g: sdata[idx+1],
+                        b: sdata[idx+2]
+                    });
+                }
+            }
+            console.log(inColors);
+            console.log('input colors = ' + inColors.length);
+
+            colors = kmeans( inColors, targetCount );
+            break;
+        }
+        case 'mediancut':
+        {
+            var inColors = {};
+            for(var y= 0, idx=0;y<h;y++) {
+                for(var x=0;x<w;x++,idx+=4) {
+                    var hex = rgb2hex({
+                        r: sdata[idx+0],
+                        g: sdata[idx+1],
+                        b: sdata[idx+2]
+                    });
+
+                    if( !(hex in inColors) ) {
+                        inColors[hex] = 1;
+                    }
+                    else {
+                        inColors[hex] ++;
+                    }
+                }
+            }
+
+            var tmp = [];
+            for (var hex in inColors) {
+                var c = hex2rgb(hex);
+                c.w = inColors[hex];
+
+                tmp.push(c);
+            }
+            inColors = tmp;
+            console.log(inColors);
+            console.log('input colors = ' + inColors.length);
+
+            colors = medianCut( inColors, targetCount );
+            break;
+        }
+    }
+
+
+    console.log('done: actual colors used = ' + colors.length);
     for(var i=0;i<colors.length;i++)
         console.log(colors[i]);
 
