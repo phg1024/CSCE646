@@ -195,11 +195,41 @@
             </p>
             <div>
                 <p><b>Curve Tool</b></p>
-                <p>The curve tool is implemented using Catmull-Rom curve. It has a simple interface like GIMP. Click on </p>
+                <p>The curve tool is implemented using Catmull-Rom curve. It has a simple interface like GIMP:
+                    <ol>
+                    <li>To add a control point, simply click on the curve tool;</li>
+                    <li>To select an existing control point, click it. Currently selected control point is highlighted.</li>
+                    <li>To move a control point, drag it and move around;</li>
+                    <li>To delete a control point, select it first and hit backspace or delete key.</li>
+                    </ol>
+                </p>
                 <p><b>Color Replacement</b></p>
-                <p>Two modes of color replacement are supported, RGB mode and HSV mode. </p>
+                <p>To perform color replacement, first select a source and a target color by adjusting the sliders of R, G, B values. A tolerance is also needed
+                    to specify the range of color to be replaced.<br>
+                   <b><em>Switch between source and target color</em></b> Click on the color patches to switch between source and target color.<br>
+                   <b><em>Pick a color from the image</em></b> You can also pick a color in the image by holding the SHIFT key and moving your mouse over the image.
+                </p>
+                <p>Two modes of color replacement are supported, RGB mode and HSV mode.
+                    <ol>
+                    <li>For RGB mode, the distance to the source color is computed
+                    for every pixel. Pixels with a distance smaller than the specified threshold are replaced with the target color.</li>
+                    <li>For HSV mode, a pixel is first converted to HSV color space, as with both the source color and target color. The distance of a
+                        pixel's color to the source color is measured as the absolute difference between their hue value. If the distance is smaller than
+                        the threshold, the pixel's hue is replaced with the hue of the target color.
+                    </li>
+                    </ol>
+                </p>
                 <p><b>Color Reduction</b></p>
-                <p>Four algorithms for color reduction are implemented.</p>
+                <p>Four algorithms for color reduction are implemented: uniform palette, population based reduction, median-cut algorithm and k-means clustering reduction.</p>
+                <p><b><em>Uniform palette</b></em> is a straight-forward discretization of the RGB space by replacing each channel with a fixed number (less than 256) of levels.</p>
+                <p><b><em>Population based reduction</em></b> is a reduction method utilizing the distribution of the colors in an image. A 3D histogram is built using pixels in the image,
+                and only the first <em>n</em> most filled bins are selected. The color map is then built using the center colors of the chosen bins.</p>
+                <p><b><em>Median-Cut color reduction</em></b> is achieved by recursively dividing the color space into two parts and build a color map with the center color of each
+                color subspace. Please refer to <a href="http://dl.acm.org/citation.cfm?id=801294&CFID=238358999&CFTOKEN=52607771">Paul Heckbert's paper</a> for details.</p>
+                <p><b><em>K-means clustering reduction</em></b> is achieved by clustering the pixels in the input image into k groups and generate a color map using the mean colors of each group.
+                    Please refer to <a href="www.cescg.org/CESCG-2007/papers/Brno-Mikolov-Tomas.pdf‎">Tomáš Mikolov's paper</a> for details. </p>
+            </div>
+            <div>
             </div>
         </div>
     </div>
