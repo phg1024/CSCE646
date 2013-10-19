@@ -93,21 +93,25 @@ function grayscale(__src)
     return dst;
 }
 
-function add(img1, img2, weight)
-{
+function blend(img1, img2, blendfunc) {
     var h = img1.h,
         w = img1.w;
     var dst = new RGBAImage(w, h);
-    var data = dst.data,
-        data1 = img1.data,
-        data2 = img2.data;
 
-    var totalpix = w*h*4;
-    for (var idx=0;idx<totalpix;idx++)
+    for (var y=0;y<h;y++)
     {
-        data[idx] = data1[idx] * weight + data2[idx] * (1.0-weight);
+        for( var x=0;x<w;x++ )
+            dst.setPixel(x, y, blendfunc(img1.getPixel(x, y), img2.getPixel(x, y)));
     }
     return dst;
+}
+
+function sub(img1, img2, weight) {
+
+}
+
+function add(img1, img2, weight) {
+    return blend(img1, img2, function(a, b){return a.mul(weight).add(b.mul(1-weight));});
 }
 
 function equalize_blend(__src)

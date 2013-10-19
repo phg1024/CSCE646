@@ -137,13 +137,15 @@ RGBAImage.prototype.toImageData = function( ctx ) {
 };
 
 /* get RGBA image data from the passed image object */
-RGBAImage.fromImage = function( img, ctx ) {
+RGBAImage.fromImage = function( img, cvs ) {
     var w = img.width;
     var h = img.height;
 
     // resize the canvas for drawing
-    ctx.width = w;
-    ctx.height = h;
+    cvs.width = w;
+    cvs.height = h;
+
+    var ctx = cvs.getContext('2d');
 
     // render the image to the canvas in order to obtain image data
     ctx.drawImage(img, 0, 0);

@@ -40,12 +40,6 @@ function quadraticSolve(a, b, c) {
     }
 }
 
-function canvasresize(__width, __height)
-{
-    canvas.width = __width;
-    canvas.height = __height;
-}
-
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
 
@@ -85,11 +79,13 @@ function uploadImage( file ) {
 
         var sid = $("input[name=sourceid]:checked", '#sourceimage').val();
 
-        var cvs = (sid=='left')?canvas:rightCanvas;
-        var ctx = (sid=='left')?context:rightContext;
-        var curImg = (sid=='left')?leftImg:rightImg;
+        var cvs = (sid=='left')?leftCanvas:rightCanvas;
+        var ctx = (sid=='left')?leftContext:rightContext;
 
-        curImg = RGBAImage.fromImage(img, context);
+        var curImg = RGBAImage.fromImage(img, cvs);
+
+        if( sid=='left' ){ leftImg = imresize(curImg, mainCanvasWidth, mainCanvasHeight); }
+        else{ rightImg = imresize(curImg, mainCanvasWidth, mainCanvasHeight); }
 
         var width = curImg.w;
         var height = curImg.h;

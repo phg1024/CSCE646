@@ -34,6 +34,7 @@
             position: relative;
             max-width: 320px;
             max-heigh: 240px;
+            background-color: black;
             z-index: 0;
         }
         #rightcanvas{
@@ -45,6 +46,7 @@
             position: relative;
             max-width: 320px;
             max-heigh: 240px;
+            background-color: black;
             z-index: 0;
         }
         #maincanvas{
@@ -115,14 +117,24 @@
                                 </p>
                             </p>
                             <p>
+                                Composition method:
                                 <select id="compselect">
                                     <option value="over">Over</option>
                                     <option value="mul">Multiplication</option>
+                                    <option value="add">Addition</option>
                                     <option value="sub">Subtraction</option>
+                                    <option value="diff">Difference</option>
+                                    <option value="exc">Exclusion</option>
                                     <option value="min">Min</option>
                                     <option value="max">Max</option>
+                                    <option value="in">In</option>
+                                    <option value="out">Out</option>
+                                    <option value="atop">Atop</option>
+                                    <option value="xor">Xor</option>
                                     <option value="matting">Blue Screening</option>
                                 </select>
+                                Foreground alpha:
+                                <input type="text" id="alpha" value="0.5">
                             </p>
                         </div>
                     </td>
