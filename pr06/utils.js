@@ -82,6 +82,13 @@ function uploadImage( file ) {
     }
 
     function imageLoaded() {
+
+        var sid = $("input[name=sourceid]:checked", '#sourceimage').val();
+
+        var cvs = (sid=='left')?canvas:rightCanvas;
+        var ctx = (sid=='left')?context:rightContext;
+        var curImg = (sid=='left')?leftImg:rightImg;
+
         curImg = RGBAImage.fromImage(img, context);
 
         var width = curImg.w;
@@ -100,8 +107,9 @@ function uploadImage( file ) {
             curImg = imresize(curImg, width, height);
         }
 
-        canvasresize(width, height);
+        cvs.width = width;
+        cvs.height = height;
 
-        context.putImageData(curImg.toImageData(context), 0, 0);
+        ctx.putImageData(curImg.toImageData(ctx), 0, 0);
     }
 }

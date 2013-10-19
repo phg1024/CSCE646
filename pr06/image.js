@@ -142,7 +142,8 @@ RGBAImage.fromImage = function( img, ctx ) {
     var h = img.height;
 
     // resize the canvas for drawing
-    canvasresize(w, h);
+    ctx.width = w;
+    ctx.height = h;
 
     // render the image to the canvas in order to obtain image data
     ctx.drawImage(img, 0, 0);
