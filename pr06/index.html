@@ -37,6 +37,13 @@
             background-color: black;
             z-index: 0;
         }
+        #leftcanvas.active {
+            border: solid 1px #ff0000;
+        }
+        #rightcanvas.active {
+            border: solid 1px #ff0000;
+        }
+
         #rightcanvas{
             float: left;
             display: block;
@@ -61,6 +68,13 @@
             min-height: 480px;
             background-color: black;
             z-index: 1;
+        }
+        .colorpatch {
+            display: inline-block;
+            width: 48px;
+            height: 32px;
+            background: rgb(0, 0, 0);
+            border: 1px solid #000000;
         }
     </style>
 </head>
@@ -91,20 +105,20 @@
                             <canvas id="leftcanvas"></canvas>
                             <canvas id="rightcanvas"></canvas>
                         </div>
-                        </td>
-                    </tr>
+                    </td>
+                </tr>
                 <tr>
                     <td>
                         <div class="submissiondes">
                             <p align="center">
-                                <p>
+                            <p>
                                 Source Image:
-                                <form id="sourceimage">
+                            <form id="sourceimage">
                                 <input type="radio" id='leftsource' name="sourceid" value="left" checked="checked">Left
                                 <input type="radio" id='rightsource' name="sourceid" value="right">Right
-                                </form>
-                                </p>
-                                <p>
+                            </form>
+                            </p>
+                            <p>
                                 <select id="imgselect">
                                     <option value="landscape">Landscape</option>
                                     <option value="seal">Seal</option>
@@ -114,7 +128,7 @@
                                 &nbsp or &nbsp Upload image:
                                 <input type="file" id="files" name="files[]" />
                                 <output id="list"></output>
-                                </p>
+                            </p>
                             </p>
                             <p>
                                 Composition method:
@@ -133,9 +147,21 @@
                                     <option value="xor">Xor</option>
                                     <option value="matting">Blue Screening</option>
                                 </select>
-                                Foreground alpha:
-                                <input type="text" id="alpha" value="0.5">
-                            </p>
+                                <button id="applybutton">Apply</button>
+                            <div id="opinfo">
+                                <p id="alphapanel">
+                                    Foreground alpha:
+                                    <input type="text" id="alpha" value="0.5">
+                                </p>
+                                <div id="hsvpanel">
+                                    Background Color: <b class="colorpatch"></b>
+                                    <p>
+                                    H:&nbsp<input type="text" id="hue" value="360" size="3">
+                                    S:&nbsp<input type="text" id="sat" value="1.0" size="3">
+                                    V:&nbsp<input type="text" id="val" value="1.0" size="3">
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </td>
                 </tr>

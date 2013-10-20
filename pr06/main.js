@@ -7,26 +7,30 @@ var mainCanvasHeight = 480;
 var canvas, context;
 var leftCanvas, leftContext;
 var rightCanvas, rightContext;
-var imgselect;
 
 var leftImg, rightImg;
 var imgIdx = 0;
 var imgsrc = ['landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
-function loadImage()
+function loadImage( imgname, sid )
 {
-    imgIdx = imgselect.selectedIndex;
+    imgIdx = $('#imgselect').prop("selectedIndex");
     if( imgIdx < 0 ) imgIdx = 0;
 
-    console.log('loading image ' + imgsrc[imgIdx]);
+    if( imgname == undefined )
+        imgname = imgsrc[imgIdx];
+
+    console.log('loading image ' + imgname);
+
+    if( sid == undefined )
+        sid = $("input[name=sourceid]:checked", '#sourceimage').val();
+
+    var cvs = (sid=='left')?leftCanvas:rightCanvas;
+    var ctx = cvs.getContext('2d');
+
     img = new Image();
     img.onload = function(){
 
-        var sid = $("input[name=sourceid]:checked", '#sourceimage').val();
-        console.log('loading image to ' + sid);
-
-        var cvs = (sid=='left')?leftCanvas:rightCanvas;
-        var ctx = (sid=='left')?leftContext:rightContext;
         var curImg = RGBAImage.fromImage(img, cvs);
 
         if( sid=='left' ){ leftImg = imresize(curImg, mainCanvasWidth, mainCanvasHeight); }
@@ -54,7 +58,7 @@ function loadImage()
         ctx.putImageData(curImg.toImageData(ctx), 0, 0);
     };
 
-    img.src = imgsrc[imgIdx];
+    img.src = imgname;
 }
 
 function applyComposition() {
@@ -218,26 +222,63 @@ window.onload = (function(){
     leftCanvas = document.getElementById("leftcanvas");
     leftContext = leftCanvas.getContext("2d");
 
+    leftCanvas.onclick = function() {
+        $('#rightsource').prop('checked', false);
+        $('#leftsource').prop('checked', true);
+        $('#leftcanvas').addClass('active');
+        $('#rightcanvas').removeClass('active');
+    };
+    leftCanvas.ondblclick = function() {
+        $('#files').click();
+    };
+
     rightCanvas = document.getElementById("rightcanvas");
     rightContext = rightCanvas.getContext("2d");
 
+    rightCanvas.onclick = function() {
+        $('#leftsource').prop('checked', false);
+        $('#rightsource').prop('checked', true);
+        $('#rightcanvas').addClass('active');
+        $('#leftcanvas').removeClass('active');
+    };
+    rightCanvas.ondblclick = function() {
+        $('#files').click();
+    };
+
     // set up callbacks for image selection
-    imgselect = document.getElementById("imgselect");
-    imgselect.onchange=loadImage;
-    imgselect.onfocus = (function(){
+    $('#imgselect').onchange=function(){
+        loadImage();
+    };
+    $('#imgselect').onfocus = (function(){
         this.selectedIndex = -1;
     });
 
-
-    $('#compselect').focus(function(){
-        this.selectedIndex = -1;
-    });
     $('#compselect').change(function(){
+        if( this.value == 'matting' ) {
+            $('#alphapanel').hide();
+            $('#hsvpanel').show();
+        }
+        else {
+            $('#hsvpanel').hide();
+            $('#alphapanel').show();
+        }
+    });
+
+    $('#applybutton').click(function(){
+        applyComposition();
+    });
+
+    $('#hsvpanel').hide();
+
+    $('#applybutton').click(function(){
         applyComposition();
     });
 
     // set up callback for uploading file
-    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    $('#files').change(handleFileSelect);
 
-    loadImage();
+    loadImage('init0.jpg', 'left');
+    setTimeout(function(){
+        loadImage('init1.jpg', 'right');
+    }, 100);
 });
