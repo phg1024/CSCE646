@@ -173,12 +173,12 @@ function findClosest(img, refImgs, c) {
 function generateAsciiArt() {
     var fontAspectRatio = 0.56;
     var fontSize = $('#sizeText').val();
-    var blockSizeW = fontSize*fontAspectRatio;
+    var blockSizeW = Math.floor(fontSize*fontAspectRatio);
     var blockSizeH = fontSize;
 
     // divided current image into regions
-    var rows = Math.floor(origImg.h / blockSizeH);
-    var cols = Math.floor(origImg.w / blockSizeW);
+    var rows = Math.floor(curImg.h / blockSizeH);
+    var cols = Math.floor(curImg.w / blockSizeW);
 
     blockSizeW = Math.round(blockSizeW);
 
@@ -191,7 +191,8 @@ function generateAsciiArt() {
     bitmapContext.textBaseline = 'center';
     bitmapContext.textBaseline = 'middle';
 
-    var characterSet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[]{}\\|;:<>,.?/';
+    //var characterSet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[]{}\\|;:<>,.?/';
+    var characterSet = '.,"`:;/\\^~-+x<>coun';
     var characterPixmap = [];
 
     for(var i=0;i<characterSet.length;i++) {
@@ -208,15 +209,15 @@ function generateAsciiArt() {
 
     for(var i=0;i<rows;i++) {
         var ystart = i * blockSizeH;
-        var yend = Math.min((i+1) * blockSizeH, origImg.h);
+        var yend = Math.min((i+1) * blockSizeH, curImg.h);
         for(var j=0;j<cols;j++) {
             var xstart = j * blockSizeW;
-            var xend = Math.min((j+1)*blockSizeW, origImg.w);
+            var xend = Math.min((j+1)*blockSizeW, curImg.w);
             // get the average color of patch
             var c = new Color();
             for(var y=0; y<blockSizeH;y++) {
                 for(var x=0;x<blockSizeW;x++) {
-                    var pix = origImg.getPixel(x+xstart, y+ystart);
+                    var pix = curImg.getPixel(x+xstart, y+ystart);
                     tmpImg.setPixel(x, y, pix);
                     c = c.add(pix);
                 }
@@ -232,8 +233,6 @@ function generateAsciiArt() {
     }
 
     // render the image with the given character set
-    console.log(asciiStr);
-
     $("#pascii").html(asciiStr);
     $("#pascii").css('width', 5.0*cols + 'px');
 }

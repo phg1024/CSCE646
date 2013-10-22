@@ -88,24 +88,23 @@ function uploadImage( file ) {
     }
 
     function imageLoaded() {
-        origImg = RGBAImage.fromImage(img, context);
+        curImg = RGBAImage.fromImage(img, context);
 
-        var width = origImg.w;
-        var height = origImg.h;
+        var width = curImg.w;
+        var height = curImg.h;
         if( width > 800 )
         {
             height = Math.floor(height * (800.0/width));
             width = 800;
-            curImg = imresize(origImg, width, height);
+            curImg = imresize(curImg, width, height);
         }
 
         if( height > 800 )
         {
             width = Math.floor(width * (800.0/height));
             height = 800;
-            curImg = imresize(origImg, width, height);
+            curImg = imresize(curImg, width, height);
         }
-        origImg = curImg;
         canvasresize(width, height);
 
         context.putImageData(curImg.toImageData(context), 0, 0);
