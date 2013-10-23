@@ -10,7 +10,7 @@ var rightCanvas, rightContext;
 
 var leftImg, rightImg;
 var imgIdx = 0;
-var imgsrc = ['landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
+var imgsrc = ['apple.jpg', 'lighthouse.jpg', 'landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
 function loadImage( imgname, sid )
 {
@@ -246,10 +246,10 @@ window.onload = (function(){
     };
 
     // set up callbacks for image selection
-    $('#imgselect').onchange=function(){
+    $('#imgselect').change(function(){
         loadImage();
-    };
-    $('#imgselect').onfocus = (function(){
+    });
+    $('#imgselect').focus(function(){
         this.selectedIndex = -1;
     });
 
