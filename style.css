@@ -9,7 +9,7 @@ header{
 	position: relative;
 	background-color: #5F5F6F;
 	margin: auto;
-	min-width: 800px;
+	min-width: 1000px;
     max-width: 90%;
     width: auto;
 	height: auto;
@@ -26,7 +26,7 @@ footer{
 	background-color: #5F5F6F;
 	color: #EFEFEF;
 	margin: auto;
-	min-width: 800px;
+	min-width: 1000px;
     max-width: 90%;
     width: auto;
 	height: auto;
@@ -42,7 +42,7 @@ footer{
 article{
     position: relative;
     margin: auto;
-    min-width: 800px;
+    min-width: 1000px;
     max-width: 90%;
     width: auto;
     height: auto;

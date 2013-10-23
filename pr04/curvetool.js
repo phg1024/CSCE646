@@ -2,8 +2,8 @@
  * Created by peihongguo on 9/30/13.
  */
 
-var width = 256,
-    height = 256;
+var width = 255,
+    height = 255;
 
 var points = [[0, height], [width, 0]];
 
@@ -176,49 +176,5 @@ function keydown() {
             redraw();
             break;
         }
-    }
-}
-
-function drawIntensityBars()
-{
-    // intensity bars
-    var grd=curvecontext.createLinearGradient(0,0,256,0);
-    grd.addColorStop(0,"black");
-    grd.addColorStop(1,"white");
-    curvecontext.fillStyle=grd;
-    curvecontext.fillRect(20, 256, 256, 20);
-
-    grd=curvecontext.createLinearGradient(0,0,0,256);
-    grd.addColorStop(0,"white");
-    grd.addColorStop(1,"black");
-    curvecontext.fillStyle=grd;
-    curvecontext.fillRect(0, 0, 20, 256);
-}
-
-function drawGrids()
-{
-    var left = 20;
-    var top = 256;
-    var width = 256, height = 256;
-    var ngrids = 5;
-
-    var xstep = width / ngrids;
-    var ystep = height / ngrids;
-
-    // horizontal grids
-    curvecontext.strokeStyle = '#aaaaaa';
-    for(var i= 0, y = 0;i<=ngrids;i++, y+=ystep)
-    {
-        curvecontext.moveTo(left, y);
-        curvecontext.lineTo(left+width, y);
-        curvecontext.stroke();
-    }
-
-    // vertical grids
-    for(var i= 0, x = left;i<=ngrids;i++, x+=xstep)
-    {
-        curvecontext.moveTo(x, 0);
-        curvecontext.lineTo(x, height);
-        curvecontext.stroke();
     }
 }

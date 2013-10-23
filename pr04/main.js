@@ -1,9 +1,8 @@
 var img, origImgData, myMat;
 var imgIdx = 0;
-var imgsrc = ['T.png', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
+var imgsrc = ['T.png', 'flower.jpg', 'italian.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
-function loadImage()
-{
+function loadImage() {
 	imgIdx = imgselect.selectedIndex;
 	if( imgIdx < 0 ) imgIdx = 0;
 
@@ -374,6 +373,85 @@ function reduceColor() {
     context.putImageData(newimg, 0, 0);
 }
 
+function CatmullRomCurve( pts ) {
+    // the curve is generated using uniform knots
+    this.p = pts;
+    this.m = [];
+    // compute the m values
+    for(var i=0;i< pts.length;i++) {
+        if( i == 0 ) {
+            this.m.push({ x:0.5 * (pts[i+1].x - pts[i].x), y: 0.5 * (pts[i+1].y - pts[i].y)});
+        }
+        else if( i == pts.length - 1 ) {
+            this.m.push({x: 0.5 * (pts[i].x - pts[i-1].x), y: 0.5 * (pts[i].y - pts[i-1].y)});
+        }
+        else {
+            this.m.push({x: 0.5 * (pts[i+1].x - pts[i-1].x), y: 0.5 * (pts[i+1].y - pts[i-1].y)});
+        }
+    }
+
+    this.h00 = function( t ) {
+        return (1 + 2 * t) * ( 1 - t) * (1 - t);
+    }
+
+    this.h10 = function( t ) {
+        return t * (1-t) * (1-t);
+    }
+
+    this.h01 = function( t ) {
+        return t * t * (3 - 2 * t);
+    }
+
+    this.h11 = function( t ) {
+        return t * t * (t - 1);
+    }
+
+    this.getValue = function( x ) {
+        // find the segment x is in
+        for(var i=0;i<this.p.length-1;i++) {
+            if( x >= this.p[i].x && x <= this.p[i+1].x ){
+                // compute the t value using binary search
+
+                var xl, yl, xr, yr;
+                xl = this.p[i].x; yl = this.p[i].y;
+                xr = this.p[i+1].x; yr = this.p[i+1].y;
+                var mxl, myl, mxr, myr;
+                mxl = this.m[i].x; myl = this.m[i].y;
+                mxr = this.m[i+1].x; myr = this.m[i+1].y;
+
+                var t = 0.5, lt = 0, rt = 1.0;
+                var found = false;
+                var y = -1;
+                while( !found ) {
+                    var h00 = this.h00(t), h10 = this.h10(t), h01 = this.h01(t), h11 = this.h11(t);
+                    var px = h00 * xl + h10 * mxl + h01 * xr + h11 * mxr;
+                    var py = h00 * yl + h10 * myl + h01 * yr + h11 * myr;
+
+                    var THRES = 0.01;
+                    if( Math.abs(px - x) < THRES )
+                    {
+                        found = true;
+                        y = py;
+                    }
+                    else {
+                        if( x > px ) {
+                            lt = t;
+                            t = 0.5 * (lt + rt);
+                        }
+                        else {
+                            rt = t;
+                            t = 0.5 * (lt + rt);
+                        }
+                    }
+                }
+
+                y = clamp(y, 0, 255);
+                return y;
+            }
+        }
+    }
+}
+
 function applyCurve()
 {
 	var curvename = curveop.options[curveop.selectedIndex].value;
@@ -383,11 +461,23 @@ function applyCurve()
 	var newmat = new Mat(row, col);
 	var data = newmat.data,
 	data2 = myMat.data;
-		
-	// generate lut
-	var lut = [];
-	for( var i=0;i<256;i++)
-	    lut[i] = height - pathPos(i).y;
+
+    // get the point coordinates using the points in the SVG
+    var pts = [];
+    for(var i=0;i<points.length;i++) {
+        // need to flip y coordinates
+        pts.push({x: points[i][0], y: 255 - points[i][1]});
+    }
+    console.log(pts);
+
+    var crCurve = new CatmullRomCurve(pts);
+
+	// generate lut using catmull-rom curve
+	var lut = [0];
+	for( var i=1;i<255;i++) {
+	    lut[i] = crCurve.getValue(i);
+    }
+    lut.push(255);
 	
 	var flag = [0, 0, 0];
 	switch( curvename )
@@ -403,7 +493,7 @@ function applyCurve()
 					var yval = lut[val];
 
 					var ratio = yval / val;
-					data[idx] = data2[idx] * ratio;
+					data[idx] = Math.round(data2[idx] * ratio, 0, 255);
 					data[idx+1] = data2[idx+1];
 					data[idx+2] = data2[idx+2];
 					data[idx+3] = data2[idx+3];
@@ -424,7 +514,7 @@ function applyCurve()
 
 					var ratio = yval / val;
 					data[idx] = data2[idx];
-					data[idx+1] = data2[idx+1] * ratio;
+					data[idx+1] = Math.round(data2[idx+1] * ratio, 0, 255);
 					data[idx+2] = data2[idx+2];
 					data[idx+3] = data2[idx+3];
 				}
@@ -445,7 +535,7 @@ function applyCurve()
 					var ratio = yval / val;
 					data[idx] = data2[idx];
 					data[idx+1] = data2[idx+1];
-					data[idx+2] = data2[idx+2] * ratio;
+					data[idx+2] = Math.round(data2[idx+2] * ratio, 0, 255);
 					data[idx+3] = data2[idx+3];
 				}
 			}
@@ -461,10 +551,11 @@ function applyCurve()
 					var val = Math.floor((data2[idx] * 299 + data2[idx+1] * 587 + data2[idx+2] * 114) / 1000);
 					var yval = lut[val];
 
-					var ratio = yval / val;
-					data[idx] = data2[idx] * ratio;
-					data[idx+1] = data2[idx+1] * ratio;
-					data[idx+2] = data2[idx+2] * ratio;
+                    var bias = 1e-3;
+					var ratio = yval / (val + bias);
+					data[idx] = Math.round(clamp(data2[idx] * ratio, 0, 255));
+					data[idx+1] = Math.round(clamp(data2[idx+1] * ratio, 0, 255));
+					data[idx+2] = Math.round(clamp(data2[idx+2] * ratio, 0, 255));
 					data[idx+3] = data2[idx+3];
 				}
 			}
@@ -474,77 +565,6 @@ function applyCurve()
 	
 	var newimg = matrix2ImageData( newmat );
 
-	filteredImgData = newimg;
-	context.putImageData(newimg, 0, 0);
-}
-
-function applyFilter()
-{
-	var filtername = filterop.options[filterop.selectedIndex].value;
-	console.log('applying filter ' + filtername);
-
-	var newimg;
-	switch( filtername )
-	{
-	case "invert":
-		{
-			console.log('inverting the image ...');
-			newimg = matrix2ImageData(	filter(myMat, Filter.invert) );
-			break;
-		}
-	case "grayscale":
-		{
-			console.log('converting the image to grayscale ...');
-			newimg = matrix2ImageData(	grayscale(myMat) );
-			break;
-		}
-	case "gradient":
-		{
-			newimg = matrix2ImageData( filter(myMat, Filter.gradient) );
-			break;
-		}
-	case 'hsobel':
-		{
-			newimg = matrix2ImageData( filter(myMat, Filter.hsobel) );
-			break;
-		}
-	case 'vsobel':
-		{
-			newimg = matrix2ImageData( filter(myMat, Filter.vsobel) );
-			break;
-		}
-	case 'emboss':
-		{
-			newimg = matrix2ImageData( filter(myMat, Filter.emboss) );
-			break;
-		}
-	case 'blur':
-		{
-			newimg = matrix2ImageData( filter(myMat, Filter.blur) );
-			break;
-		}
-	case 'sharpen':
-		{
-			newimg = matrix2ImageData( filter(myMat, Filter.sharpen) );
-			break;
-		}
-	case 'motion':
-		{
-			newimg = matrix2ImageData( filter(myMat, Filter.motion) );
-			break;
-		}
-	case 'customized':
-		{
-			console.log('customized filter');
-			// get the customized filter and apply the filter to current image
-			var cf = document.getElementById("cfilter");
-			var params = cf.value.split(/[\s]+/);
-			var f = new Filter( params );
-			console.log(f);
-			newimg = matrix2ImageData( filter(myMat, f) );
-			break;
-		}
-	}
 	filteredImgData = newimg;
 	context.putImageData(newimg, 0, 0);
 }
@@ -628,7 +648,16 @@ window.onload = (function(){
         resetCurveTool();
     });
 
-	// set up callback for uploading file
+    $('#replacereset').click(function() {
+        context.putImageData(origImgData, 0, 0);
+    });
+
+    $('#reducereset').click(function() {
+        context.putImageData(origImgData, 0, 0);
+    });
+
+
+    // set up callback for uploading file
 	document.getElementById('files').addEventListener('change', handleFileSelect, false);
 
     initTabs();
