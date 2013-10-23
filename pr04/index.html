@@ -42,7 +42,7 @@
         #curvepanel {
             padding: 10px;
         }
-        
+
         .tabcontent{
             margin: 20px;
             text-align: center;
@@ -50,9 +50,10 @@
             min-height: 400px;
             min-width: 300px;
         }
-        
+
         .tabcontent p{
             padding: 5px;
+            font-size: 14px;
         }
 
         ul.tabs {
@@ -74,6 +75,7 @@
             text-shadow: none;
             text-indent: 0px;
             text-align: center;
+            font-size: 14px;
         }
 
         .tabs a.active {
@@ -99,6 +101,11 @@
             box-shadow: 0px 0px 16px rgba(160, 200, 250, 1.0);
             border: 2px solid #ff0000;
         }
+
+        .aligncenter {
+            text-align: center;
+        }
+
     </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
@@ -111,32 +118,32 @@
     </div>
 </header>
 <article>
-    <div id="maincontent">
-        <div class="content">
+<div id="maincontent">
+    <div class="content">
 
-            <div align=center>
-                <h2>Project 04</h2>
-                <h3>Image Manipulations</h3>
-            </div>
+        <div align=center>
+            <h2>Project 04</h2>
+            <h3>Image Manipulations</h3>
+        </div>
 
-            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+        <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
 
-                <tr>
-                    <td align=center width="60%">
-                        <div id="mainpanel">
-                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
-                        </div>
-                    </td>
-                    <td align=center width="40%">
-                        <div class="controls">
-                            <ul class='tabs'>
-                                <li><a href='#tab1'>Curve</a></li>
-                                <li><a href='#tab2'>Replace</a></li>
-                                <li><a href='#tab3'>Reduce</a></li>
-                            </ul>
-                            <div class='tabcontent' id='tab1'>
-                                <p id="curvepanel"></p>
-                                <p>Curve:
+            <tr>
+                <td align=center width="60%">
+                    <div id="mainpanel">
+                        <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
+                    </div>
+                </td>
+                <td align=center width="40%">
+                    <div class="controls">
+                        <ul class='tabs'>
+                            <li><a href='#tab1'>Curve</a></li>
+                            <li><a href='#tab2'>Replace</a></li>
+                            <li><a href='#tab3'>Reduce</a></li>
+                        </ul>
+                        <div class='tabcontent' id='tab1'>
+                            <p id="curvepanel"></p>
+                            <p>Curve:
                                 <select id="curveop">
                                     <option value="all">all</option>
                                     <option value="red">red</option>
@@ -145,173 +152,193 @@
                                 </select>
                                 &nbsp
                                 <button id="curvereset">Reset</button></p>
-                            </div>
-                            <div class='tabcontent' id='tab2'>
-                                S:&nbsp<div id="sourceC" class="colorpatch"></div>&nbspT:&nbsp<div id="targetC" class="colorpatch"></div>
-                                <p>Mode:
-                                    <input type="radio" id="rgbmode" name="rmode" checked="checked">RGB
-                                    <input type="radio" id="hsvmode" name="rmode">HSV
-                                </p>
-                                <p>Red:&nbsp
-                                    <input type="range" id="rrange" name="red" min="0" max="255" value="0">
-                                    <input type="text" id="rtext" size="3" value="0">
-                                </p>
-                                <p>Green:&nbsp
-                                    <input type="range" id="grange" name="green" min="0" max="255" value="0">
-                                    <input type="text" id="gtext" size="3" value="0">
-                                </p>
-                                <p>Blue:&nbsp
-                                    <input type="range" id="brange" name="blue" min="0" max="255" value="0">
-                                    <input type="text" id="btext" size="3" value="0">
-                                </p>
-                                <p>
-                                    Tolerance:
-                                    <input type="range" id="torrange" name="tor" min="0" max="360" value="20">
-                                    <input type="text" id="tortext" size="3" value="20">
-                                </p>
-                                <p>
-                                    <button id="replaceButton">Replace</button>
-                                    <button id="replacereset">Reset</button>
-                                </p>
-                            </div>
-                            <div class='tabcontent' id='tab3'>
-                                <p>Reduction Method:&nbsp<select id="reduction">
-                                    <option value="uniform">uniform</option>
-                                    <option value="population">population</option>
-                                    <option value="mediancut">median cut</option>
-                                    <option value="kmeans">kmeans</option>
-                                    <option value="neural">neural network</option>
-                                </select>
-                                </p>
-                                <p>Sampling rate:&nbsp<input type="text" id="samplingrate" name="samplingrate" width="4" value="0.01"></p>
-                                <p>Colors:&nbsp<input type="text" id="colors" name="colors" width="4" value="32"></p>
-                                <p>
-                                    <button id="reduceButton">Reduce</button>
-                                    <button id="reducereset">Reset</button>
-                                </p>
-                            </div>
                         </div>
-                        </td>
-                    </tr>
+                        <div class='tabcontent' id='tab2'>
+                            S:&nbsp<div id="sourceC" class="colorpatch"></div>&nbspT:&nbsp<div id="targetC" class="colorpatch"></div>
+                            <p>Mode:
+                                <input type="radio" id="rgbmode" name="rmode" checked="checked">RGB
+                                <input type="radio" id="hsvmode" name="rmode">HSV
+                            </p>
+                            <p>Red:&nbsp
+                                <input type="range" id="rrange" name="red" min="0" max="255" value="0">
+                                <input type="text" id="rtext" size="3" value="0">
+                            </p>
+                            <p>Green:&nbsp
+                                <input type="range" id="grange" name="green" min="0" max="255" value="0">
+                                <input type="text" id="gtext" size="3" value="0">
+                            </p>
+                            <p>Blue:&nbsp
+                                <input type="range" id="brange" name="blue" min="0" max="255" value="0">
+                                <input type="text" id="btext" size="3" value="0">
+                            </p>
+                            <p>
+                                Tolerance:
+                                <input type="range" id="torrange" name="tor" min="0" max="360" value="20">
+                                <input type="text" id="tortext" size="3" value="20">
+                            </p>
+                            <p>
+                                <button id="replaceButton">Replace</button>
+                                <button id="replacereset">Reset</button>
+                            </p>
+                        </div>
+                        <div class='tabcontent' id='tab3'>
+                            <p>Reduction Method:&nbsp<select id="reduction">
+                                <option value="uniform">uniform</option>
+                                <option value="population">population</option>
+                                <option value="mediancut">median cut</option>
+                                <option value="kmeans">kmeans</option>
+                                <option value="neural">neural network</option>
+                            </select>
+                            </p>
+                            <p>Sampling rate:&nbsp<input type="text" id="samplingrate" name="samplingrate" width="4" value="0.01"></p>
+                            <p>Colors:&nbsp<input type="text" id="colors" name="colors" width="4" value="32"></p>
+                            <p>
+                                <button id="reduceButton">Reduce</button>
+                                <button id="reducereset">Reset</button>
+                            </p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
 
-            </table>
-            <p align="center">
-                Image:
-                <select id="imgselect">
-                    <option value="T">Table</option>
-                    <option value="flower">Flower</option>
-					<option value="italian">Italian</option>					
-                    <option value="seal">Seal</option>
-                    <option value="buck">Buck</option>
-                    <option value="waterfall">Waterfall</option>
-                </select>
-                Upload image:
-                <input type="file" id="files" name="files[]" />
-                <output id="list"></output>
+        </table>
+        <p align="center">
+            Image:
+            <select id="imgselect">
+                <option value="T">Table</option>
+                <option value="flower">Flower</option>
+                <option value="italian">Italian</option>
+                <option value="seal">Seal</option>
+                <option value="buck">Buck</option>
+                <option value="waterfall">Waterfall</option>
+            </select>
+            Upload image:
+            <input type="file" id="files" name="files[]" />
+            <output id="list"></output>
+        </p>
+        <div>
+            <p>
+                <b>Source Files: </b><a href="main.js">main.js</a> <a href="image.js">image.js</a> <a href="curvetool.js">curvetool.js</a>
+                <a href="colorReduction.js">colorReduction.js</a> <a href="utils.js">utils.js</a>
             </p>
-            <div>
-                <p><b>Basic Usage</b></p>
-                <p>
-                    <ol>
-                    <li>To choose among a set of images included, use the <em>Image</em> dropdown selector.</li>
-                    <li>To upload a new image, use the <em>Upload</em> button.</li>
-                    <li>To compare the result image with the original image, click and hold on the image. The original image will
+            <p><b>Basic Usage</b></p>
+            <p>
+            <ol>
+                <li>To choose among a set of images included, use the <em>Image</em> dropdown selector.</li>
+                <li>To upload a new image, use the <em>Upload</em> button.</li>
+                <li>To compare the result image with the original image, click and hold on the image. The original image will
                     show up when the left mouse button is down, and the result image will show up when the mouse button is up again.</li>
-                    <li>To restore the original image, click on the reset button.</li>
-                    </ol>
-                </p>
-                <p><b>Curve Tool</b></p>
-                <p>The curve tool is implemented using Catmull-Rom curve. It has a simple interface like GIMP:
-                    <ol>
-                    <li>To add a control point, simply click on the curve tool;</li>
-                    <li>To select an existing control point, click it. Currently selected control point is highlighted.</li>
-                    <li>To move a control point, drag it and move around;</li>
-                    <li>To delete a control point, select it first and hit backspace or delete key.</li>
-                    </ol>
-                </p>
-				<p><b><em>Example 1</em></b></p>
-                <p><img src='gallery/curve1.png'></p>
-				<br>
-				<p><b><em>Example 2</em></b></p>
-				<p><img src='gallery/curve2.png'></p>
-				<br>
-                <p><b>Color Replacement</b></p>
-                <p>To perform color replacement, first select a source and a target color by adjusting the sliders of R, G, B values. A tolerance is also needed
-                    to specify the range of color to be replaced.<br>
-                   <b><em>Switch between source and target color</em></b> Click on the color patches to switch between source and target color.<br>
-                   <b><em>Pick a color from the image</em></b> You can also pick a color in the image by holding the SHIFT key and moving your mouse over the image.
-                </p>
-                <p>Two modes of color replacement are supported, RGB mode and HSV mode.
-                    <ol>
-                    <li>For RGB mode, the distance to the source color is computed
+                <li>To restore the original image, click on the reset button.</li>
+            </ol>
+            </p>
+            <p><b>Curve Tool</b></p>
+            <p>The curve tool is implemented using Catmull-Rom curve. It has a simple interface like GIMP:
+            <ol>
+                <li>To add a control point, simply click on the curve tool;</li>
+                <li>To select an existing control point, click it. Currently selected control point is highlighted.</li>
+                <li>To move a control point, drag it and move around;</li>
+                <li>To delete a control point, select it first and hit backspace or delete key.</li>
+                <li>To change the color channel being manipulated, use the <em>Curve</em> dropdown selector.</li>
+            </ol>
+            </p>
+            <p><b><em>Examples</em></b></p>
+            <p>Original Image</p>
+            <p class="aligncenter"><img src='T.png'><br></p>
+            <p><b><em>Example 1</em></b> Manipulation with a simple curve</p>
+            <p class="aligncenter"><img src='gallery/curve1.png'><br></p>
+            <br>
+            <p><b><em>Example 2</em></b> Manipulation with a different curve</p>
+            <p class="aligncenter"><img src='gallery/curve2.png'></p>
+            <br>
+            <p><b><em>Example 3</em></b> Manipulation in the blue channel</p>
+            <p class="aligncenter"><img src='gallery/curve3.png'></p>
+            <br>
+            <p><b>Color Replacement</b></p>
+            <p>To perform color replacement, first select a source and a target color by adjusting the sliders of R, G, B values. A tolerance is also needed
+                to specify the range of color to be replaced.<br>
+                <b><em>Switch between source and target color</em></b> Click on the color patches to switch between source and target color.<br>
+                <b><em>Pick a color from the image</em></b> You can also pick a color in the image by holding the SHIFT key and moving your mouse over the image.
+            </p>
+            <p>Two modes of color replacement are supported, RGB mode and HSV mode.
+            <ol>
+                <li>For RGB mode, the distance to the source color is computed
                     for every pixel. Pixels with a distance smaller than the specified threshold are replaced with the target color.</li>
-                    <li>For HSV mode, a pixel is first converted to HSV color space, as with both the source color and target color. The distance of a
-                        pixel's color to the source color is measured as the absolute difference between their hue value. If the distance is smaller than
-                        the threshold, the pixel's hue is replaced with the hue of the target color.
-                    </li>
-                    </ol>
-                </p>
-				<p><b><em>Example 1 RGB Space</em></b></p>
-                <p><img src='gallery/replace1_rgb.png'></p>
-				<br>
-				<p><b><em>Example 1 HSV Space</em></b></p>
-				<p><img src='gallery/replace1_hsv.png'></p>
-				<br>
-				<p><b><em>Example 2 RGB Space</em></b></p>
-                <p><img src='gallery/replace2_rgb.png'></p>
-				<br>
-				<p><b><em>Example 2 HSV Space</em></b></p>
-				<p><img src='gallery/replace2_hsv.png'></p>				
-				<br>
-                <p><b>Color Reduction</b></p>
-                <p>Four algorithms for color reduction are implemented: uniform palette, population based reduction, median-cut algorithm, k-means clustering reduction and neural network.</p>
-                <p><b><em><font color='#ff0000'>Uniform palette</font></b></em> is a straight-forward discretization of the RGB space by replacing each channel with a fixed number (less than 256) of levels.</p>
-				<p><b><em>Reduction with 8 colors</em></b></p>
-                <p><img src='gallery/reduce8_uni.png'></p>
-				<br>
-				<p><b><em>Reduction with 64 colors</em></b></p>
-				<p><img src='gallery/reduce64_uni.png'></p>
-				<br>
-                <p><b><em><font color='#ff0000'>Population based reduction</font></em></b> is a reduction method utilizing the distribution of the colors in an image. A 3D histogram is built using pixels in the image,
+                <li>For HSV mode, a pixel is first converted to HSV color space, as with both the source color and target color. The distance of a
+                    pixel's color to the source color is measured as the absolute difference between their hue value. If the distance is smaller than
+                    the threshold, the pixel's hue is replaced with the hue of the target color.
+                </li>
+            </ol>
+            </p>
+            <p><b><em>Examples</em></b></p>
+            <p>Original Image 1</p>
+            <p class="aligncenter"><img src='T.png'><br></p>
+            <p><b><em>Example 1a</em></b> Color replacement in the RGB space</p>
+            <p class="aligncenter"><img src='gallery/replace1_rgb.png'></p>
+            <br>
+            <p><b><em>Example 1a</em></b> Color replacement in the HSV space</p>
+            <p class="aligncenter"><img src='gallery/replace1_hsv.png'></p>
+            <br>
+            <p>Original Image 2</p>
+            <p class="aligncenter"><img src='italian.jpg'><br></p>
+            <p><b><em>Example 2a</em></b> Color replacement in the RGB space</p>
+            <p class="aligncenter"><img src='gallery/replace2_rgb.png'></p>
+            <br>
+            <p><b><em>Example 2b</em></b> Color replacement in the HSV space</p>
+            <p class="aligncenter"><img src='gallery/replace2_hsv.png'></p>
+            <br>
+            <p><b>Color Reduction</b></p>
+            <p>Four algorithms for color reduction are implemented: uniform palette, population based reduction, median-cut algorithm, k-means clustering reduction and neural network.</p>
+
+            <p>Original Image used in the following examples</p>
+            <p class="aligncenter"><img src='flower.jpg'><br></p>
+
+            <p><b><em><font color='#ff0000'>Uniform palette</font></b></em> is a straight-forward discretization of the RGB space by replacing each channel with a fixed number (less than 256) of levels.</p>
+            <p><b><em>Reduction with 8 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce8_uni.png'></p>
+            <br>
+            <p><b><em>Reduction with 64 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce64_uni.png'></p>
+            <br>
+            <p><b><em><font color='#ff0000'>Population based reduction</font></em></b> is a reduction method utilizing the distribution of the colors in an image. A 3D histogram is built using pixels in the image,
                 and only the first <em>n</em> most filled bins are selected. The color map is then built using the center colors of the chosen bins.</p>
-				<p><b><em>Reduction with 8 colors</em></b></p>
-                <p><img src='gallery/reduce8_pop.png'></p>
-				<br>
-				<p><b><em>Reduction with 64 colors</em></b></p>
-				<p><img src='gallery/reduce64_pop.png'></p>
-				<br>				
-                <p><b><em><font color='#ff0000'>Median-Cut color reduction</font></em></b> is achieved by recursively dividing the color space into two parts and build a color map with the center color of each
+            <p><b><em>Reduction with 8 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce8_pop.png'></p>
+            <br>
+            <p><b><em>Reduction with 64 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce64_pop.png'></p>
+            <br>
+            <p><b><em><font color='#ff0000'>Median-Cut color reduction</font></em></b> is achieved by recursively dividing the color space into two parts and build a color map with the center color of each
                 color subspace. Please refer to <a href="http://dl.acm.org/citation.cfm?id=801294&CFID=238358999&CFTOKEN=52607771">Paul Heckbert's paper</a> for details.</p>
-				<p><b><em>Reduction with 8 colors</em></b></p>
-                <p><img src='gallery/reduce8_med.png'></p>
-				<br>
-				<p><b><em>Reduction with 64 colors</em></b></p>
-				<p><img src='gallery/reduce64_med.png'></p>
-				<br>
-                <p><b><em><font color='#ff0000'>K-means clustering color reduction</font></em></b> is achieved by clustering the pixels in the input image into k groups and generate a color map using the mean colors of each group.
-                    Please refer to <a href="http://www.cescg.org/CESCG-2007/papers/Brno-Mikolov-Tomas.pdf‎">Tomáš Mikolov's paper</a> for details. </p>
-					<p><b><em>Reduction with 8 colors</em></b></p>
-	                <p><img src='gallery/reduce8_kms.png'></p>
-					<br>
-					<p><b><em>Reduction with 64 colors</em></b></p>
-					<p><img src='gallery/reduce64_kms.png'></p>
-					<br>					
-                <p><b><em><font color='#ff0000'>Neural network color reduction</font></em></b> is a reduction method that constructs the color mapping by adapting an initial color map to minimize the reduction error.
-                    This algorithm is a simplified implementation based on <a href="http://informahealthcare.com/doi/abs/10.1088/0954-898X_5_3_003">Anthony H. Dekker's paper</a>.</p>
-					<p><b><em>Reduction with 8 colors</em></b></p>
-	                <p><img src='gallery/reduce8_nnr.png'></p>
-					<br>
-					<p><b><em>Reduction with 64 colors</em></b></p>
-					<p><img src='gallery/reduce64_nnr.png'></p>
-					<br>
-					
-            </div>
-            <div>
-            </div>
+            <p><b><em>Reduction with 8 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce8_med.png'></p>
+            <br>
+            <p><b><em>Reduction with 64 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce64_med.png'></p>
+            <br>
+            <p><b><em><font color='#ff0000'>K-means clustering color reduction</font></em></b> is achieved by clustering the pixels in the input image into k groups and generate a color map using the mean colors of each group.
+                Please refer to <a href="http://www.cescg.org/CESCG-2007/papers/Brno-Mikolov-Tomas.pdf‎">Tomáš Mikolov's paper</a> for details. </p>
+            <p><b><em>Reduction with 8 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce8_kms.png'></p>
+            <br>
+            <p><b><em>Reduction with 64 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce64_kms.png'></p>
+            <br>
+            <p><b><em><font color='#ff0000'>Neural network color reduction</font></em></b> is a reduction method that constructs the color mapping by adapting an initial color map to minimize the reduction error.
+                This algorithm is a simplified implementation based on <a href="http://informahealthcare.com/doi/abs/10.1088/0954-898X_5_3_003">Anthony H. Dekker's paper</a>.</p>
+            <p><b><em>Reduction with 8 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce8_nnr.png'></p>
+            <br>
+            <p><b><em>Reduction with 64 colors</em></b></p>
+            <p class="aligncenter"><img src='gallery/reduce64_nnr.png'></p>
+            <br>
+
+        </div>
+        <div>
         </div>
     </div>
-    </div>
-    </div>
+</div>
+</div>
+</div>
 </article>
 <footer>
     <div class="info">
