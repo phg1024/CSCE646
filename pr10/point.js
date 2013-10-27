@@ -19,7 +19,8 @@ Point2.prototype.add = function( that ) {
 
 Point2.prototype.sub = function( that ) {
     return new Point2(this.x - that.x, this.y - that.y);
-}
+};
+
 Point2.prototype.mul = function( factor ) {
     return new Point2(this.x * factor, this.y * factor);
 };

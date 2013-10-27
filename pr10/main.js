@@ -227,7 +227,7 @@ function generateAsciiArt() {
             c = c.posterize(16);
 
             var idx = findClosest(tmpImg, characterPixmap, c);
-            asciiStr += "<font color='" + rgb2hex(c) + "'>" + characterSet[idx] + "</font>"
+            asciiStr += "<font color='" + rgb2hex(c) + "'>" + characterSet[idx] + "</font>";
         }
         asciiStr += "<br>";
     }
