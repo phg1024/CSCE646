@@ -143,9 +143,9 @@ function filter(__src, f)
 				g = clamp(Math.pow(g, 1/p)/factor+bias, 0.0, 255.0);
 				b = clamp(Math.pow(b, 1/p)/factor+bias, 0.0, 255.0);
 																
-				data[idx] = r;
-				data[idx+1] = g;
-				data[idx+2] = b;
+				data[idx] = Math.round(r);
+				data[idx+1] = Math.round(g);
+				data[idx+2] = Math.round(b);
 				data[idx+3] = data2[idx+3];
 			}
 		}

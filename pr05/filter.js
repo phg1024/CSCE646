@@ -143,3 +143,105 @@ Filter.dialation = function(size){
     bias : 0.0
     };
 };
+
+Filter.erosion_round = function(size){
+    var v = new Float32Array(size*size);
+    var r = size * 0.375;
+    for(var i= 0, idx=0;i< size;i++)
+        for(var j=0;j<size;j++, idx++) {
+            var dy = i - size / 2.0;
+            var dx = j - size / 2.0;
+            if( dx * dx + dy * dy < r * r )
+                v[idx] = 1.0;
+            else
+                v[idx] = 1e4;
+        }
+
+
+    return {
+        width : size,
+        height: size,
+        value : v,
+        p : -20,
+        factor: 1,
+        bias : 0.0
+    };
+};
+
+Filter.dialation_round = function(size){
+    var v = new Float32Array(size*size);
+    var r = size * 0.375;
+    for(var i= 0, idx=0;i< size;i++)
+        for(var j=0;j<size;j++, idx++) {
+            var dy = i - size / 2.0;
+            var dx = j - size / 2.0;
+            if( dx * dx + dy * dy < r * r )
+                v[idx] = 1.0;
+            else
+                v[idx] = 1e-4;
+        }
+    return {
+        width : size,
+        height: size,
+        value : v,
+        p : 20,
+        factor: 1,
+        bias : 0.0
+    };
+};
+
+Filter.erosion_star = function(){
+    var size = 9;
+    var v = [
+        0, 0, 0, 0, 1, 0, 0, 0, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 1, 1, 1, 1, 1, 0, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0,
+        0, 0, 1, 1, 1, 1, 1, 0, 0,
+        0, 1, 1, 0, 0, 0, 1, 1, 0
+    ];
+
+    for(var i=0;i<size*size;i++) {
+        v[i] = (v[i]==0)?1e4:v[i];
+    }
+
+    return {
+        width : size,
+        height: size,
+        value : v,
+        p : -20,
+        factor: 1,
+        bias : 0.0
+    };
+};
+
+Filter.dialation_star = function(){
+    var size = 9;
+    var v = [
+        0, 0, 0, 0, 1, 0, 0, 0, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 1, 1, 1, 1, 1, 0, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0,
+        0, 0, 1, 1, 1, 1, 1, 0, 0,
+        0, 1, 1, 0, 0, 0, 1, 1, 0
+    ];
+
+    for(var i=0;i<size*size;i++) {
+        v[i] = (v[i]==0)?1e-4:v[i];
+    }
+
+    return {
+        width : size,
+        height: size,
+        value : v,
+        p : 20,
+        factor: 1,
+        bias : 0.0
+    };
+};

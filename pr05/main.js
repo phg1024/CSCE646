@@ -40,10 +40,34 @@ function applyFilter()
             newimg = matrix2ImageData(	filter(myMat, new Filter.erosion(9)) );
             break;
         }
+        case "erosion_round":
+        {
+            console.log('erosing the image ...');
+            newimg = matrix2ImageData(	filter(myMat, new Filter.erosion_round(9)) );
+            break;
+        }
+        case "erosion_star":
+        {
+            console.log('erosing the image ...');
+            newimg = matrix2ImageData(	filter(myMat, new Filter.erosion_star()) );
+            break;
+        }
         case "dialation":
         {
             console.log('dialating the image ...');
             newimg = matrix2ImageData(	filter(myMat, new Filter.dialation(9)) );
+            break;
+        }
+        case "dialation_round":
+        {
+            console.log('dialating the image ...');
+            newimg = matrix2ImageData(	filter(myMat, new Filter.dialation_round(9)) );
+            break;
+        }
+        case "dialation_star":
+        {
+            console.log('dialating the image ...');
+            newimg = matrix2ImageData(	filter(myMat, new Filter.dialation_star()) );
             break;
         }
         case "invert":
