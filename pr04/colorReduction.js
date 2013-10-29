@@ -218,7 +218,7 @@ function neuralnetwork( inColors, n, sr ) {
     return colors;
 }
 
-function kmeans( inColors, n, sr ) {
+function kmeans( inColors, n, sr, maxIters, thres ) {
     // sample 1% colors
     var nsamples = inColors.length * sr;
     console.log(nsamples);
@@ -311,8 +311,8 @@ function kmeans( inColors, n, sr ) {
     }
 
     // k-means
-    var THRES = 32;
-    var MAX_ITERS = 32;
+    var THRES = thres;
+    var MAX_ITERS = maxIters;
     var iters = 0;
     var moveCount = Number.MAX_VALUE;
     while( moveCount > THRES && iters < MAX_ITERS ) {
@@ -369,6 +369,7 @@ function kmeans( inColors, n, sr ) {
         }
     }
 
+	console.log('moves = ' + moveCount);
     console.log('iters = ' + iters);
     return centroids;
 }

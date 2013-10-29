@@ -102,6 +102,30 @@ function initTabs() {
         $('#targetC').addClass('active');
         setColorRanges( parseColor( $('#targetC').css('background-color') ) );
     });
+	
+	$('#reduction').change(function(){
+		var method = this.value;
+		if( method == 'kmeans' ) {
+			$('#maxitertext').show();
+			$('#threstext').show();
+		}
+		else{
+			$('#maxitertext').hide();
+			$('#threstext').hide();			
+		}
+		
+		if( method == 'uniform' ) {
+			$('#srtext').hide();
+		}
+		else {
+			$('#srtext').show();
+		}
+	});
+	
+	// hidden by default
+	$('#maxitertext').hide();
+	$('#threstext').hide();	
+	$('#srtext').hide();
 }
 
 function setColorRanges( c ) {
@@ -274,8 +298,14 @@ function reduceColor() {
             console.log(inColors);
             console.log('input colors = ' + inColors.length);
 
-            var sr = $('#samplingrate').val();
-            colors = kmeans( inColors, targetCount, sr );
+            var sr = parseFloat($('#samplingrate').val());
+			var maxIters = parseInt($('#maxiter').val());
+			var thres = parseInt($('#thres').val());
+			
+			console.log(sr);
+			console.log(maxIters);
+			console.log(thres);
+            colors = kmeans( inColors, targetCount, sr, maxIters, thres );
             break;
         }
         case 'neural':
