@@ -64,7 +64,7 @@ function applyFilter()
         }
 		case "adaptiveequal":
 		{
-            var amount = parseFloat($('#Amountslider').val()) / 200.0;
+            var amount = parseFloat($('#Amountslider').val()) / 100.0;
             console.log('amount = ' + amount);
 
             console.log('equalizing the image ...');
@@ -73,7 +73,7 @@ function applyFilter()
 		}
 		case "equal":
 		{
-            var amount = parseFloat($('#Amountslider').val()) / 200.0;
+            var amount = parseFloat($('#Amountslider').val()) / 100.0;
             console.log('amount = ' + amount);
 
             console.log('equalizing the image ...');
