@@ -2,11 +2,28 @@
     <title>Viza654/CSCE646 - Digital Image</title>
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
-    <link rel='stylesheet' type='text/css' href='webgl.css' media="screen, print, projection">
+    <script type="text/javascript" src="jquery-2.0.3.js"></script>
+    <script type="text/javascript" src="widgets.js"></script>
     <script type="text/javascript" src="filter.js"></script>
     <script type="text/javascript" src="image.js"></script>
+    <script type="text/javascript" src="imageutils.js"></script>
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="main.js"></script>
+    <style>
+        #mycanvas{
+            display: block;
+            width: 640px;
+        }
+        #controls{
+            left: 60%;
+            display: block;
+            width: 320px;
+        }
+
+        td{
+            text-align: center;
+        }
+    </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
 <header>
@@ -26,64 +43,58 @@
                 <h3>Filters</h3>
             </div>
 
-            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
-
-                <tr>
-                    <td align=center>
-                        <div>
-                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
-                        </div>
-                        <div class="submissiondes">
-                            <p>Please try apply different filters to the above image.</p>
-                            <p>
-                                Image:
-                                <select id="imgselect">
-									<option value="landscape">Landscape</option>
-                                    <option value="seal">Seal</option>
-                                    <option value="buck">Buck</option>
-                                    <option value="waterfall">Waterfall</option>
-                                </select>
-                                Filter:
-                                <select id="filterop">
-									<option value="adaptiveequal">adaptive equalization</option>
-                                    <option value="blur">blur</option>
-                                    <option value="edge">edge detection</option>
-                                    <option value="emboss">emboss</option>
-									<option value="equal">equalization</option>
-									<option value="equalblend">equalization + blending</option>
-                                    <option value="erosion">erosion</option>
-                                    <option value="erosion_round">erosion (round)</option>
-                                    <option value="erosion_star">erosion (star)</option>
-                                    <option value="dialation">dialation</option>
-                                    <option value="dialation_round">dialation (round)</option>
-                                    <option value="dialation_star">dialation (star)</option>
-                                    <option value="gradient">gradient</option>
-                                    <option value="grayscale">grayscale</option>
-                                    <option value="invert">invert</option>
-                                    <option value="motion">motion</option>
-                                    <option value="sharpen">sharpen</option>
-                                    <option value="hsobel">sobel (horizontal)</option>
-                                    <option value="vsobel">sobel (vertical)</option>
-                                    <option value="customized">customized</option>
-                                </select>
-                            </p>
-                            <p>Upload image:
-                                <input type="file" id="files" name="files[]" />
-                                <output id="list"></output>
-                            </p>
-                            Customized filter:
-                            <p>
-                                <textarea id="cfilter" rows="5" cols="16">Please input the filter here.</textarea>
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-
-            </table>
-
+            <div>
+                <table width="90%" align="center">
+                    <tr>
+                        <td>
+                <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
+                            </td>
+                        <td>
+                <div id="controls">
+                    <p>Filter:
+                        <select id="filterop">
+                            <option value="contrast">contrast</option>
+                            <option value="adaptiveequal">adaptive equalization</option>
+                            <option value="blur">blur</option>
+                            <option value="edge">edge detection</option>
+                            <option value="emboss">emboss</option>
+                            <option value="equal">equalization</option>
+                            <option value="equalblend">equalization + blending</option>
+                            <option value="erosion">erosion</option>
+                            <option value="dialation">dialation</option>
+                            <option value="gradient">gradient</option>
+                            <option value="grayscale">grayscale</option>
+                            <option value="invert">invert</option>
+                            <option value="motion">motion</option>
+                            <option value="sharpen">sharpen</option>
+                            <option value="usm">unsharpen mask</option>
+                            <option value="hsobel">sobel (horizontal)</option>
+                            <option value="vsobel">sobel (vertical)</option>
+                            <option value="customized">customized</option>
+                        </select>
+                        <button id="apply_btn">Apply</button>
+                    </p>
+                </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="submissiondes">
+                <p>
+                    Image:
+                    <select id="imgselect">
+                        <option value="landscape">Landscape</option>
+                        <option value="seal">Seal</option>
+                        <option value="buck">Buck</option>
+                        <option value="waterfall">Waterfall</option>
+                    </select>
+                    &nbsp
+                    Upload:
+                    <input type="file" id="files" name="files[]" />
+                    <output id="list"></output>
+                </p>
+            </div>
         </div>
-    </div>
-    </div>
     </div>
 </article>
 <footer>

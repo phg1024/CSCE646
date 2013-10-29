@@ -1,431 +1,163 @@
-// matrix structure
-function Mat(__row, __col, __data, __buffer){
-	this.row = __row || 0;
-	this.col = __col || 0;
-	this.channel = 4;
-	this.buffer = __buffer || new ArrayBuffer(__row * __col * 4);
-	this.data = new Uint8ClampedArray(this.buffer);
-	__data && this.data.set(__data);
-	this.bytes = 1;
-	this.type = "IMG_RGBA";
-}
+/**
+ * Created by peihongguo on 10/5/13.
+ */
 
-function image2Matrix(__image){
-	var width = __image.width,
-	height = __image.height;
-	
-	// resize the canvas	
-	canvasresize(width, height);
-
-	// render the image to the canvas in order to obtain image data
-	context.drawImage(__image, 0, 0);
-	var imageData = context.getImageData(0, 0, width, height),
-	tempMat = new Mat(height, width, imageData.data);
-	imageData = null;
-
-	// clear up the canvas
-	context.clearRect(0, 0, width, height);
-	return tempMat;
-}
-
-function matrix2ImageData(__imgMat){
-	var width = __imgMat.col,
-	height = __imgMat.row,
-	imageData = context.createImageData(width, height);
-	imageData.data.set(__imgMat.data);
-	return imageData;
-}
-
-function imresize(__src, w, h)
+function Color(r, g, b, a)
 {
-	// bilinear interpolation
-	if(__src.type && __src.type === "IMG_RGBA"){
-		var ih = __src.row,
-		iw = __src.col;
-		var dst = new Mat(h, w);
-		var ddata = dst.data,
-		sdata = __src.data;
-		
-		var ystep = 1.0 / h;
-		var xstep = 1.0 / w;
-		for(var i=0;i<h;i++)
-		{
-			var y = i * ystep;
-			var yPos = y * ih;
-			var ty = Math.floor(yPos);
-			var dy = Math.ceil(yPos);
-			
-			var fy = yPos - ty;
-			for(var j=0;j<w;j++)
-			{
-				var x = j * xstep;
-				var xPos = x * iw;
-				var lx = Math.floor(xPos);
-				var rx = Math.ceil(xPos);
-				
-				var fx = xPos - lx;
-				
-				var idx = (i*w+j)*4;
-				var idxlt = (ty*iw+lx)*4;
-				var idxrt = (ty*iw+rx)*4;
-				var idxld = (dy*iw+lx)*4;
-				var idxrd = (dy*iw+rx)*4;
-				for(var k=0;k<3;k++)
-				{
-					ddata[idx+k] = sdata[idxlt+k] * (1-fy) * (1-fx)
-					+ sdata[idxrt+k] * (1-fy) * fx
-					+ sdata[idxld+k] * fy * (1-fx)
-					+ sdata[idxrd+k] * fy * fx;
-				}
-				ddata[idx+3] = sdata[idx+3];
-			}
-		}
-	}else{
-		return __src;
-	}
-	return dst;
-}
-
-function canvasresize(__width, __height)
-{
-	canvas.width = __width;
-	canvas.height = __height;
-}
-
-function clamp(v, lower, upper)
-{
-	var res = v;
-	res = Math.min(upper, res);
-	res = Math.max(lower, res);
-	return res;
-}
-
-function filter(__src, f)
-{
-	if(__src.type && __src.type === "IMG_RGBA"){
-		var row = __src.row,
-		col = __src.col;
-		var dst = new Mat(row, col);
-		var data = dst.data,
-		data2 = __src.data;
-		
-		var wf = Math.floor(f.width / 2);
-		var hf = Math.floor(f.height / 2);
-		var bias = f.bias;
-		var factor = f.factor;
-        var p = f.p || 1.0;
-		for (var y=0;y<row;y++)
-		{
-			for (var x=0;x<col;x++)
-			{
-				var fidx = 0;
-				var r, g, b;
-				r = g = b = 0;
-				var idx = (y*col+x)*4;
-				for (var i=-hf, fi=0;i<=hf;i++,fi++)
-				{
-					var py = clamp(i+y,0,row-1);
-					for (var j=-wf, fj=0;j<=wf;j++,fj++)
-					{
-						var px = clamp(j+x,0,col-1);
-						
-						var pidx = (py * col + px) * 4;
-						
-						var weight = f.value[fidx++];
-						
-						r += Math.pow(data2[pidx] * weight, p);
-						g += Math.pow(data2[pidx+1] * weight, p);
-						b += Math.pow(data2[pidx+2] * weight, p);
-					}
-				}
-				
-				r = clamp(Math.pow(r, 1/p)/factor+bias, 0.0, 255.0);
-				g = clamp(Math.pow(g, 1/p)/factor+bias, 0.0, 255.0);
-				b = clamp(Math.pow(b, 1/p)/factor+bias, 0.0, 255.0);
-																
-				data[idx] = Math.round(r);
-				data[idx+1] = Math.round(g);
-				data[idx+2] = Math.round(b);
-				data[idx+3] = data2[idx+3];
-			}
-		}
-	}else{
-		return __src;
-	}
-	return dst;	
-}
-
-function grayscale(__src)
-{
-	if(__src.type && __src.type === "IMG_RGBA"){
-		var row = __src.row,
-		col = __src.col;
-		var dst = new Mat(row, col);
-		var data = dst.data,
-		data2 = __src.data;
-		var pix1, pix2, pix = __src.row * __src.col * 4;
-		while (pix){
-			data[pix -= 4] = data[pix1 = pix + 1] = data[pix2 = pix + 2] = (data2[pix] * 299 + data2[pix1] * 587 + data2[pix2] * 114) / 1000;
-			data[pix + 3] = data2[pix + 3];
-		}
-	}else{
-		return __src;
-	}
-	return dst;
-}
-
-function edge( __src ) {
-    if(__src.type && __src.type === "IMG_RGBA"){
-
-        var gx = grayscale( filter(__src, Filter.hsobel) );
-        var gy = grayscale( filter(__src, Filter.vsobel) );
-
-        // sqrt(gx^2 + gy^2)
-        var row = gx.row,
-            col = gx.col;
-        var g = new Mat(row, col);
-        var data = g.data,
-            data1 = gx.data,
-            data2 = gy.data;
-
-        for (var idx=0;idx<row*col*4;idx++)
-        {
-            data[idx] = Math.sqrt(data1[idx] * data1[idx] + data2[idx] * data2[idx]);
-        }
-
-        var dst = new Mat(row, col);
-        var ddata = dst.data, sdata = __src.data;
-        for (var y= 0, idx = 0;y<row;y++)
-        {
-            for (var x=0;x<col;x++, idx+=4)
-            {
-                ddata[idx+0] = sdata[idx+0] * data[idx] / 255.0;
-                ddata[idx+1] = sdata[idx+1] * data[idx] / 255.0;
-                ddata[idx+2] = sdata[idx+2] * data[idx] / 255.0;
-                ddata[idx+3] = 255;
-            }
-        }
-        return dst;
+    if( arguments.length !== 4 )
+    {
+        this.r = this.g = this.b = this.a = 0;
     }
     else
     {
-        return __src;
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
     }
 }
 
-function add(img1, img2, w)
+Color.RED = new Color(255, 0, 0, 255);
+Color.GREEN = new Color(0, 255, 0, 255);
+Color.BLUE = new Color(0, 0, 255, 255);
+Color.YELLOW = new Color(255, 255, 0, 255);
+Color.PURPLE = new Color(255, 0, 255, 255);
+Color.CYAN = new Color(0, 255, 255, 255);
+Color.WHITE = new Color(255, 255, 255, 255);
+Color.BLACK = new Color(0, 0, 0, 255);
+Color.GRAY = new Color(128, 128, 128, 255);
+
+Color.prototype.setColor = function(that)
 {
-	if(img1.type && img1.type === "IMG_RGBA" &&
-	img2.type && img2.type === "IMG_RGBA" ){
-		var row = img1.row,
-		col = img1.col;
-		var dst = new Mat(row, col);
-		var data = dst.data,
-		data1 = img1.data,
-		data2 = img2.data;
+    if( that != null &&
+        that.constructor === Color )
+    {
+        this.r = that.r;
+        this.g = that.g;
+        this.b = that.b;
+        this.a = that.a;
+        return this;
+    }
+    else
+        return null;
+};
 
-		var totalpix = row*col*4;
-		for (var idx=0;idx<totalpix;idx++)
-		{
-			data[idx] = data1[idx] * w + data2[idx] * (1.0-w);
-		}
-
-	}else{
-		return __src;
-	}
-	return dst;
+Color.prototype.equal = function( that ) {
+    return (this.r == that.r && this.g == that.g && this.b == that.b);
 }
 
-function equalize_blend(__src)
+Color.prototype.add = function(that) {
+    return new Color(this.r + that.r, this.g + that.g, this.b + that.b, this.a + that.a);
+};
+
+Color.prototype.sub = function(that) {
+    return new Color(this.r - that.r, this.g - that.g, this.b - that.b, this.a - that.a);
+};
+
+Color.prototype.mul = function(c)
 {
-	var eimg = equalize(__src);
-	var dst = add(__src, eimg, 0.5);
-	return dst;
+    return new Color(this.r * c, this.g * c, this.b * c, this.a * c);
+};
+
+Color.prototype.clamp = function() {
+    this.r = clamp(this.r, 0, 255);
+    this.g = clamp(this.g, 0, 255);
+    this.b = clamp(this.b, 0, 255);
+    this.a = clamp(this.a, 0, 255);
+    return this;
 }
 
-function histogram(img, x1, y1, x2, y2, num_bins)
+Color.interpolate = function(c1, c2, t)
 {
-	if( num_bins == undefined )
-	num_bins = 256;
-	
-	var rows = img.row;
-	var cols = img.col;
-	var hist = [];
-	for(var i=0;i<num_bins;i++)
-	hist[i] = 0;
+    return c1.mul(t).add(c2.mul(1-t));
+};
 
-	for(var y=y1;y<y2;y++)
-	{
-		for(var x=x1;x<x2;x++)
-		{
-			var idx = (y * cols + x) * 4;
-			var val = Math.floor((img.data[idx] / 256.0) * num_bins);
-			hist[val]++;
-		}
-	}
-	
-	return hist;
+function RGBAImage( w, h, data )
+{
+    this.channels = 4;
+    this.w = w;
+    this.h = h;
+    this.data = new Uint8Array(w*h*this.channels);
+    data && this.data.set(data);
 }
 
-function buildcdf( hist, num_bins )
-{
-	if( num_bins == undefined )
-	num_bins = 256;
-		
-	var cumuhist = [];
-	cumuhist[0] = hist[0];
-	for(var i=1;i<num_bins;i++)
-	cumuhist[i] = cumuhist[i-1] + hist[i];
-		
-	return cumuhist;
+RGBAImage.prototype.getPixel = function(x, y) {
+    var idx = (y * this.w + x) * this.channels;
+    return new Color(
+        this.data[idx+0],
+        this.data[idx+1],
+        this.data[idx+2],
+        this.data[idx+3]
+    );
 }
 
-function equalize(__src)
+// bilinear sample of the image
+RGBAImage.prototype.sample = function(x, y) {
+    var w = this.w, h = this.h;
+    var ty = Math.floor(y);
+    var dy = Math.ceil(y);
+
+    var lx = Math.floor(x);
+    var rx = Math.ceil(x);
+
+    var fx = x - lx;
+    var fy = y - ty;
+
+    var c = this.getPixel(lx, ty).mul((1-fy) * (1-fx))
+        .add(this.getPixel(lx, dy).mul(fy * (1-fx)))
+        .add(this.getPixel(rx, ty).mul((1-fy) * fx))
+        .add(this.getPixel(rx, dy).mul(fy * fx));
+
+    c.clamp();
+
+    return c;
+};
+
+RGBAImage.prototype.setPixel = function(x, y, c) {
+    var idx = (y * this.w + x) * this.channels;
+    this.data[idx] = c.r;
+    this.data[idx+1] = c.g;
+    this.data[idx+2] = c.b;
+    this.data[idx+3] = c.a;
+};
+
+RGBAImage.prototype.uploadTexture = function( ctx, texId )
 {
-	if(__src.type && __src.type === "IMG_RGBA"){
-		
-		var row = __src.row,
-		col = __src.col;
-		
-		// grayscale image
-		var gimg = grayscale(__src);
-		
-		// build histogram
-		var hist = histogram(gimg, 0, 0, col, row);
-		
-		var cumuhist = buildcdf( hist );
+    var w = this.w;
+    var h = this.h;
 
-		var total = cumuhist[255];
-		for(var i=0;i<256;i++)
-		cumuhist[i] = Math.round(cumuhist[i] / total * 255.0);
-		
-		// equalize
-		var dst = new Mat(row, col);
-		var data = dst.data,
-		data2 = __src.data;
-		idx = 0;
-		for(var y=0;y<row;y++)
-		{
-			for(var x=0;x<col;x++, idx+=4)
-			{
-				var val = gimg.data[idx];
-				var mappedval = cumuhist[val];
-				
-				var ratio = mappedval / val;
-				data[idx] = data2[idx] * ratio;
-				data[idx + 1] = data2[idx + 1] * ratio;
-				data[idx + 2] = data2[idx + 2] * ratio;
-				data[idx + 3] = data2[idx + 3];
-			}
-		}
-	}else{
-		return __src;
-	}
-	return dst;
-}
+    ctx.bindTexture(ctx.TEXTURE_2D, texId);
+    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
+    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
+    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
+    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
+    ctx.texImage2D(ctx.TEXTURE_2D, 0,  ctx.RGBA, w, h, 0, ctx.RGBA, ctx.UNSIGNED_BYTE, this.data);
+};
 
-function ahe(__src)
-{
-	// find a good window size
-	if(__src.type && __src.type === "IMG_RGBA"){
-		var row = __src.row,
-		col = __src.col;
-		
-		// tile size
-		var tilesize = [64, 64];
-		
-		// number of bins
-		var num_bins = 256;
-		
-		// number of tiles in x and y direction
-		var xtiles = Math.ceil(col / tilesize[0]);
-		var ytiles = Math.ceil(row / tilesize[1]);
-		
-		var cdfs = new Array(ytiles);
-		for(var i=0;i<ytiles;i++)
-		cdfs[i] = new Array(xtiles);
-		
-		var inv_tile_size = [1.0 / tilesize[0], 1.0 / tilesize[1]];
-		
-		var binWidth = 256 / num_bins;
-		
-		var gimg = grayscale(__src);
-		
-		// create histograms
-		for(var i=0;i<ytiles;i++)
-		{
-			var y0 = i * tilesize[1];
-			var y1 = Math.min(y0+tilesize[1], row);
-			for(var j=0;j<xtiles;j++)
-			{
-				var x0 = j * tilesize[0];
-				var x1 = Math.min(x0+tilesize[0], col);
-				var hist = histogram(gimg, x0, y0, x1, y1, num_bins);
-				
-				var cdf = buildcdf( hist );
-			
-				var total = cdf[255];
-				for(var k=0;k<256;k++)
-				cdf[k] = Math.round(cdf[k] / total * 255.0);
-				
-				cdfs[i][j] = cdf;
-			}
-		}
-		
-		var dst = new Mat(row, col);
-		var data = dst.data,
-		data2 = __src.data;
-		
-		console.log(xtiles);
-		console.log(ytiles);
-		
-		console.log(row);
-		console.log(col);
-		
-		var idx = 0;
-		for(var y=0;y<row;y++)
-		{
-			for(var x=0;x<col;x++, idx+=4)
-			{
-				// intensity of current pixel
-				var I = gimg.data[idx];
-				
-				// bin index
-				var bin = Math.floor(I / binWidth);
-				
-				// current tile
-				var tx = x * inv_tile_size[0] - 0.5;
-				var ty = y * inv_tile_size[1] - 0.5;
-				
-				var xl = Math.max(Math.floor(tx), 0);
-				var xr = Math.min(xl+1, xtiles-1);
-				
-				var yt = Math.max(Math.floor(ty), 0);
-				var yd = Math.min(yt+1, ytiles-1);
-								
-				var fx = tx - xl;
-				var fy = ty - yt;
-				
-				var cdf11 = cdfs[yt][xl][bin];
-				var cdf12 = cdfs[yd][xl][bin];
-				var cdf21 = cdfs[yt][xr][bin];
-				var cdf22 = cdfs[yd][xr][bin];			
-				
-				var Iout = (1 - fx) * (1 - fy) * cdf11
-				+ (1 - fx) * 	   fy  * cdf12
-				+      fx  * (1 - fy) * cdf21
-				+      fx  *      fy  * cdf22;
-						 
-				var ratio = Iout / I;
-				data[idx] = clamp(data2[idx] * ratio, 0, 255);
-				data[idx + 1] = clamp(data2[idx + 1] * ratio, 0, 255);
-				data[idx + 2] = clamp(data2[idx + 2] * ratio, 0, 255);
-				data[idx + 3] = data2[idx + 3];
-			}
-		}
+RGBAImage.prototype.toImageData = function( ctx ) {
+    var imgData = ctx.createImageData(this.w, this.h);
+    imgData.data.set(this.data);
+    return imgData;
+};
 
-	}else{
-		return __src;
-	}
-	return dst;
-}
+/* get RGBA image data from the passed image object */
+RGBAImage.fromImage = function( img, cvs ) {
+    var w = img.width;
+    var h = img.height;
+
+    // resize the canvas for drawing
+    cvs.width = w;
+    cvs.height = h;
+
+    var ctx = cvs.getContext('2d');
+
+    // render the image to the canvas in order to obtain image data
+    ctx.drawImage(img, 0, 0);
+    var imgData = ctx.getImageData(0, 0, w, h);
+    var newImage = new RGBAImage(w, h, imgData.data);
+    imgData = null;
+
+    // clear up the canvas
+    ctx.clearRect(0, 0, w, h);
+    return newImage;
+};
