@@ -64,21 +64,21 @@ function applyFilter()
         }
 		case "adaptiveequal":
 		{
+            var amount = parseFloat($('#Amountslider').val()) / 200.0;
+            console.log('amount = ' + amount);
+
             console.log('equalizing the image ...');
-            newimg = (	ahe(origImg) );
+            newimg = (	ahe(origImg, amount) );
             break;
 		}
 		case "equal":
 		{
+            var amount = parseFloat($('#Amountslider').val()) / 200.0;
+            console.log('amount = ' + amount);
+
             console.log('equalizing the image ...');
-            newimg = (	equalize(origImg) );
+            newimg = (	equalize(origImg, amount) );
             break;			
-		}
-		case "equalblend":
-		{
-            console.log('equalizing the image with blending ...');
-            newimg = (	equalize_blend(origImg) );
-            break;						
 		}
         case "gradient":
         {
@@ -102,7 +102,7 @@ function applyFilter()
             var degree = $('#Angleslider').val();
             console.log('degree = ' + degree);
 
-            newimg = ( filter(origImg, new Filter.embossn(size, degree)) );
+            newimg = ( filter(origImg, new Filter.emboss(size, degree)) );
             break;
         }
         case 'blur':
@@ -120,9 +120,12 @@ function applyFilter()
             break;
         }
         case 'usm':{
-            var amount = parseFloat($('#Amountslider').val()) / 100.0 + 1.0;
+            var size = $('#FilterSizeslider').val();
+            console.log('filter size = ' + size);
+
+            var amount = parseFloat($('#Amountslider').val()) / 10.0 + 1.0;
             console.log('amount = ' + amount);
-            newimg = unsharpenmask(origImg, amount);
+            newimg = unsharpenmask(origImg, size, amount);
             break;
         }
         case 'motion':
@@ -132,20 +135,41 @@ function applyFilter()
             var degree = $('#Angleslider').val();
             console.log('degree = ' + degree);
 
-            newimg = ( filter(origImg, new Filter.motionn(size, degree)) );
+            newimg = ( filter(origImg, new Filter.motion(size, degree)) );
             break;
         }
         case 'contrast':
         {
-            newimg = contrast(origImg);
+            var amount = parseFloat($('#Amountslider').val());
+            newimg = contrast(origImg, amount);
             break;
+        }
+        case 'bilateral':
+        {
+
         }
         case 'customized':
         {
             console.log('customized filter');
             // get the customized filter and apply the filter to current image
             var cf = document.getElementById("cfilter");
-            var params = cf.value.split(/[\s]+/);
+            var lines = cf.value.split(/[\n]+/);
+            for(var i=0;i<lines.length;i++) {
+                lines[i] = lines[i].split(/[\s]+/);
+            }
+
+            // check if the input is valid
+            if( !(lines.length & 0x1) ){ alert('filter size must be uneven!'); return; }
+            var cols = lines[0].length;
+            for(var i=0;i<lines.length;i++) {
+                if( lines[i].length != cols ) {
+                    alert('The size of the ' + i + 'th row of the filter is invalid!');
+                    return;
+                }
+            }
+
+            console.log(lines);
+            var params = {width: lines[0].length, height: lines.length, weights: lines};
             var f = new Filter( params );
             console.log(f);
             newimg = ( filter(origImg, f) );
@@ -185,22 +209,57 @@ window.onload = (function(){
         applyFilter();
     });
 
-    $('#controls').append( createInput('FilterSize', 'slidertext', {init:3, min:3, max:15}) );
+    $('#controls').append( createInput('FilterSize', 'slidertext', {init:3, min:3, max:15, step: 2}) );
     $('#controls').append( createInput('Sigma', 'slidertext', {init:1, min:1, max:5}) );
     $('#controls').append( createInput('Angle', 'slidertext', {init:0, min:0, max:359}) );
-    $('#controls').append( createInput('Amount', 'slidertext', {init:50, min:0, max:200}) );
+    $('#controls').append( createInput('Amount', 'slidertext', {init:50, min:0, max:100}) );
     $('#controls').append( createInput('Shape', 'combo', ['square', 'round', 'star', 'plus']));
     $('#controls').append( createInput('Customized Filter', 'textarea', {id:'cfilter', init:'Please input the filter here.'}));
 
     $('#filterop').change(function() {
         var op = this.value;
         if( op == 'erosion' || op == 'dialation' ) {
-            $('#shape').show();
+            $('#Shape').show();
         }
         else {
-            $('#shape').hide();
+            $('#Shape').hide();
         }
-    })
+
+        if( op == 'contrast' || op == 'usm' || op == 'equal' || op == 'adaptiveequal' ) {
+            $('#Amount').show();
+        }
+        else {
+            $('#Amount').hide();
+        }
+
+        if( op == 'blur' || op == 'emboss' || op == 'motion' || op == 'usm'
+         || op == 'erosion' || op == 'dialation' ) {
+            $('#FilterSize').show();
+        }
+        else {
+            $('#FilterSize').hide();
+        }
+
+        if( op == 'blur') {
+            $('#Sigma').show();
+        }
+        else {
+            $('#Sigma').hide();
+        }
+
+        if( op == 'emboss' || op == 'motion' ) {
+            $('#Angle').show();
+        }
+        else {
+            $('#Angle').hide();
+        }
+    });
+
+    $('#Sigma').hide();
+    $('#FilterSize').hide();
+    $('#Angle').hide();
+    $('#Shape').hide();
+
 
     // set up callback for uploading file
     document.getElementById('files').addEventListener('change', handleFileSelect, false);

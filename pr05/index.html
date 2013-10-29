@@ -4,24 +4,16 @@
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
     <script type="text/javascript" src="jquery-2.0.3.js"></script>
     <script type="text/javascript" src="widgets.js"></script>
+    <script type="text/javascript" src="shape.js"></script>
     <script type="text/javascript" src="filter.js"></script>
     <script type="text/javascript" src="image.js"></script>
     <script type="text/javascript" src="imageutils.js"></script>
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="main.js"></script>
     <style>
-        #mycanvas{
-            display: block;
-            width: 640px;
-        }
-        #controls{
-            left: 60%;
-            display: block;
-            width: 320px;
-        }
-
-        td{
+         #controls{
             text-align: center;
+            width: 100%;
         }
     </style>
 </head>
@@ -44,37 +36,38 @@
             </div>
 
             <div>
-                <table width="90%" align="center">
+                <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                     <tr>
-                        <td>
-                <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
-                            </td>
-                        <td>
-                <div id="controls">
-                    <p>Filter:
-                        <select id="filterop">
-                            <option value="contrast">contrast</option>
-                            <option value="adaptiveequal">adaptive equalization</option>
-                            <option value="blur">blur</option>
-                            <option value="edge">edge detection</option>
-                            <option value="emboss">emboss</option>
-                            <option value="equal">equalization</option>
-                            <option value="equalblend">equalization + blending</option>
-                            <option value="erosion">erosion</option>
-                            <option value="dialation">dialation</option>
-                            <option value="gradient">gradient</option>
-                            <option value="grayscale">grayscale</option>
-                            <option value="invert">invert</option>
-                            <option value="motion">motion</option>
-                            <option value="sharpen">sharpen</option>
-                            <option value="usm">unsharpen mask</option>
-                            <option value="hsobel">sobel (horizontal)</option>
-                            <option value="vsobel">sobel (vertical)</option>
-                            <option value="customized">customized</option>
-                        </select>
-                        <button id="apply_btn">Apply</button>
-                    </p>
-                </div>
+                        <td align=center width="60%">
+                            <div>
+                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
+                            </div>
+                        </td>
+                        <td align=center width="40%">
+                            <div id="controls">
+                                <p>Filter:
+                                    <select id="filterop">
+                                        <option value="contrast">contrast</option>
+                                        <option value="adaptiveequal">adaptive equalization</option>
+                                        <option value="blur">blur</option>
+                                        <option value="edge">edge detection</option>
+                                        <option value="emboss">emboss</option>
+                                        <option value="equal">equalization</option>
+                                        <option value="erosion">erosion</option>
+                                        <option value="dialation">dialation</option>
+                                        <option value="gradient">gradient</option>
+                                        <option value="grayscale">grayscale</option>
+                                        <option value="invert">invert</option>
+                                        <option value="motion">motion</option>
+                                        <option value="sharpen">sharpen</option>
+                                        <option value="usm">unsharpen mask</option>
+                                        <option value="hsobel">sobel (horizontal)</option>
+                                        <option value="vsobel">sobel (vertical)</option>
+                                        <option value="customized">customized</option>
+                                    </select>
+                                    <button id="apply_btn">Apply</button>
+                                </p>
+                             </div>
                         </td>
                     </tr>
                 </table>

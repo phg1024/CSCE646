@@ -19,6 +19,7 @@ function createSlider(name, props) {
         slider.max = props.max || 100;
         slider.min = props.min || 0;
         slider.value = props.init || 0;
+        slider.step = props.step || 1;
     }
     return slider;
 }
@@ -54,8 +55,8 @@ function createTextArea(name, props) {
     var textarea = document.createElement('textarea');
     textarea.id = props.id || (name + 'textarea');
     if( props ) {
-        textarea.rows = props.rows || 5;
-        textarea.cols = props.cols || 16;
+        textarea.rows = props.rows || 10;
+        textarea.cols = props.cols || 32;
         textarea.innerHTML = props.init || '';
     }
     return textarea;
@@ -101,6 +102,7 @@ function createInput( name, type, props ) {
         case 'textarea':
         {
             node = document.createElement('div');
+            node.id = name;
             var label = document.createElement('p');
             label.innerHTML = name;
             node.appendChild( label );

@@ -11,16 +11,23 @@ function Filter( params )
 	}
 	else
 	{
-		var idx = 0;
-		this.width = parseInt(params[idx++]);
-		this.height = parseInt(params[idx++]);
+		this.width = params.width;
+		this.height = params.height;
 			
 		this.value = [];
-		for(var i=0;i<this.width*this.height;i++,idx++)
-		this.value[i] = parseInt(params[idx]);
+        var weights = 0;
+        var idx = 0;
+		for(var i=0;i<this.height;i++)
+        for(var j=0;j<this.width;j++, idx++)
+        {
+            var val = parseInt(params.weights[i][j]);
+		    this.value[idx] = val;
+            weights += val;
+        }
 		
-		this.bias = parseFloat(params[idx++]);
-		this.factor = parseFloat(params[idx]);
+		this.bias = parseFloat(params.bias) || 0.0;
+		this.factor = parseFloat(params.factor) || weights;
+        if( this.factor == 0 ) this.factor = 1;
 		return this;
 	}
 }
@@ -55,7 +62,7 @@ Filter.vsobel = {
 	bias : 0.0
 };
 
-Filter.embossn = function( size, degree ) {
+Filter.emboss = function( size, degree ) {
 
     var val = new Float32Array(size * size);
     var cx = (size-1) * 0.5;
@@ -147,7 +154,7 @@ Filter.blur5 = {
         4, 16, 26, 16, 4,
         7, 26, 41, 26, 7,
         4, 16, 26, 16, 4,
-        1, 4, 7, 4, 1,
+        1, 4, 7, 4, 1
     ]
 };
 
@@ -170,30 +177,35 @@ Filter.blur7 = {
 Filter.sharpen = {
 	width : 5,
 	height : 5,
-	factor : 8.0,
+	factor : 10.0,
 	bias : 0.0,
 	value : [
-	-1, -1, -1, -1, -1,
-	-1, 2, 2, 2, -1,
-	-1, 2, 8, 2, -1,
-	-1, 2, 2, 2, -1,
-	-1, -1, -1, -1, -1
+	0, -1, -2, -1, 0,
+	-1, -2, -4, -2, -1,
+	-2, -4, 50, -4, -2,
+	-1, -2, -4, -2, -1,
+	0, -1, -2, -1, 0
 	]
 };
 	
-Filter.motionn = function(size, degree){
+Filter.motion = function(size, degree){
 
     var val = new Float32Array(size * size);
     var cx = (size-1) * 0.5;
     var cy = (size-1) * 0.5;
 
-    var theta = degree / 180.0 * Math.PI;
-    var bw = 3;
+    var theta = (180.0 - degree) / 180.0 * Math.PI;
+    var bw = 1.0;
 
     // line direction, normalized
     var v = {
         x: Math.cos(theta),
         y: Math.sin(theta)
+    };
+
+    var n = {
+        x: -v.y,
+        y: v.x
     };
 
     var weight = 0.0;
@@ -203,7 +215,7 @@ Filter.motionn = function(size, degree){
             var x = j - cx;
             // compute the distance of point (x, y) to line (0,0) + t * v
             // the distance is the dot product of vector (x, y) with n
-            var dist = x * v.x + y * v.y;
+            var dist = x * n.x + y * n.y;
 
             val[idx] = (Math.abs(dist) <= bw)?1.0:0.0;
             weight += val[idx];
@@ -265,6 +277,20 @@ Filter.erosion = function(size, shape){
             break;
         }
         case 'star':{
+            var cx = (size-1) * 0.5;
+            var cy = (size-1) * 0.5;
+            var r = (size-1) * 0.5 * 0.375;
+            var s = new Star(cx, cy, r, 5);
+
+            for(var i= 0, idx=0;i<size;i++) {
+                for(var j=0;j<size;j++, idx++) {
+                    if( s.isInside(j, i) ) {
+                        v[idx] = 1.0;
+                    }
+                    else v[idx] = 1e4;
+                }
+            }
+
             break;
         }
     }
@@ -316,6 +342,19 @@ Filter.dialation = function(size, shape){
             break;
         }
         case 'star':{
+            var cx = (size-1) * 0.5;
+            var cy = (size-1) * 0.5;
+            var r = (size-1) * 0.5 * 0.375;
+            var s = new Star(cx, cy, r, 5);
+
+            for(var i= 0, idx=0;i<size;i++) {
+                for(var j=0;j<size;j++, idx++) {
+                    if( s.isInside(j, i) ) {
+                        v[idx] = 1.0;
+                    }
+                    else v[idx] = 1e-4;
+                }
+            }
             break;
         }
     }
@@ -326,62 +365,5 @@ Filter.dialation = function(size, shape){
     p : 20,
     factor: 1,
     bias : 0.0
-    };
-};
-
-
-Filter.erosion_star = function(){
-    var size = 9;
-    var v = [
-        0, 0, 0, 0, 1, 0, 0, 0, 0,
-        0, 0, 0, 1, 1, 1, 0, 0, 0,
-        0, 0, 0, 1, 1, 1, 0, 0, 0,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 1, 1, 1, 1, 1, 0, 0,
-        0, 0, 0, 1, 1, 1, 0, 0, 0,
-        0, 0, 1, 1, 1, 1, 1, 0, 0,
-        0, 1, 1, 0, 0, 0, 1, 1, 0
-    ];
-
-    for(var i=0;i<size*size;i++) {
-        v[i] = (v[i]==0)?1e4:v[i];
-    }
-
-    return {
-        width : size,
-        height: size,
-        value : v,
-        p : -20,
-        factor: 1,
-        bias : 0.0
-    };
-};
-
-Filter.dialation_star = function(){
-    var size = 9;
-    var v = [
-        0, 0, 0, 0, 1, 0, 0, 0, 0,
-        0, 0, 0, 1, 1, 1, 0, 0, 0,
-        0, 0, 0, 1, 1, 1, 0, 0, 0,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 0, 1, 1, 1, 1, 1, 0, 0,
-        0, 0, 0, 1, 1, 1, 0, 0, 0,
-        0, 0, 1, 1, 1, 1, 1, 0, 0,
-        0, 1, 1, 0, 0, 0, 1, 1, 0
-    ];
-
-    for(var i=0;i<size*size;i++) {
-        v[i] = (v[i]==0)?1e-4:v[i];
-    }
-
-    return {
-        width : size,
-        height: size,
-        value : v,
-        p : 20,
-        factor: 1,
-        bias : 0.0
     };
 };

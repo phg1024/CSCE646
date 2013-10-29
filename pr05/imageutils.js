@@ -164,13 +164,6 @@ function diff(img1, img2) {
     });
 }
 
-function equalize_blend(__src)
-{
-    var eimg = equalize(__src);
-    var dst = add(__src, eimg, 0.5);
-    return dst;
-}
-
 function histogram(img, x1, y1, x2, y2, num_bins)
 {
     if( num_bins == undefined )
@@ -208,7 +201,7 @@ function buildcdf( hist, num_bins )
     return cumuhist;
 }
 
-function equalize(__src)
+function equalize(__src, amount)
 {
     var h = __src.h,
         w = __src.w;
@@ -242,10 +235,13 @@ function equalize(__src)
             dst.setPixel(x, y, c);
         }
     }
+
+    dst = add(dst, __src, amount);
+
     return dst;
 }
 
-function ahe(__src)
+function ahe(__src, amount)
 {
     // find a good window size
     var row = __src.h,
@@ -343,6 +339,9 @@ function ahe(__src)
             data[idx + 3] = data2[idx + 3];
         }
     }
+
+    dst = add(dst, __src, amount);
+
     return dst;
 }
 
@@ -365,9 +364,9 @@ function contrast( src, lev ) {
     return dst;
 }
 
-function unsharpenmask( src, amount ) {
+function unsharpenmask( src, size, amount ) {
     // first get a blurred copy
-    var blurred = filter(src, Filter.blur3);
+    var blurred = filter(src, Filter.blurn(size, 0.5 * size));
 
     var alpha = amount;
 
