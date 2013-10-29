@@ -221,7 +221,7 @@ window.onload = (function(){
     $('#controls').append( createInput('Angle', 'slidertext', {init:0, min:0, max:359}) );
     $('#controls').append( createInput('Amount', 'slidertext', {init:50, min:0, max:100}) );
     $('#controls').append( createInput('Shape', 'combo', ['square', 'round', 'star', 'plus']));
-    $('#controls').append( createInput('Customized Filter', 'textarea', {id:'cfilter', init:'Please input the filter here.'}));
+    $('#controls').append( createInput('CustomizedFilter', 'textarea', {id:'cfilter', init:'Please input the filter here.'}));
 
     $('#filterop').change(function() {
         var op = this.value;
@@ -262,12 +262,20 @@ window.onload = (function(){
         else {
             $('#Angle').hide();
         }
+
+        if( op == 'customized' ) {
+            $('#CustomizedFilter').show();
+        }
+        else {
+            $('#CustomizedFilter').hide();
+        }
     });
 
     $('#Sigma').hide();
     $('#FilterSize').hide();
     $('#Angle').hide();
     $('#Shape').hide();
+    $('#CustomizedFilter').hide();
 
 
     // set up callback for uploading file
