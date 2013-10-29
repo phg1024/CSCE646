@@ -146,7 +146,14 @@ function applyFilter()
         }
         case 'bilateral':
         {
+            var size = $('#FilterSizeslider').val();
+            console.log('filter size = ' + size);
+            var sigma = $('#Sigmaslider').val();
+            console.log('sigma = ' + sigma);
+            var amount = $('#Amountslider').val();
 
+            newimg = bilateral(origImg, sigma, amount, size);
+            break;
         }
         case 'customized':
         {
@@ -225,14 +232,16 @@ window.onload = (function(){
             $('#Shape').hide();
         }
 
-        if( op == 'contrast' || op == 'usm' || op == 'equal' || op == 'adaptiveequal' ) {
+        if( op == 'contrast' || op == 'usm' || op == 'equal'
+         || op == 'adaptiveequal' || op == 'bilateral') {
             $('#Amount').show();
         }
         else {
             $('#Amount').hide();
         }
 
-        if( op == 'blur' || op == 'emboss' || op == 'motion' || op == 'usm'
+        if( op == 'blur' || op == 'bilateral' || op == 'emboss'
+         || op == 'motion' || op == 'usm'
          || op == 'erosion' || op == 'dialation' ) {
             $('#FilterSize').show();
         }
@@ -240,7 +249,7 @@ window.onload = (function(){
             $('#FilterSize').hide();
         }
 
-        if( op == 'blur') {
+        if( op == 'blur' || op == 'bilateral' ) {
             $('#Sigma').show();
         }
         else {
