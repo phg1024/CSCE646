@@ -78,6 +78,76 @@ function filter(__src, f)
     return dst;
 }
 
+// apply filtering only to alpha channel
+function filter_alpha(__src, f)
+{
+    var h = __src.h,
+        w = __src.w;
+    var dst = new RGBAImage(w, h);
+    var data = dst.data,
+        data2 = __src.data;
+
+    var wf = Math.floor(f.width / 2);
+    var hf = Math.floor(f.height / 2);
+    var bias = f.bias;
+    var factor = f.factor;
+    for (var y=0;y<h;y++)
+    {
+        for (var x=0;x<w;x++)
+        {
+            var fidx = 0;
+            var a = 0;
+            var idx = (y*w+x)*4;
+            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            {
+                var py = clamp(i+y,0,h-1);
+                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                {
+                    var px = clamp(j+x,0,w-1);
+
+                    var pidx = (py * w + px) * 4;
+
+                    var weight = f.value[fidx++];
+
+                    a += data2[pidx+3] * weight;
+                }
+            }
+
+            a = clamp(a/factor+bias, 0.0, 255.0);
+
+            data[idx] = data2[idx];
+            data[idx+1] = data2[idx+1];
+            data[idx+2] = data2[idx+2];
+            data[idx+3] = a;
+        }
+    }
+    return dst;
+}
+
+function computeAlpha(src, ref, tol) {
+    var h = src.h,
+        w = src.w;
+    var dst = new RGBAImage(w, h);
+    var maxA = 0;
+    var THRES = tol;
+    for (var y=0;y<h;y++)
+    {
+        for( var x=0;x<w;x++ ) {
+            var pix = src.getPixel(x, y);
+            var hsv = rgb2hsv(pix);
+            var dh = (Math.abs(hsv.h - ref.h) % 180 ) / 180.0;
+            var ds = hsv.s - ref.s;
+            var dv = hsv.v - ref.v;
+            var dist = dh*dh + ds * ds + dv * dv;
+            pix.a = Math.round( ((dist>THRES)?1.0:dist) * 255.0);
+            maxA = Math.max(pix.a, maxA);
+            dst.setPixel(x, y, pix);
+        }
+    }
+    console.log(maxA);
+    return dst;
+}
+
 function grayscale(__src)
 {
     var h = __src.h,

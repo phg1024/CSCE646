@@ -61,6 +61,52 @@ function loadImage( imgname, sid )
     img.src = imgname;
 }
 
+function updateColorPatch_rgb() {
+    var r = $('#red').val();
+    var g = $('#gre').val();
+    var b = $('#blu').val();
+    var c = rgb2hsv({r:r, g:g, b:b});
+
+    $('#hue').val(c.h);
+    $('#sat').val(c.s);
+    $('#val').val(c.v);
+
+    $('.colorpatch').css('background-color', 'rgb('+ r+','+ g+','+ b+')');
+}
+
+function updateColorPatch_hsv() {
+    var h = $('#hue').val();
+    var s = $('#sat').val();
+    var v = $('#val').val();
+    console.log( h + ',' + s + ',' + v );
+    var c = hsv2rgb({h:h, s:s, v:v});
+    c.r *= 255;
+    c.g *= 255;
+    c.b *= 255;
+
+    $('#red').val(c.r);
+    $('#gre').val(c.g);
+    $('#blu').val(c.b);
+
+    $('.colorpatch').css('background-color', 'rgb('+ c.r+','+ c.g+','+ c.b+')');
+}
+
+function sampleColorFromCanvas(e) {
+    console.log('sampling from the canvas ...');
+    var pos = findPos(leftCanvas);
+    var x = e.pageX - pos.x;
+    var y = e.pageY - pos.y;
+    var coord = "x=" + x + ", y=" + y;
+    var p = leftContext.getImageData(x, y, 1, 1).data;
+    console.log(coord + ": " + p[0] + ', ' + p[1] + ', ' + p[2]);
+
+    $('#red').val(p[0]);
+    $('#gre').val(p[1]);
+    $('#blu').val(p[2]);
+
+    updateColorPatch_rgb();
+}
+
 function applyComposition() {
     var comp = $('#compselect').val();
     switch( comp ) {
@@ -208,6 +254,24 @@ function applyComposition() {
             break;
         }
         case 'matting': {
+            // compute the alpha mat for the foreground image
+            var h = $('#hue').val();
+            var s = $('#sat').val();
+            var v = $('#val').val();
+            var tol = $('#tol').val();
+
+            var img = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
+
+            // apply gaussian blur to alpha channel
+            img = filter(img, Filter.blur);
+
+            img = blend(img, rightImg, function(a, b){
+                return a.mul(a.a / 255.0).add(b.mul(1.0 - a.a / 255.0));
+            });
+
+            canvas.width = img.w;
+            canvas.height = img.h;
+            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
     }
@@ -231,6 +295,16 @@ window.onload = (function(){
     leftCanvas.ondblclick = function() {
         $('#files').click();
     };
+
+    leftCanvas.onmousemove = function(e){
+        if(e.shiftKey ) {
+            leftCanvas.style.cursor="crosshair";
+            sampleColorFromCanvas(e);
+        }
+        else {
+            leftCanvas.style.cursor="auto";
+        }
+    }
 
     rightCanvas = document.getElementById("rightcanvas");
     rightContext = rightCanvas.getContext("2d");
@@ -269,6 +343,14 @@ window.onload = (function(){
     });
 
     $('#hsvpanel').hide();
+
+    $('.hsvtext').change(function(){
+        updateColorPatch_hsv();
+    });
+
+    $('.rgbtext').change(function(){
+        updateColorPatch_rgb();
+    });
 
     $('#applybutton').click(function(){
         applyComposition();
