@@ -219,8 +219,8 @@ function blend(img1, img2, blendfunc) {
 // edge detection using Sobel operator in both x and y direction
 // edge intensity is sqrt( |Gx|^2 + |Gy|^2 )
 function edge( __src ) {
-    var gx = grayscale( filter(__src, Filter.hsobel) );
-    var gy = grayscale( filter(__src, Filter.vsobel) );
+    var gx = grayscale( filter(__src, new Filter.hsobel()) );
+    var gy = grayscale( filter(__src, new Filter.vsobel()) );
 
     // sqrt(gx^2 + gy^2)
     var h = gx.h,
@@ -480,32 +480,6 @@ function contrast( src, lev ) {
             var c0 = src.getPixel(x, y);
             var c = c0.sub({r:128,g:128,b:128,a:0}).mul(factor).add({r:128,g:128,b:128,a:0});
             c.clamp();
-            dst.setPixel(x, y, c);
-        }
-    }
-    return dst;
-}
-
-// unsharpen mask operator
-function unsharpenmask( src, size, amount ) {
-    // first get a blurred copy
-    var blurred = filter(src, Filter.blurn(size, 0.5 * size));
-
-    var alpha = amount;
-
-    var w = src.w, h = src.h;
-    var dst = new RGBAImage(w, h);
-    for(var y=0;y<h;y++)
-    {
-        for(var x=0;x<w;x++)
-        {
-            var c1 = blurred.getPixel(x, y);
-            var c2 = src.getPixel(x, y);
-            var diff = c2.sub(c1);
-
-            var c = c1.add(diff.mul(alpha));
-            c.clamp();
-
             dst.setPixel(x, y, c);
         }
     }

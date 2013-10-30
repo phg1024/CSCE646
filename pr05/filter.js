@@ -1,65 +1,101 @@
 function Filter( params )
 {
-	if( params == undefined )
-	{
-		this.width = 0;
-		this.height = 0;
-		this.factor = 0;
-		this.bias = 0;
-		this.value = [];
-		return this;
-	}
-	else
-	{
-		this.width = params.width;
-		this.height = params.height;
-			
-		this.value = [];
+    if( params == undefined )
+    {
+        this.width = 0;
+        this.height = 0;
+        this.factor = 0;
+        this.bias = 0;
+        this.p = 1;
+        this.value = [];
+        return this;
+    }
+    else
+    {
+        this.width = params.width;
+        this.height = params.height;
+
+        this.value = params.value;
+
         var weights = 0;
-        var idx = 0;
-		for(var i=0;i<this.height;i++)
-        for(var j=0;j<this.width;j++, idx++)
-        {
-            var val = parseInt(params.weights[i][j]);
-		    this.value[idx] = val;
-            weights += val;
+        if( !this.value ) {
+            this.value = [];
+            var idx = 0;
+            for(var i=0;i<this.height;i++)
+                for(var j=0;j<this.width;j++, idx++)
+                {
+                    var val = parseInt(params.weights[i][j]);
+                    this.value[idx] = val;
+                    weights += val;
+                }
         }
-		
-		this.bias = parseFloat(params.bias) || 0.0;
-		this.factor = parseFloat(params.factor) || weights;
+
+        this.p = params.p || 1.0;
+        this.bias = parseFloat(params.bias) || 0.0;
+        this.factor = parseFloat(params.factor) || weights;
         if( this.factor == 0 ) this.factor = 1;
-		return this;
-	}
+        return this;
+    }
 }
 
-Filter.gradient = {
-	width : 3,
-	height : 3,
-	value : [-1, -1, -1,
-	-1, 8, -1, 
-	-1, -1, -1],
-	factor : 1.0,
-	bias : 0.0	 
-};
-	
-Filter.hsobel = {
-	width : 3,
-	height : 3,
-	value : [-1, 0, 1,
-	-2, 0, 2,
-	-1, 0, 1],
-	factor : 1.0,
-	bias : 0.0
+Filter.prototype.toString = function() {
+    var str = '<p>Filter Matrix</p><table align=center class="fmtable" cellspacing=0 cellpadding=2>';
+
+    var maxVal = 0, minVal = Number.MAX_VALUE;
+    for(var i=0;i<this.value.length;i++) {
+        maxVal = Math.max(maxVal, this.value[i]);
+        minVal = Math.min(minVal, this.value[i]);
+    }
+
+    var diffVal = maxVal - minVal;
+
+    for(var i= 0,idx=0;i<this.height;i++) {
+        str += '<tr>';
+        for(var j=0;j<this.width;j++,idx++) {
+            var ratio = Math.round(((this.value[idx] - minVal) / diffVal)*255.0);
+            var c = rgb2hex({r:ratio, g:ratio, b:ratio});
+            str += '<td class="fmelem"' + 'bgcolor=#' + c + '>' + this.value[idx].toFixed(2).toString() + '</td>';
+        }
+        str += '</tr>';
+    }
+    str += '</table>';
+    return str;
+}
+
+Filter.gradient = function() {
+    return new Filter({
+    width : 3,
+    height : 3,
+    value : [-1, -1, -1,
+        -1, 8, -1,
+        -1, -1, -1],
+    factor : 1.0,
+    bias : 0.0
+    });
 };
 
-Filter.vsobel = {
-	width : 3,
-	height : 3,
-	value : [-1, -2, -1,
-	0,  0,  0,
-	1,  2,  1],
-	factor : 1.0,
-	bias : 0.0
+Filter.hsobel = function(){
+    return new Filter({
+        width : 3,
+            height : 3,
+        value : [-1, 0, 1,
+        -2, 0, 2,
+        -1, 0, 1],
+        factor : 1.0,
+        bias : 0.0
+    });
+};
+
+Filter.vsobel = function(){
+    return new Filter({
+    width : 3,
+    height : 3,
+    value : [-1, -2, -1,
+        0,  0,  0,
+        1,  2,  1],
+    factor : 1.0,
+    bias : 0.0
+    });
 };
 
 Filter.emboss = function( size, degree ) {
@@ -76,19 +112,13 @@ Filter.emboss = function( size, degree ) {
         y: Math.sin(theta)
     };
 
-    // line normal
-    var n = {
-        x: -v.y,
-        y: v.x
-    }
-
     for(var i= 0,idx=0;i<size;i++) {
-        var y = i - cy;
+        var y = cy - i;
         for(var j=0;j<size;j++,idx++) {
             var x = j - cx;
             // compute the distance of point (x, y) to line (0,0) + t * v
             // the distance is the dot product of vector (x, y) with n
-            val[idx] = x * n.x + y * n.y;
+            val[idx] = x * v.x + y * v.y;
         }
     }
 
@@ -96,13 +126,13 @@ Filter.emboss = function( size, degree ) {
         val[(size*size-1) / 2] = 1;
     }
 
-    return {
+    return new Filter({
         width : size,
         height : size,
         factor : 1.0,
         bias : 0.0,
         value : val
-    };
+    });
 }
 
 Filter.blurn = function( size, sigma ) {
@@ -125,26 +155,29 @@ Filter.blurn = function( size, sigma ) {
         }
     }
 
-    return {
+    return new Filter({
         width: size,
         height : size,
         factor : weight,
         bias : 0,
         value : val
-    };
-};
-	
-Filter.blur3 = {
-	width : 3,
-	height : 3,
-	factor : 16,
-	bias : 0,
-	value : [1, 2, 1,
-	2, 4, 2,
-	1, 2, 1]
+    });
 };
 
-Filter.blur5 = {
+Filter.blur3 = function(){
+    return new Filter({
+        width : 3,
+            height : 3,
+        factor : 16,
+        bias : 0,
+        value : [1, 2, 1,
+        2, 4, 2,
+        1, 2, 1]
+    });
+};
+
+Filter.blur5 = function(){
+    return new Filter({
     width : 5,
     height : 5,
     factor : 273,
@@ -156,14 +189,16 @@ Filter.blur5 = {
         4, 16, 26, 16, 4,
         1, 4, 7, 4, 1
     ]
+    });
 };
 
-Filter.blur7 = {
-    width : 7,
-    height : 7,
-    factor : 1.0,
-    bias : 0,
-    value : [
+Filter.blur7 = function(){
+    new Filter({
+        width : 7,
+            height : 7,
+        factor : 1.0,
+        bias : 0,
+        value : [
         0.0000, 0.0003, 0.0110, 0.0172, 0.0110, 0.0003, 0.0000,
         0.0003, 0.0245, 0.0354, 0.0354, 0.0354, 0.0245, 0.0003,
         0.0110, 0.0354, 0.0354, 0.0354, 0.0354, 0.0354, 0.0110,
@@ -172,30 +207,51 @@ Filter.blur7 = {
         0.0003, 0.0245, 0.0354, 0.0354, 0.0354, 0.0245, 0.0003,
         0.0000, 0.0003, 0.0110, 0.0172, 0.0110, 0.0003, 0.0000
     ]
-}
-	
-Filter.sharpen = {
-	width : 5,
-	height : 5,
-	factor : 10.0,
-	bias : 0.0,
-	value : [
-	0, -1, -2, -1, 0,
-	-1, -2, -4, -2, -1,
-	-2, -4, 50, -4, -2,
-	-1, -2, -4, -2, -1,
-	0, -1, -2, -1, 0
-	]
+    });
 };
-	
+
+Filter.sharpen = function() {
+    return new Filter({
+    width : 5,
+    height : 5,
+    factor : 10.0,
+    bias : 0.0,
+    value : [
+        0, -1, -2, -1, 0,
+        -1, -2, -4, -2, -1,
+        -2, -4, 50, -4, -2,
+        -1, -2, -4, -2, -1,
+        0, -1, -2, -1, 0
+    ]});
+};
+
+Filter.usm = function(size, alpha) {
+    // build a gaussian blur kernel
+    var usmf = new Filter.blurn(size, 0.5 * size);
+
+    // modify the blur kernel with alpha
+    for(var i=0;i<usmf.value.length;i++) {
+        usmf.value[i] *= (1.0 - alpha);
+    }
+    usmf.value[(usmf.value.length-1)/2] += alpha * usmf.factor;
+
+    // compute the new weighting factor
+    usmf.factor = 0;
+    for(var i=0;i<usmf.value.length;i++) {
+        usmf.factor += usmf.value[i];
+    }
+
+    return usmf;
+}
+
 Filter.motion = function(size, degree){
 
     var val = new Float32Array(size * size);
     var cx = (size-1) * 0.5;
     var cy = (size-1) * 0.5;
 
-    var theta = (180.0 - degree) / 180.0 * Math.PI;
-    var bw = 1.0;
+    var theta = degree / 180.0 * Math.PI;
+    var bw = 1.1;
 
     // line direction, normalized
     var v = {
@@ -210,7 +266,7 @@ Filter.motion = function(size, degree){
 
     var weight = 0.0;
     for(var i= 0,idx=0;i<size;i++) {
-        var y = i - cy;
+        var y = cy - i;
         for(var j=0;j<size;j++,idx++) {
             var x = j - cx;
             // compute the distance of point (x, y) to line (0,0) + t * v
@@ -224,21 +280,23 @@ Filter.motion = function(size, degree){
 
     console.log(val);
 
-    return {
-	width : size,
-	height : size,
-	factor : weight,
-	bias : 0.0,
-	value : val
-    }
+    return new Filter({
+        width : size,
+        height : size,
+        factor : weight,
+        bias : 0.0,
+        value : val
+    });
 };
 
-Filter.invert = {
-	width : 1,
-	height : 1,
-	factor : -1,
-	bias : 255,
-	value : [1.0]
+Filter.invert = function(){
+    return new Filter({
+        width : 1,
+            height : 1,
+        factor : -1,
+        bias : 255,
+        value : [1.0]
+    });
 };
 
 Filter.erosion = function(size, shape){
@@ -297,14 +355,14 @@ Filter.erosion = function(size, shape){
 
     console.log(v);
 
-    return {
-    width : size,
-    height: size,
-    value : v,
-    p : -20,
-    factor: 1,
-    bias : 0.0
-    };
+    return new Filter({
+        width : size,
+        height: size,
+        value : v,
+        p : -20,
+        factor: 1,
+        bias : 0.0
+    });
 };
 
 Filter.dialation = function(size, shape){
@@ -358,12 +416,12 @@ Filter.dialation = function(size, shape){
             break;
         }
     }
-    return {
-    width : size,
-    height: size,
-    value : v,
-    p : 20,
-    factor: 1,
-    bias : 0.0
-    };
+    return new Filter({
+        width : size,
+        height: size,
+        value : v,
+        p : 20,
+        factor: 1,
+        bias : 0.0
+    });
 };

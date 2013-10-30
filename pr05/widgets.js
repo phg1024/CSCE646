@@ -20,6 +20,7 @@ function createSlider(name, props) {
         slider.min = props.min || 0;
         slider.value = props.init || 0;
         slider.step = props.step || 1;
+        slider.className = props.class || 'ctrls';
     }
     return slider;
 }
@@ -32,6 +33,7 @@ function createTextBox(name, props) {
         textbox.value = props.init || 0;
         var digits = Math.ceil(Math.log((props.max||100)) / Math.log(10));
         textbox.size = digits;
+        textbox.className = props.class || 'ctrls';
     }
     return textbox;
 }
@@ -46,6 +48,7 @@ function createComboBox(name, props) {
             opt.value = props[i];
             opt.innerHTML = props[i];
             combo.appendChild(opt);
+            combo.className = props.class || 'ctrls';
         }
     }
     return combo;
@@ -58,6 +61,7 @@ function createTextArea(name, props) {
         textarea.rows = props.rows || 10;
         textarea.cols = props.cols || 32;
         textarea.innerHTML = props.init || '';
+        textarea.className = props.class || 'ctrls';
     }
     return textarea;
 }
@@ -65,6 +69,15 @@ function createTextArea(name, props) {
 function createInput( name, type, props ) {
     var node;
     switch( type ) {
+        case 'label':
+        {
+            node = document.createElement('p');
+            node.id = name;
+
+            node.innerHTML = props.init || '';
+
+            return node;
+        }
         case 'slidertext':
         {
             node = document.createElement('p');

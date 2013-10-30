@@ -40,6 +40,22 @@ function quadraticSolve(a, b, c) {
     }
 }
 
+function rgb2hex( c ) {
+    return ("0" + c.r.toString(16)).slice(-2) +
+        ("0" + c.g.toString(16)).slice(-2) +
+        ("0" + c.b.toString(16)).slice(-2);
+}
+
+function hex2rgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if( !result ) console.log( hex );
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
 

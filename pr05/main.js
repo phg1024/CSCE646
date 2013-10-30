@@ -19,6 +19,85 @@ function loadImage()
     img.src = imgsrc[imgIdx];
 }
 
+function createFilter( filtername ) {
+    switch( filtername )
+    {
+        case "erosion": {
+            var size = $('#FilterSizeslider').val();
+            console.log('erosing the image ...');
+            var shape = $('#Shapeselect').val();
+            console.log('using ' + shape + ' shape filter ...');
+            return new Filter.erosion(size, shape);
+        }
+        case "dialation": {
+            var size = $('#FilterSizeslider').val();
+            console.log('dialating the image ...');
+            var shape = $('#Shapeselect').val();
+            console.log('using ' + shape + ' shape filter ...');
+            return new Filter.dialation(size, shape);
+        }
+        case "invert": {
+            return new Filter.invert();
+        }
+        case "gradient": {
+            return new Filter.gradient();
+        }
+        case 'hsobel': {
+            return new Filter.hsobel();
+        }
+        case 'vsobel': {
+            return new Filter.vsobel();
+        }
+        case 'emboss': {
+            var size = $('#FilterSizeslider').val();
+            console.log('filter size = ' + size);
+            var degree = $('#Angleslider').val();
+            console.log('degree = ' + degree);
+
+            return new Filter.emboss(size, degree);
+        }
+        case 'blur': {
+            var size = $('#FilterSizeslider').val();
+            console.log('filter size = ' + size);
+            var sigma = $('#Sigmaslider').val();
+            console.log('sigma = ' + sigma);
+            return new Filter.blurn(size, sigma);
+        }
+        case 'sharpen': {
+            return new Filter.sharpen();
+        }
+        case 'usm':{
+            var size = $('#FilterSizeslider').val();
+            console.log('filter size = ' + size);
+
+            var amount = parseFloat($('#Amountslider').val()) / 10.0 + 1.0;
+            console.log('amount = ' + amount);
+            return new Filter.usm(size, amount);
+        }
+        case 'motion': {
+            var size = $('#FilterSizeslider').val();
+            console.log('filter size = ' + size);
+            var degree = $('#Angleslider').val();
+            console.log('degree = ' + degree);
+
+            return new Filter.motion(size, degree);
+        }
+    }
+}
+
+function updateFilterMatrix() {
+    var filtername = $('#filterop').val();
+    console.log('applying filter ' + filtername);
+    var f = createFilter(filtername);
+
+    $('#FilterMatrix').html(f.toString());
+
+    var w = f.width;
+
+
+    $('.fmelem').css('font-size', 12 - w/4 + 'px');
+}
+
 function applyFilter()
 {
     var filtername = $('#filterop').val();
@@ -27,34 +106,26 @@ function applyFilter()
     var newimg;
     switch( filtername )
     {
+        case "invert":
+        case "erosion":
+        case "dialation":
+        case "gradient":
+        case 'hsobel':
+        case 'vsobel':
+        case 'emboss':
+        case 'blur':
+        case 'motion':
+        case 'sharpen':
+        case 'usm':
+        {
+            var f = createFilter(filtername);
+            newimg = filter(origImg, f);
+            break;
+        }
         case "edge":
         {
             console.log('edge detection ...');
             newimg = edge( origImg );
-            break;
-        }
-        case "erosion":
-        {
-            var size = $('#FilterSizeslider').val();
-            console.log('erosing the image ...');
-            var shape = $('#Shapeselect').val();
-            console.log('using ' + shape + ' shape filter ...');
-            newimg = filter(origImg, new Filter.erosion(size, shape));
-            break;
-        }
-        case "dialation":
-        {
-            var size = $('#FilterSizeslider').val();
-            console.log('dialating the image ...');
-            var shape = $('#Shapeselect').val();
-            console.log('using ' + shape + ' shape filter ...');
-            newimg = filter(origImg, new Filter.dialation(size, shape));
-            break;
-        }
-        case "invert":
-        {
-            console.log('inverting the image ...');
-            newimg = (	filter(origImg, Filter.invert) );
             break;
         }
         case "grayscale":
@@ -81,64 +152,6 @@ function applyFilter()
             newimg = (	equalize(origImg, amount) );
             break;			
 		}
-        case "gradient":
-        {
-            newimg = ( grayscale( filter(origImg, Filter.gradient) ) );
-            break;
-        }
-        case 'hsobel':
-        {
-            newimg = ( filter(origImg, Filter.hsobel) );
-            break;
-        }
-        case 'vsobel':
-        {
-            newimg = ( filter(origImg, Filter.vsobel) );
-            break;
-        }
-        case 'emboss':
-        {
-            var size = $('#FilterSizeslider').val();
-            console.log('filter size = ' + size);
-            var degree = $('#Angleslider').val();
-            console.log('degree = ' + degree);
-
-            newimg = ( filter(origImg, new Filter.emboss(size, degree)) );
-            break;
-        }
-        case 'blur':
-        {
-            var size = $('#FilterSizeslider').val();
-            console.log('filter size = ' + size);
-            var sigma = $('#Sigmaslider').val();
-            console.log('sigma = ' + sigma);
-            newimg = ( filter(origImg, new Filter.blurn(size, sigma)) );
-            break;
-        }
-        case 'sharpen':
-        {
-            newimg = ( filter(origImg, Filter.sharpen) );
-            break;
-        }
-        case 'usm':{
-            var size = $('#FilterSizeslider').val();
-            console.log('filter size = ' + size);
-
-            var amount = parseFloat($('#Amountslider').val()) / 10.0 + 1.0;
-            console.log('amount = ' + amount);
-            newimg = unsharpenmask(origImg, size, amount);
-            break;
-        }
-        case 'motion':
-        {
-            var size = $('#FilterSizeslider').val();
-            console.log('filter size = ' + size);
-            var degree = $('#Angleslider').val();
-            console.log('degree = ' + degree);
-
-            newimg = ( filter(origImg, new Filter.motion(size, degree)) );
-            break;
-        }
         case 'contrast':
         {
             var amount = parseFloat($('#Amountslider').val());
@@ -231,6 +244,7 @@ window.onload = (function(){
     $('#controls').append( createInput('Amount', 'slidertext', {init:50, min:0, max:100}) );
     $('#controls').append( createInput('Shape', 'combo', ['square', 'round', 'star', 'plus']));
     $('#controls').append( createInput('CustomizedFilter', 'textarea', {id:'cfilter', init:'Please input the filter here.'}));
+    $('#controls').append( createInput('FilterMatrix', 'label', {id:'filtermat', init:'Filter Matrix'}));
 
     $('#filterop').change(function() {
         var op = this.value;
@@ -278,13 +292,30 @@ window.onload = (function(){
         else {
             $('#CustomizedFilter').hide();
         }
+
+        if( op == 'blur' || op == 'emboss' || op == 'usm'
+            || op == 'gradient' || op == 'sharpen' || op == 'hsobel'
+            || op == 'motion' || op == 'vsobel'
+            || op == 'erosion' || op == 'dialation' ) {
+
+            updateFilterMatrix();
+            $('#FilterMatrix').show();
+        }
+        else {
+            $('#FilterMatrix').hide();
+        }
     });
 
     $('#Sigma').hide();
     $('#FilterSize').hide();
     $('#Angle').hide();
     $('#Shape').hide();
+    $('#FilterMatrix').hide();
     $('#CustomizedFilter').hide();
+
+    $('.ctrls').change(function(){
+        updateFilterMatrix();
+    });
 
     // set up callback for uploading file
     $('#files').change(function(e){
