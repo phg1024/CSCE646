@@ -207,8 +207,11 @@ window.onload = (function(){
 
     // set up callbacks for image selection
     imgselect = document.getElementById("imgselect");
-    imgselect.onchange=loadImage;
-    imgselect.onfocus = (function(){
+
+    $('#imgselect').change(function(){
+        loadImage();
+    });
+    $('#imgselect').focus(function(){
         this.selectedIndex = -1;
     });
 
@@ -216,8 +219,8 @@ window.onload = (function(){
         applyFilter();
     });
 
-    $('#controls').append( createInput('FilterSize', 'slidertext', {init:3, min:3, max:15, step: 2}) );
-    $('#controls').append( createInput('Sigma', 'slidertext', {init:1, min:1, max:5}) );
+    $('#controls').append( createInput('FilterSize', 'slidertext', {init:3, min:3, max:25, step: 2}) );
+    $('#controls').append( createInput('Sigma', 'slidertext', {init:1, min:1, max:12}) );
     $('#controls').append( createInput('Angle', 'slidertext', {init:0, min:0, max:359}) );
     $('#controls').append( createInput('Amount', 'slidertext', {init:50, min:0, max:100}) );
     $('#controls').append( createInput('Shape', 'combo', ['square', 'round', 'star', 'plus']));
@@ -277,9 +280,10 @@ window.onload = (function(){
     $('#Shape').hide();
     $('#CustomizedFilter').hide();
 
-
     // set up callback for uploading file
-    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    $('#files').change(function(e){
+        handleFileSelect(e);
+    });
 
     loadImage();
 });

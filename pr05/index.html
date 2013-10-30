@@ -15,6 +15,17 @@
             text-align: center;
             width: 100%;
         }
+        p {
+            font-size: 14px;
+        }
+        .resimg {
+            width: 100%;
+            height: 100%;
+        }
+
+        td {
+            text-align: center;
+        }
     </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
@@ -88,6 +99,193 @@
                     <output id="list"></output>
                 </p>
             </div>
+        <div id="results">
+            <p><b>Blur filter</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="jelly.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/blur/blur3_1.png">
+                        <p>Blurred with 3x3 Gaussian kernel, &sigma; = 1.0</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img class="resimg" src="gallery/blur/blur9_5.png">
+                        <p>Blurred with 9x9 Gaussian kernel, &sigma; = 5.0</p>
+                    </td>
+                    <td>
+                        <img class="resimg" src="gallery/blur/blur_m_75.png">
+                        <p>Blurred with 13x13 motion blur kernel, degree = 75</p>
+                    </td>
+                </tr>
+            </table>
+            <p><b>Emboss filter</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="landscape.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/emboss/emboss3_0.png">
+                        <p>Blurred with 3x3 kernel, 0 degree</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img class="resimg" src="gallery/emboss/emboss5_0.png">
+                        <p>Blurred with 5x5 kernel, 0 degree</p>
+                    </td>
+                    <td>
+                        <img class="resimg" src="gallery/emboss/emboss3_256.png">
+                        <p>Blurred with 3x3 kernel, 256 degree</p>
+                    </td>
+                </tr>
+            </table>
+            <p><b>Edge detection</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="flower.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/edge/edge_flower.png">
+                        <p>Detected Edge</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img class="resimg" src="zebra.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <img class="resimg" src="gallery/edge/edge_zebra.png">
+                        <p>Detected Edge</p>
+                    </td>
+                </tr>
+            </table>
+            <p><b>Dilation</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="zebra.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/dialation/dialation9_round.png">
+                        <p>Dialation with 9x9 round shape kernel</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img class="resimg" src="italian.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <img class="resimg" src="gallery/dialation/dialation13_star.png">
+                        <p>Dialation with 13x13 star shape kernel</p>
+                    </td>
+                </tr>
+            </table>
+            <p><b>Erosion</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="buck.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/erosion/erosion7_round.png">
+                        <p>Erosion with 7x7 round shape kernel</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img class="resimg" src="flower.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <img class="resimg" src="gallery/erosion/erosion13_plus.png">
+                        <p>Erosion with 13x13 plus shape kernel</p>
+                    </td>
+                </tr>
+            </table>
+            <p><b>Other Filters</b></p>
+            <p>Contrast Enhancement and Histogram Equalization</p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="landscape.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/contrast75.png">
+                        <p>Contrast enhancement with amount = 75</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/equalization75.png">
+                        <p>Histogram equalization with amount = 75</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/ahe75.png">
+                        <p>Adaptive histogram equalization with amount = 75</p>
+                    </td>
+                </tr>
+             </table>
+            <p>Grayscale, Invert and Gradient</p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="seal.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/grayscale.png">
+                        <p>Grayscale image</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/invert.png">
+                        <p>Color inverted image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/gradient.png">
+                        <p>Gradient image</p>
+                    </td>
+                </tr>
+            </table>
+            <p>Sharpen and Unsharpen Mask</p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="einstein.jpg">
+                        <p>Original Image</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/sharpen.png">
+                        <p>Sharpened image</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/usm3_15.png">
+                        <p>Unsharpen mask with 3x3 kernel, amount = 15</p>
+                    </td>
+                    <td width="50%">
+                        <img class="resimg" src="gallery/other/usm9_15.png">
+                        <p>Unsharpen mask with 9x9 kernel, amount = 15</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
         </div>
     </div>
 </article>

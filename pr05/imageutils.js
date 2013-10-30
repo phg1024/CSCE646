@@ -28,6 +28,7 @@ function clamp(v, lower, upper)
     return res;
 }
 
+// bilateral filter
 function bilateral(src, sigmap, sigmaf, size) {
     var h = src.h,
         w = src.w;
@@ -36,6 +37,7 @@ function bilateral(src, sigmap, sigmaf, size) {
         data2 = src.data;
 
     var fp = new Filter.blurn(size, sigmap);
+    var sigmaf2 = sigmaf * sigmaf * 2;
 
     var wf = Math.floor(size / 2);
     var hf = Math.floor(size / 2);
@@ -67,7 +69,7 @@ function bilateral(src, sigmap, sigmaf, size) {
                     var dg = c.g - g0;
                     var db = c.b - b0;
 
-                    weight *= Math.exp(-(dr*dr+dg*dg+db*db)/(2.0*sigmaf*sigmaf));
+                    weight *= Math.exp(-(dr*dr+dg*dg+db*db)/(sigmaf2));
                     wsum += weight;
 
                     r += c.r * weight;
@@ -89,6 +91,7 @@ function bilateral(src, sigmap, sigmaf, size) {
     return dst;
 }
 
+// apply filter f to image __src
 function filter(__src, f)
 {
     var h = __src.h,
@@ -101,46 +104,89 @@ function filter(__src, f)
     var hf = Math.floor(f.height / 2);
     var bias = f.bias;
     var factor = f.factor;
-    var p = f.p || 1.0;
+    var p = f.p;
 
-    for (var y=0;y<h;y++)
-    {
-        for (var x=0;x<w;x++)
+    if( p && p != 1.0 ) {
+        for (var y=0;y<h;y++)
         {
-            var fidx = 0;
-            var r, g, b;
-            r = g = b = 0;
-            var idx = (y*w+x)*4;
-            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            for (var x=0;x<w;x++)
             {
-                var py = clamp(i+y,0,h-1);
-                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                var fidx = 0;
+                var r, g, b;
+                r = g = b = 0;
+                var idx = (y*w+x)*4;
+                for (var i=-hf, fi=0;i<=hf;i++,fi++)
                 {
-                    var px = clamp(j+x,0,w-1);
+                    var py = clamp(i+y,0,h-1);
+                    for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                    {
+                        var px = clamp(j+x,0,w-1);
 
-                    var pidx = (py * w + px) * 4;
+                        var pidx = (py * w + px) * 4;
 
-                    var weight = f.value[fidx++];
+                        var weight = f.value[fidx++];
 
-                    r += Math.pow(data2[pidx] * weight, p);
-                    g += Math.pow(data2[pidx+1] * weight, p);
-                    b += Math.pow(data2[pidx+2] * weight, p);
+                        r += Math.pow(data2[pidx] * weight, p);
+                        g += Math.pow(data2[pidx+1] * weight, p);
+                        b += Math.pow(data2[pidx+2] * weight, p);
+                    }
                 }
+
+                r = clamp(Math.pow(r,1/p)/factor+bias, 0.0, 255.0);
+                g = clamp(Math.pow(g,1/p)/factor+bias, 0.0, 255.0);
+                b = clamp(Math.pow(b,1/p)/factor+bias, 0.0, 255.0);
+
+                data[idx] = r;
+                data[idx+1] = g;
+                data[idx+2] = b;
+                data[idx+3] = data2[idx+3];
             }
-
-            r = clamp(Math.pow(r,1/p)/factor+bias, 0.0, 255.0);
-            g = clamp(Math.pow(g,1/p)/factor+bias, 0.0, 255.0);
-            b = clamp(Math.pow(b,1/p)/factor+bias, 0.0, 255.0);
-
-            data[idx] = r;
-            data[idx+1] = g;
-            data[idx+2] = b;
-            data[idx+3] = data2[idx+3];
         }
     }
+    else {
+        // p is undefined or p is 1.0
+        // no need to compute the power, which is time consuming
+        for (var y=0;y<h;y++)
+        {
+            for (var x=0;x<w;x++)
+            {
+                var fidx = 0;
+                var r, g, b;
+                r = g = b = 0;
+                var idx = (y*w+x)*4;
+                for (var i=-hf, fi=0;i<=hf;i++,fi++)
+                {
+                    var py = clamp(i+y,0,h-1);
+                    for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                    {
+                        var px = clamp(j+x,0,w-1);
+
+                        var pidx = (py * w + px) * 4;
+
+                        var weight = f.value[fidx++];
+
+                        r += data2[pidx] * weight;
+                        g += data2[pidx+1] * weight;
+                        b += data2[pidx+2] * weight;
+                    }
+                }
+
+                r = clamp(r/factor+bias, 0.0, 255.0);
+                g = clamp(g/factor+bias, 0.0, 255.0);
+                b = clamp(b/factor+bias, 0.0, 255.0);
+
+                data[idx] = r;
+                data[idx+1] = g;
+                data[idx+2] = b;
+                data[idx+3] = data2[idx+3];
+            }
+        }
+    }
+
     return dst;
 }
 
+// convert RGB image to grayscale imge
 function grayscale(__src)
 {
     var h = __src.h,
@@ -156,6 +202,7 @@ function grayscale(__src)
     return dst;
 }
 
+// blend two images using given blend function
 function blend(img1, img2, blendfunc) {
     var h = img1.h,
         w = img1.w;
@@ -169,6 +216,8 @@ function blend(img1, img2, blendfunc) {
     return dst;
 }
 
+// edge detection using Sobel operator in both x and y direction
+// edge intensity is sqrt( |Gx|^2 + |Gy|^2 )
 function edge( __src ) {
     var gx = grayscale( filter(__src, Filter.hsobel) );
     var gy = grayscale( filter(__src, Filter.vsobel) );
@@ -201,10 +250,13 @@ function edge( __src ) {
     return dst;
 }
 
+// normal overlay
+// add img2 to to img1 with specified weight
 function add(img1, img2, weight) {
     return blend(img1, img2, function(a, b){return a.mul(weight).add(b.mul(1-weight));});
 }
 
+// subtract img2 from img1
 function sub(img1, img2) {
     return blend(img1, img2, function(a, b){
         var c = a.sub(b);
@@ -214,6 +266,7 @@ function sub(img1, img2) {
     });
 }
 
+// difference between two images
 function diff(img1, img2) {
     return blend(img1, img2, function(a, b){
         var c = new Color();
@@ -225,6 +278,7 @@ function diff(img1, img2) {
     });
 }
 
+// build histogram of specified image region
 function histogram(img, x1, y1, x2, y2, num_bins)
 {
     if( num_bins == undefined )
@@ -249,6 +303,7 @@ function histogram(img, x1, y1, x2, y2, num_bins)
     return hist;
 }
 
+// build cdf from given pdf
 function buildcdf( hist, num_bins )
 {
     if( num_bins == undefined )
@@ -262,6 +317,8 @@ function buildcdf( hist, num_bins )
     return cumuhist;
 }
 
+// histogram equalization, blended with orignal image
+// amount is between 0 and 1
 function equalize(__src, amount)
 {
     var h = __src.h,
@@ -302,6 +359,8 @@ function equalize(__src, amount)
     return dst;
 }
 
+// adaptive histogram equalization, blended with original image
+// amount is between 0 and 1
 function ahe(__src, amount)
 {
     // find a good window size
@@ -388,6 +447,7 @@ function ahe(__src, amount)
             var cdf21 = cdfs[yt][xr][bin];
             var cdf22 = cdfs[yd][xr][bin];
 
+            // bilinear interpolation
             var Iout = (1 - fx) * (1 - fy) * cdf11
                 + (1 - fx) * 	   fy  * cdf12
                 +      fx  * (1 - fy) * cdf21
@@ -406,6 +466,7 @@ function ahe(__src, amount)
     return dst;
 }
 
+// contrast adjustment
 function contrast( src, lev ) {
     var level = lev || 32;
     var factor = (259 * (level + 255)) / (255 * (259 - level));
@@ -425,6 +486,7 @@ function contrast( src, lev ) {
     return dst;
 }
 
+// unsharpen mask operator
 function unsharpenmask( src, size, amount ) {
     // first get a blurred copy
     var blurred = filter(src, Filter.blurn(size, 0.5 * size));
