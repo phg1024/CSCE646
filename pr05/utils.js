@@ -84,6 +84,7 @@ function uploadImage( file ) {
 
         var width = curImg.w;
         var height = curImg.h;
+
         if( width > 640 )
         {
             height = Math.floor(height * (640/width));

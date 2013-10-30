@@ -1,6 +1,7 @@
 var origImg, filteredImg;
 var imgIdx = 0;
-var imgsrc = ['landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
+var imgsrc = ['landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg', 'italian.jpg',
+    'zebra.jpg', 'flower.jpg', 'einstein.jpg', 'jelly.jpg'];
 
 function loadImage()
 {

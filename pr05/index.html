@@ -9,16 +9,16 @@
     <script type="text/javascript" src="./fancybox/lib/jquery.mousewheel-3.0.6.pack.js"></script>
 
     <!-- Add fancyBox -->
-    <link rel="stylesheet" href="./fancybox/source/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
-    <script type="text/javascript" src="./fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+    <link rel="stylesheet" href="./fancybox/source/jquery.fancybox.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/jquery.fancybox.pack.js"></script>
 
     <!-- Optionally add helpers - button, thumbnail and/or media -->
-    <link rel="stylesheet" href="/fancybox/source/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
-    <script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
-    <script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+    <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-buttons.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-buttons.js"></script>
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-media.js"></script>
 
-    <link rel="stylesheet" href="/fancybox/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7" type="text/css" media="screen" />
-    <script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+    <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-thumbs.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
 
     <!-- My library -->
     <script type="text/javascript" src="widgets.js"></script>
@@ -36,9 +36,10 @@
         p {
             font-size: 14px;
         }
+
         .resimg {
             width: 100%;
-            height: 100%;
+            height: auto;
         }
 
         td {
@@ -111,6 +112,11 @@
                         <option value="seal">Seal</option>
                         <option value="buck">Buck</option>
                         <option value="waterfall">Waterfall</option>
+                        <option value="italian">Italian</option>
+                        <option value="zebra">Zebra</option>
+                        <option value="flower">Flower</option>
+                        <option value="einstein">Einstein</option>
+                        <option value="jelly">Jelly Fish</option>
                     </select>
                     &nbsp
                     Upload:
@@ -130,6 +136,7 @@
             </p>
         <div id="results">
             <p><b>Results</b></p>
+            <p><em>Note: Click on the images to view large versions.</em></p>
             <p><b><em>Blur filter</em></b></p>
             <table border=0 cellspacing=5 cellpadding=5 width=80% align=center>
                 <tr>
@@ -381,9 +388,34 @@
             </table>
             <p><b><em>Bilateral Filtering</em></b></p>
         <table border=0 cellspacing=5 cellpadding=5 width=80% align=center>
-            <tr><td>TBD</td><td>TBD</td></tr>
-            <tr><td>TBD</td><td>TBD</td></tr>
-        </table>
+            <tr>
+                <td width="50%">
+                    <a class="fbox" href="italian.jpg" title="Original Image">
+                        <img class="resimg" src="italian.jpg">
+                    </a>
+                    <p>Original Image</p>
+                </td>
+                <td width="50%">
+                    <a class="fbox" href="gallery/other/bilateral9_4_30.png" title="Bilateral filtering with 9x9 kernel, &sigma;=4, amount=30">
+                        <img class="resimg" src="gallery/other/bilateral9_4_30.png">
+                    </a>
+                    <p>Bilateral filtering with 9x9 kernel, &sigma;=4, amount=30</p>
+                </td>
+            </tr>
+            <tr>
+                <td width="50%">
+                    <a class="fbox" href="flower.jpg" title="Original Image">
+                        <img class="resimg" src="flower.jpg">
+                    </a>
+                    <p>Original Image</p>
+                </td>
+                <td width="50%">
+                    <a class="fbox" href="gallery/other/bilateral25_12_60.png" title="Bilateral filtering with 9x9 kernel, &sigma;=4, amount=30">
+                        <img class="resimg" src="gallery/other/bilateral25_12_60.png">
+                    </a>
+                    <p>Bilateral filtering with 25x25 kernel, &sigma;=12, amount=60</p>
+                </td>
+            </tr>        </table>
         </div>
         </div>
     </div>
