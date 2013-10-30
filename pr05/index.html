@@ -2,7 +2,25 @@
     <title>Viza654/CSCE646 - Digital Image</title>
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
-    <script type="text/javascript" src="jquery-2.0.3.js"></script>
+
+    <script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+
+    <!-- Add mousewheel plugin (this is optional) -->
+    <script type="text/javascript" src="./fancybox/lib/jquery.mousewheel-3.0.6.pack.js"></script>
+
+    <!-- Add fancyBox -->
+    <link rel="stylesheet" href="./fancybox/source/jquery.fancybox.css?v=2.1.5" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+    <!-- Optionally add helpers - button, thumbnail and/or media -->
+    <link rel="stylesheet" href="/fancybox/source/helpers/jquery.fancybox-buttons.css?v=1.0.5" type="text/css" media="screen" />
+    <script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-buttons.js?v=1.0.5"></script>
+    <script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-media.js?v=1.0.6"></script>
+
+    <link rel="stylesheet" href="/fancybox/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7" type="text/css" media="screen" />
+    <script type="text/javascript" src="/fancybox/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7"></script>
+
+    <!-- My library -->
     <script type="text/javascript" src="widgets.js"></script>
     <script type="text/javascript" src="shape.js"></script>
     <script type="text/javascript" src="filter.js"></script>
@@ -76,8 +94,9 @@
                                         <option value="hsobel">sobel (horizontal)</option>
                                         <option value="vsobel">sobel (vertical)</option>
                                         <option value="customized">customized</option>
-                                    </select>
+                                    </select><br>
                                     <button id="apply_btn">Apply</button>
+                                    <button id="reset_btn">Reset</button>
                                 </p>
                              </div>
                         </td>
@@ -99,100 +118,143 @@
                     <output id="list"></output>
                 </p>
             </div>
+            <p><b>Basic Usage</b></p>
+            <p>
+            <ol>
+                <li>To choose among a set of images included, use the <em>Image</em> dropdown selector.</li>
+                <li>To upload a new image, use the <em>Upload</em> button.</li>
+                <li>To compare the result image with the original image, click and hold on the image. The original image will
+                    show up when the left mouse button is down, and the result image will show up when the mouse button is up again.</li>
+                <li>To restore the original image, click on the reset button.</li>
+            </ol>
+            </p>
         <div id="results">
-            <p><b>Blur filter</b></p>
+            <p><b>Results</b></p>
+            <p><b><em>Blur filter</em></b></p>
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                 <tr>
                     <td width="50%">
-                        <img class="resimg" src="jelly.jpg">
+                        <a class="fbox" href="jelly.png" title="Original Image">
+                            <img class="resimg" src="jelly.jpg" alt=""/>
+                        </a>
                         <p>Original Image</p>
                     </td>
                     <td width="50%">
-                        <img class="resimg" src="gallery/blur/blur3_1.png">
+                        <a class="fbox" href="gallery/blur/blur3_1.png" title="Blurred with 3x3 Gaussian kernel, &sigma; = 1.0">
+                            <img class="resimg" src="gallery/blur/blur3_1.png" alt="">
+                        </a>
                         <p>Blurred with 3x3 Gaussian kernel, &sigma; = 1.0</p>
                     </td>
                 </tr>
                 <tr>
                     <td>
+                        <a class="fbox" href="gallery/blur/blur9_5.png" title="Blurred with 9x9 Gaussian kernel, &sigma; = 5.0">
                         <img class="resimg" src="gallery/blur/blur9_5.png">
+                         </a>
                         <p>Blurred with 9x9 Gaussian kernel, &sigma; = 5.0</p>
                     </td>
                     <td>
+                        <a class="fbox" href="gallery/blur/blur_m_75.png" title="Blurred with 13x13 motion blur kernel, degree = 75">
                         <img class="resimg" src="gallery/blur/blur_m_75.png">
+                        </a>
                         <p>Blurred with 13x13 motion blur kernel, degree = 75</p>
                     </td>
                 </tr>
             </table>
-            <p><b>Emboss filter</b></p>
+            <p><b><em>Emboss filter</em></b></p>
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                 <tr>
                     <td width="50%">
+                        <a class="fbox" href="landscape.jpg" title="Original Image">
                         <img class="resimg" src="landscape.jpg">
+                            </a>
                         <p>Original Image</p>
                     </td>
                     <td width="50%">
+                        <a class="fbox" href="gallery/emboss/emboss3_0.png" title="Embossed with 3x3 kernel, 0 degree">
                         <img class="resimg" src="gallery/emboss/emboss3_0.png">
-                        <p>Blurred with 3x3 kernel, 0 degree</p>
+                            </a>
+                        <p>Embossed with 3x3 kernel, 0 degree</p>
                     </td>
                 </tr>
                 <tr>
                     <td>
+                        <a class="fbox" href="gallery/emboss/emboss5_0.png" title="Embossed with 5x5 kernel, 0 degree">
                         <img class="resimg" src="gallery/emboss/emboss5_0.png">
-                        <p>Blurred with 5x5 kernel, 0 degree</p>
+                            </a>
+                        <p>Embossed with 5x5 kernel, 0 degree</p>
                     </td>
                     <td>
+                        <a class="fbox" href="gallery/emboss/emboss3_256.png" title="Embossed with 3x3 kernel, 256 degree">
                         <img class="resimg" src="gallery/emboss/emboss3_256.png">
+                            </a>
                         <p>Blurred with 3x3 kernel, 256 degree</p>
                     </td>
                 </tr>
             </table>
-            <p><b>Edge detection</b></p>
+            <p><b><em>Edge detection</em></b></p>
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                 <tr>
                     <td width="50%">
+                        <a class="fbox" href="flower.jpg" title="Original Image">
                         <img class="resimg" src="flower.jpg">
+                            </a>
                         <p>Original Image</p>
                     </td>
                     <td width="50%">
+                        <a class="fbox" href="gallery/edge/edge_flower.png" title="Detected Edge">
                         <img class="resimg" src="gallery/edge/edge_flower.png">
+                            </a>
                         <p>Detected Edge</p>
                     </td>
                 </tr>
                 <tr>
                     <td>
+                        <a class="fbox" href="zebra.jpg" title="Original Image">
                         <img class="resimg" src="zebra.jpg">
+                            </a>
                         <p>Original Image</p>
                     </td>
                     <td>
+                        <a class="fbox" href="gallery/edge/edge_zebra.png" title="Detected Edge">
                         <img class="resimg" src="gallery/edge/edge_zebra.png">
+                            </a>
                         <p>Detected Edge</p>
                     </td>
                 </tr>
             </table>
-            <p><b>Dilation</b></p>
+            <p><b><em>Dilation</em></b></p>
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                 <tr>
                     <td width="50%">
+                        <a class="fbox" href="zebra.jpg" title="Original Image">
                         <img class="resimg" src="zebra.jpg">
+                            </a>
                         <p>Original Image</p>
                     </td>
                     <td width="50%">
+                        <a class="fbox" href="gallery/dialation/dialation9_round.png" title="Dialation with 9x9 round shape kernel">
                         <img class="resimg" src="gallery/dialation/dialation9_round.png">
+                            </a>
                         <p>Dialation with 9x9 round shape kernel</p>
                     </td>
                 </tr>
                 <tr>
                     <td>
+                        <a class="fbox" href="italian.jpg" title="Original Image">
                         <img class="resimg" src="italian.jpg">
+                            </a>
                         <p>Original Image</p>
                     </td>
                     <td>
+                        <a class="fbox" href="gallery/dialation/dialation13_star.png" title="Dialation with 13x13 star shape kernel">
                         <img class="resimg" src="gallery/dialation/dialation13_star.png">
+                            </a>
                         <p>Dialation with 13x13 star shape kernel</p>
                     </td>
                 </tr>
             </table>
-            <p><b>Erosion</b></p>
+            <p><b><em>Erosion</em></b></p>
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                 <tr>
                     <td width="50%">
@@ -215,7 +277,7 @@
                     </td>
                 </tr>
             </table>
-            <p><b>Other Filters</b></p>
+            <p><b><em>Other Filters</em></b></p>
             <p>Contrast Enhancement and Histogram Equalization</p>
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                 <tr>
@@ -239,7 +301,7 @@
                     </td>
                 </tr>
              </table>
-            <p>Grayscale, Invert and Gradient</p>
+            <p><b><em>Grayscale, Invert and Gradient</em></b></p>
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                 <tr>
                     <td width="50%">
@@ -262,7 +324,7 @@
                     </td>
                 </tr>
             </table>
-            <p>Sharpen and Unsharpen Mask</p>
+            <p><b><em>Sharpen and Unsharpen Mask</em></b></p>
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
                 <tr>
                     <td width="50%">

@@ -219,6 +219,11 @@ window.onload = (function(){
         applyFilter();
     });
 
+    $('#reset_btn').click(function() {
+        context.putImageData(origImg.toImageData(context), 0, 0);
+    });
+
+
     $('#controls').append( createInput('FilterSize', 'slidertext', {init:3, min:3, max:25, step: 2}) );
     $('#controls').append( createInput('Sigma', 'slidertext', {init:1, min:1, max:12}) );
     $('#controls').append( createInput('Angle', 'slidertext', {init:0, min:0, max:359}) );
@@ -286,4 +291,14 @@ window.onload = (function(){
     });
 
     loadImage();
+});
+
+$(document).ready(function(){
+    $('.fbox').fancybox({
+        helpers: {
+            title : {
+                type : 'float'
+            }
+        }
+    });
 });
