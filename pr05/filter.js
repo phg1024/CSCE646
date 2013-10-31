@@ -149,7 +149,7 @@ Filter.emboss = function( size, degree ) {
     }
 
     if( size & 0x1 ) {
-        val[(size*size-1) / 2] = 0;
+        val[(size*size-1) / 2] = 0.0;
     }
 
     return new Filter({
