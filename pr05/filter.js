@@ -101,8 +101,8 @@ Filter.vsobel = function(){
 Filter.emboss = function( size, degree ) {
 
     var val = new Float32Array(size * size);
-    var cx = (size-1) * 0.5;
-    var cy = (size-1) * 0.5;
+    var cx = size * 0.5;
+    var cy = size * 0.5;
 
     var theta = degree / 180.0 * Math.PI;
 
@@ -112,25 +112,51 @@ Filter.emboss = function( size, degree ) {
         y: Math.sin(theta)
     };
 
+    var n = {
+        x: -v.y,
+        y: v.x
+    }
+
+    var THRES = 0.5;
+    var weight = 0;
+    var N = 16;
+    var step = 1.0 / (N-1);
+    var step2 = step * step;
     for(var i= 0,idx=0;i<size;i++) {
-        var y = cy - i;
+        var y = cy - 1 - i;
         for(var j=0;j<size;j++,idx++) {
             var x = j - cx;
-            // compute the distance of point (x, y) to line (0,0) + t * v
-            // the distance is the dot product of vector (x, y) with n
-            val[idx] = x * v.x + y * v.y;
+            // super sampling, make it soft
+            var cnt = 0;
+            var yy = y;
+            for(var k=0;k<N;k++) {
+                var xx = x;
+                for(var l=0;l<N;l++) {
+                    // compute the distance of point (x, y) to line (0,0) + t * v
+                    // the distance is the dot product of vector (x, y) with v
+                    cnt += (Math.abs(xx * n.x + yy * n.y) < THRES)?1:0;
+                    xx += step;
+                }
+                yy += step;
+            }
+
+            var sign = (x + 0.5) * v.x + (y + 0.5) * v.y;
+            sign = (sign == 0)?1:sign;
+            val[idx] = (Math.abs(cnt) < 1e-6) ? 0 : cnt * step2;
+            val[idx] *= (1.0 / sign);
+            weight += val[idx];
         }
     }
 
     if( size & 0x1 ) {
-        val[(size*size-1) / 2] = 1;
+        val[(size*size-1) / 2] = 0;
     }
 
     return new Filter({
         width : size,
         height : size,
         factor : 1.0,
-        bias : 0.0,
+        bias : 128.0,
         value : val
     });
 }
