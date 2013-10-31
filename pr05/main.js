@@ -122,6 +122,11 @@ function applyFilter()
             newimg = filter(origImg, f);
             break;
         }
+        case "median": {
+            var size = $('#FilterSizeslider').val();
+            newimg = median(origImg, size);
+            break;
+        }
         case "edge":
         {
             console.log('edge detection ...');
@@ -264,7 +269,7 @@ window.onload = (function(){
         }
 
         if( op == 'blur' || op == 'bilateral' || op == 'emboss'
-         || op == 'motion' || op == 'usm'
+         || op == 'motion' || op == 'usm' || op == 'median'
          || op == 'erosion' || op == 'dialation' ) {
             $('#FilterSize').show();
         }
