@@ -216,6 +216,53 @@ function blend(img1, img2, blendfunc) {
     return dst;
 }
 
+// median filter
+function median( src, size ) {
+
+    var h = src.h,
+        w = src.w;
+    var hf = ( size - 1 ) / 2;
+    var wf = hf;
+    var mid = (size * size - 1) / 2;
+
+    var dst = new RGBAImage(w, h);
+
+    for (var y=0;y<h;y++)
+    {
+        for (var x=0;x<w;x++)
+        {
+            var r = [], g = [], b = [];
+            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            {
+                var py = clamp(i+y,0,h-1);
+                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                {
+                    var px = clamp(j+x,0,w-1);
+
+                    var c = src.getPixel(px, py);
+                    r.push(c.r);
+                    g.push(c.g);
+                    b.push(c.b);
+                }
+            }
+
+            r.sort(function(a,b){return a-b;});
+            g.sort(function(a,b){return a-b;});
+            b.sort(function(a,b){return a-b;});
+
+            dst.setPixel(x, y, {
+                r: r[mid],
+                g: g[mid],
+                b: b[mid],
+                a: 255
+            });
+
+        }
+    }
+
+    return dst;
+}
+
 // edge detection using Sobel operator in both x and y direction
 // edge intensity is sqrt( |Gx|^2 + |Gy|^2 )
 function edge( __src ) {
