@@ -273,11 +273,10 @@ Filter.usm = function(size, alpha) {
 Filter.motion = function(size, degree){
 
     var val = new Float32Array(size * size);
-    var cx = (size-1) * 0.5;
-    var cy = (size-1) * 0.5;
+    var cx = size * 0.5;
+    var cy = size * 0.5;
 
     var theta = degree / 180.0 * Math.PI;
-    var bw = 1.1;
 
     // line direction, normalized
     var v = {
@@ -290,16 +289,33 @@ Filter.motion = function(size, degree){
         y: v.x
     };
 
+    var N = 8;
+    var N2 = N*N;
+    var step = 1.0 / N;
     var weight = 0.0;
-    for(var i= 0,idx=0;i<size;i++) {
-        var y = cy - i;
-        for(var j=0;j<size;j++,idx++) {
-            var x = j - cx;
-            // compute the distance of point (x, y) to line (0,0) + t * v
-            // the distance is the dot product of vector (x, y) with n
-            var dist = x * n.x + y * n.y;
+    var bw = 0.5;
 
-            val[idx] = (Math.abs(dist) <= bw)?1.0:0.0;
+    for(var i= 0,idx=0;i<size;i++) {
+        var y = cy - 1 - i;
+        for(var j=0;j<size;j++,idx++) {
+            // supersampling, make it soft
+            var x = j - cx;
+
+            var cnt = 0;
+            var yy = y + 0.5 * step;
+            for(var ni=0;ni<N;ni++) {
+                var xx = x + 0.5 * step;
+                for(var nj=0;nj<N;nj++) {
+                    // compute the distance of point (x, y) to line (0,0) + t * v
+                    // the distance is the dot product of vector (x, y) with n
+                    var dist = xx * n.x + yy * n.y;
+                    cnt += (Math.abs(dist) <= bw)?1.0:0.0
+                    xx += step;
+                }
+                yy += step;
+            }
+
+            val[idx] = cnt / N2;
             weight += val[idx];
         }
     }
