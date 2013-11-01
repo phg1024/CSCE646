@@ -119,8 +119,8 @@ Filter.emboss = function( size, degree ) {
 
     var THRES = 0.5;
     var weight = 0;
-    var N = 16;
-    var step = 1.0 / (N-1);
+    var N = 8;
+    var step = 1.0 / N;
     var step2 = step * step;
     for(var i= 0,idx=0;i<size;i++) {
         var y = cy - 1 - i;
@@ -128,9 +128,9 @@ Filter.emboss = function( size, degree ) {
             var x = j - cx;
             // super sampling, make it soft
             var cnt = 0;
-            var yy = y;
+            var yy = y + 0.5 * step;
             for(var k=0;k<N;k++) {
-                var xx = x;
+                var xx = x + 0.5 * step;
                 for(var l=0;l<N;l++) {
                     // compute the distance of point (x, y) to line (0,0) + t * v
                     // the distance is the dot product of vector (x, y) with v
@@ -141,7 +141,7 @@ Filter.emboss = function( size, degree ) {
             }
 
             var sign = (x + 0.5) * v.x + (y + 0.5) * v.y;
-            sign = (sign == 0)?1:sign;
+            sign = (Math.abs(sign) < 1e-6)?1:sign;
             val[idx] = (Math.abs(cnt) < 1e-6) ? 0 : cnt * step2;
             val[idx] *= (1.0 / sign);
             weight += val[idx];
