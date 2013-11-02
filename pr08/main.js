@@ -1,4 +1,4 @@
-var img, origImgData, myMat;
+var origImg, ditherredImg;
 var imgIdx = 0;
 var imgsrc = ['building.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
@@ -8,87 +8,14 @@ function loadImage()
     if( imgIdx < 0 ) imgIdx = 0;
 
     console.log('loading image ' + imgsrc[imgIdx]);
-    img = new Image();
+    var img = new Image();
     img.onload = function(){
-        myMat = image2Matrix(img);
-        origMat = myMat;
-        console.log(myMat);
-        origImgData = matrix2ImageData( myMat );
-        context.putImageData(origImgData, 0, 0);
+        origImg = RGBAImage.fromImage(img, canvas);
+        console.log(origImg);
+        context.putImageData(origImg.toImageData(context), 0, 0);
     };
 
     img.src = imgsrc[imgIdx];
-}
-
-function applyFilter()
-{
-    var filtername = filterop.options[filterop.selectedIndex].value;
-    console.log('applying filter ' + filtername);
-
-    var newimg;
-    switch( filtername )
-    {
-        case "invert":
-        {
-            console.log('inverting the image ...');
-            newimg = matrix2ImageData(	filter(myMat, Filter.invert) );
-            break;
-        }
-        case "grayscale":
-        {
-            console.log('converting the image to grayscale ...');
-            newimg = matrix2ImageData(	grayscale(myMat) );
-            break;
-        }
-        case "gradient":
-        {
-            newimg = matrix2ImageData( filter(myMat, Filter.gradient) );
-            break;
-        }
-        case 'hsobel':
-        {
-            newimg = matrix2ImageData( filter(myMat, Filter.hsobel) );
-            break;
-        }
-        case 'vsobel':
-        {
-            newimg = matrix2ImageData( filter(myMat, Filter.vsobel) );
-            break;
-        }
-        case 'emboss':
-        {
-            newimg = matrix2ImageData( filter(myMat, Filter.emboss) );
-            break;
-        }
-        case 'blur':
-        {
-            newimg = matrix2ImageData( filter(myMat, Filter.blur) );
-            break;
-        }
-        case 'sharpen':
-        {
-            newimg = matrix2ImageData( filter(myMat, Filter.sharpen) );
-            break;
-        }
-        case 'motion':
-        {
-            newimg = matrix2ImageData( filter(myMat, Filter.motion) );
-            break;
-        }
-        case 'customized':
-        {
-            console.log('customized filter');
-            // get the customized filter and apply the filter to current image
-            var cf = document.getElementById("cfilter");
-            var params = cf.value.split(/[\s]+/);
-            var f = new Filter( params );
-            console.log(f);
-            newimg = matrix2ImageData( filter(myMat, f) );
-            break;
-        }
-    }
-    filteredImgData = newimg;
-    context.putImageData(newimg, 0, 0);
 }
 
 function applyDithering()
@@ -98,37 +25,93 @@ function applyDithering()
 
     var levels = parseInt(document.getElementById("levels").value);
     console.log('levels = ' + levels);
-    var row = myMat.row,
-        col = myMat.col;
-    var newimg = new Mat(row, col);
+    var h = origImg.h,
+        w = origImg.w;
+    var newimg = new RGBAImage(w, h);
     var data = newimg.data,
-        data2 = myMat.data;
+        data2 = origImg.data;
 
     switch( method )
     {
+        case 'simple':
+        {
+            var neighbor = [[1,0], [-1, 1], [0, 1]];
+            var step = 255. / levels;
+
+            // copy the image
+            var idx = 0;
+            for(var y=0;y<h;y++) {
+                for(var x=0;x<w;x++) {
+                    newimg.setPixel(x, y, origImg.getPixel(x, y));
+                }
+            }
+
+            var nn = neighbor.length;
+            idx = 0;
+            for(var y=0;y<h;y++)
+            {
+                for(var x=0;x<w;x++, idx+=4)
+                {
+                    var r0 = data[idx], g0 = data[idx+1], b0 = data[idx+2];
+
+                    /// quantize the channel, then convert back to RGB pixel
+                    var r = Math.round(r0 / 255. * levels) * step;
+                    var g = Math.round(g0 / 255. * levels) * step;
+                    var b = Math.round(b0 / 255. * levels) * step;
+
+                    var lev = rgb2intensity({r:r, g:g, b:b, a:255});
+                    var offset = lev.r * 4;
+                    var invwsum = 1.0 / coeffs[offset+3];
+                    var weights = [coeffs[offset] * invwsum, coeffs[offset+1] * invwsum, coeffs[offset+2] * invwsum];
+
+
+                    data[idx] = r;
+                    data[idx+1] = g;
+                    data[idx+2] = b;
+
+                    var er, eg, eb;
+                    er = r0 - r;
+                    eg = g0 - g;
+                    eb = b0 - b;
+
+                    for(var i=0;i<nn;i++)
+                    {
+                        var px = clamp(x + neighbor[i][0], 0, w-1);
+                        var py = clamp(y + neighbor[i][1], 0, h-1);
+
+                        var pidx = ( py * w + px ) * 4;
+                        var pr = data[pidx], pg = data[pidx+1], pb = data[pidx+2];
+
+                        pr = clamp(pr + weights[i] * er, 0., 255.);
+                        pg = clamp(pg + weights[i] * eg, 0., 255.);
+                        pb = clamp(pb + weights[i] * eb, 0., 255.);
+
+                        data[pidx] = pr;
+                        data[pidx+1] = pg;
+                        data[pidx+2] = pb;
+                    }
+                }
+            }
+            break;
+        }
         case 'floyd':
         {
-            var neighbor = [[1,0], [-1,-1], [0, 1], [1,1]];
+            var neighbor = [[1,0], [-1, 1], [0, 1], [1,1]];
             var weights = [7./16., 3./16., 5./16., 1./16.];
             var step = 255. / levels;
 
             // copy the image
             var idx = 0;
-            for(var yy=0;yy<row;yy++)
-            {
-                for(var xx=0;xx<col;xx++, idx+=4)
-                {
-                    data[idx] = data2[idx];
-                    data[idx+1] = data2[idx+1];
-                    data[idx+2] = data2[idx+2];
-                    data[idx+3] = data2[idx+3];
+            for(var y=0;y<h;y++) {
+                for(var x=0;x<w;x++) {
+                    newimg.setPixel(x, y, origImg.getPixel(x, y));
                 }
             }
 
             idx = 0;
-            for(var y=0;y<row;y++)
+            for(var y=0;y<h;y++)
             {
-                for(var x=0;x<col;x++, idx+=4)
+                for(var x=0;x<w;x++, idx+=4)
                 {
                     var r0 = data[idx], g0 = data[idx+1], b0 = data[idx+2];
 
@@ -148,15 +131,15 @@ function applyDithering()
 
                     for(var i=0;i<4;i++)
                     {
-                        var px = clamp(x + neighbor[i][0], 0, col-1);
-                        var py = clamp(y + neighbor[i][1], 0, row-1);
+                        var px = clamp(x + neighbor[i][0], 0, w-1);
+                        var py = clamp(y + neighbor[i][1], 0, h-1);
 
-                        var pidx = ( py * col + px ) * 4;
+                        var pidx = ( py * w + px ) * 4;
                         var pr = data[pidx], pg = data[pidx+1], pb = data[pidx+2];
 
-                        pr = (clamp(pr + weights[i] * er, 0., 255.));
-                        pg = (clamp(pg + weights[i] * eg, 0., 255.));
-                        pb = (clamp(pb + weights[i] * eb, 0., 255.));
+                        pr = clamp(pr + weights[i] * er, 0., 255.);
+                        pg = clamp(pg + weights[i] * eg, 0., 255.);
+                        pb = clamp(pb + weights[i] * eb, 0., 255.);
 
                         data[pidx] = pr;
                         data[pidx+1] = pg;
@@ -178,9 +161,9 @@ function applyDithering()
             var ratio = 1.0 / 17.0;
             var step = 255. / levels;
             var idx = 0;
-            for(var y=0;y<row;y++)
+            for(var y=0;y<h;y++)
             {
-                for(var x=0;x<col;x++,idx+=4)
+                for(var x=0;x<w;x++,idx+=4)
                 {
                     var r = data2[idx], g = data2[idx+1], b = data2[idx+2];
 
@@ -206,9 +189,9 @@ function applyDithering()
             var step = 255. / levels;
             var max_diff = Math.round(step);
             var idx = 0;
-            for(var y=0;y<row;y++)
+            for(var y=0;y<h;y++)
             {
-                for(var x=0;x<col;x++,idx+=4)
+                for(var x=0;x<w;x++,idx+=4)
                 {
                     var r = data2[idx], g = data2[idx+1], b = data2[idx+2];
 
@@ -235,10 +218,9 @@ function applyDithering()
             break;
         }
     }
-    newimg = matrix2ImageData(newimg);
-    console.log(newimg);
-    filteredImgData = newimg;
-    context.putImageData(newimg, 0, 0);
+
+    ditherredImg = newimg;
+    context.putImageData(ditherredImg.toImageData(context), 0, 0);
 }
 
 var canvas, context;
@@ -251,12 +233,12 @@ window.onload = (function(){
 
     canvas.onmousedown = (function(){
         console.log('mouse down');
-        context.putImageData(origImgData, 0, 0);
+        context.putImageData(origImg.toImageData(context), 0, 0);
     });
 
     canvas.onmouseup = (function(){
         console.log('mouse up');
-        context.putImageData(filteredImgData, 0, 0);
+        context.putImageData(ditherredImg.toImageData(context), 0, 0);
     });
 
     // set up callbacks for filter selection

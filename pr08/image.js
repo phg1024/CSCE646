@@ -1,174 +1,171 @@
-// matrix structure
-function Mat(__row, __col, __data, __buffer){
-	this.row = __row || 0;
-	this.col = __col || 0;
-	this.channel = 4;
-	this.buffer = __buffer || new ArrayBuffer(__row * __col * 4);
-	this.data = new Uint8ClampedArray(this.buffer);
-	__data && this.data.set(__data);
-	this.bytes = 1;
-	this.type = "IMG_RGBA";
+/**
+ * Created by peihongguo on 10/5/13.
+ */
+
+function Color(r, g, b, a)
+{
+    if( arguments.length !== 4 )
+    {
+        this.r = this.g = this.b = this.a = 0;
+    }
+    else
+    {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
 }
 
-function image2Matrix(__image){
-	var width = __image.width,
-	height = __image.height;
-	
-	// resize the canvas	
-	canvasresize(width, height);
+Color.RED = new Color(255, 0, 0, 255);
+Color.GREEN = new Color(0, 255, 0, 255);
+Color.BLUE = new Color(0, 0, 255, 255);
+Color.YELLOW = new Color(255, 255, 0, 255);
+Color.PURPLE = new Color(255, 0, 255, 255);
+Color.CYAN = new Color(0, 255, 255, 255);
+Color.WHITE = new Color(255, 255, 255, 255);
+Color.BLACK = new Color(0, 0, 0, 255);
+Color.GRAY = new Color(128, 128, 128, 255);
+
+Color.prototype.setColor = function(that)
+{
+    if( that != null &&
+        that.constructor === Color )
+    {
+        this.r = that.r;
+        this.g = that.g;
+        this.b = that.b;
+        this.a = that.a;
+        return this;
+    }
+    else
+        return null;
+};
+
+Color.prototype.equal = function( that ) {
+    return (this.r == that.r && this.g == that.g && this.b == that.b);
+}
+
+Color.prototype.add = function(that) {
+    return new Color(this.r + that.r, this.g + that.g, this.b + that.b, this.a + that.a);
+};
+
+Color.prototype.sub = function(that) {
+    return new Color(this.r - that.r, this.g - that.g, this.b - that.b, this.a - that.a);
+};
+
+Color.prototype.mul = function(c)
+{
+    return new Color(this.r * c, this.g * c, this.b * c, this.a * c);
+};
+
+Color.prototype.round = function() {
+    this.r = Math.round(this.r);
+    this.g = Math.round(this.g);
+    this.b = Math.round(this.b);
+    this.a = Math.round(this.a);
+    return this;
+}
+
+Color.prototype.clamp = function() {
+    this.r = clamp(this.r, 0, 255);
+    this.g = clamp(this.g, 0, 255);
+    this.b = clamp(this.b, 0, 255);
+    this.a = clamp(this.a, 0, 255);
+    return this;
+}
+
+Color.interpolate = function(c1, c2, t)
+{
+    return c1.mul(t).add(c2.mul(1-t));
+};
+
+function RGBAImage( w, h, data )
+{
+    this.channels = 4;
+    this.w = w;
+    this.h = h;
+    this.data = new Uint8Array(w*h*this.channels);
+    data && this.data.set(data);
+}
+
+RGBAImage.prototype.getPixel = function(x, y) {
+    var idx = (y * this.w + x) * this.channels;
+    return new Color(
+        this.data[idx+0],
+        this.data[idx+1],
+        this.data[idx+2],
+        this.data[idx+3]
+    );
+}
+
+// bilinear sample of the image
+RGBAImage.prototype.sample = function(x, y) {
+    var w = this.w, h = this.h;
+    var ty = Math.floor(y);
+    var dy = Math.ceil(y);
+
+    var lx = Math.floor(x);
+    var rx = Math.ceil(x);
+
+    var fx = x - lx;
+    var fy = y - ty;
+
+    var c = this.getPixel(lx, ty).mul((1-fy) * (1-fx))
+        .add(this.getPixel(lx, dy).mul(fy * (1-fx)))
+        .add(this.getPixel(rx, ty).mul((1-fy) * fx))
+        .add(this.getPixel(rx, dy).mul(fy * fx));
+
+    c.clamp();
+
+    return c;
+};
+
+RGBAImage.prototype.setPixel = function(x, y, c) {
+    var idx = (y * this.w + x) * this.channels;
+    this.data[idx] = c.r;
+    this.data[idx+1] = c.g;
+    this.data[idx+2] = c.b;
+    this.data[idx+3] = c.a;
+};
+
+RGBAImage.prototype.uploadTexture = function( ctx, texId )
+{
+    var w = this.w;
+    var h = this.h;
+
+    ctx.bindTexture(ctx.TEXTURE_2D, texId);
+    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
+    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
+    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
+    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
+    ctx.texImage2D(ctx.TEXTURE_2D, 0,  ctx.RGBA, w, h, 0, ctx.RGBA, ctx.UNSIGNED_BYTE, this.data);
+};
+
+RGBAImage.prototype.toImageData = function( ctx ) {
+    var imgData = ctx.createImageData(this.w, this.h);
+    imgData.data.set(this.data);
+    return imgData;
+};
+
+/* get RGBA image data from the passed image object */
+RGBAImage.fromImage = function( img, cvs ) {
+    var w = img.width;
+    var h = img.height;
+
+    // resize the canvas for drawing
+    cvs.width = w;
+    cvs.height = h;
+
+    var ctx = cvs.getContext('2d');
 
     // render the image to the canvas in order to obtain image data
-	context.drawImage(__image, 0, 0);
-	var imageData = context.getImageData(0, 0, width, height),
-	tempMat = new Mat(height, width, imageData.data);
-	imageData = null;
+    ctx.drawImage(img, 0, 0);
+    var imgData = ctx.getImageData(0, 0, w, h);
+    var newImage = new RGBAImage(w, h, imgData.data);
+    imgData = null;
 
     // clear up the canvas
-	context.clearRect(0, 0, width, height);
-	return tempMat;
-}
-
-function matrix2ImageData(__imgMat){
-	var width = __imgMat.col,
-	height = __imgMat.row,
-	imageData = context.createImageData(width, height);
-	imageData.data.set(__imgMat.data);
-	return imageData;
-}
-
-function imresize(__src, w, h)
-{
-	// bilinear interpolation
-	if(__src.type && __src.type === "IMG_RGBA"){
-		var ih = __src.row,
-		iw = __src.col;
-		var dst = new Mat(h, w);
-		var ddata = dst.data,
-		sdata = __src.data;
-		
-		var ystep = 1.0 / h;
-		var xstep = 1.0 / w;
-		for(var i=0;i<h;i++)
-		{
-			var y = i * ystep;
-			var yPos = y * ih;
-			var ty = Math.floor(yPos);
-			var dy = Math.ceil(yPos);
-			
-			var fy = yPos - ty;
-			for(var j=0;j<w;j++)
-			{
-				var x = j * xstep;
-				var xPos = x * iw;
-				var lx = Math.floor(xPos);
-				var rx = Math.ceil(xPos);
-				
-				var fx = xPos - lx;
-				
-				var idx = (i*w+j)*4;
-				var idxlt = (ty*iw+lx)*4;
-				var idxrt = (ty*iw+rx)*4;
-				var idxld = (dy*iw+lx)*4;
-				var idxrd = (dy*iw+rx)*4;
-				for(var k=0;k<3;k++)
-				{
-					ddata[idx+k] = sdata[idxlt+k] * (1-fy) * (1-fx)
-								 + sdata[idxrt+k] * (1-fy) * fx
-								 + sdata[idxld+k] * fy * (1-fx)
-								 + sdata[idxrd+k] * fy * fx;
-				}
-				ddata[idx+3] = sdata[idx+3];
-			}
-		}
-	}else{
-		return __src;
-	}
-	return dst;
-}
-
-function canvasresize(__width, __height)
-{
-	canvas.width = __width;
-	canvas.height = __height;
-}
-
-function clamp(v, lower, upper)
-{
-	var res = v;
-	res = Math.min(upper, res);
-	res = Math.max(lower, res);
-	return res;
-}
-
-function filter(__src, f)
-{
-	if(__src.type && __src.type === "IMG_RGBA"){
-		var row = __src.row,
-		col = __src.col;
-		var dst = new Mat(row, col);
-		var data = dst.data,
-		data2 = __src.data;
-		
-		var wf = Math.floor(f.width / 2);
-		var hf = Math.floor(f.height / 2);
-		var bias = f.bias;
-		var factor = f.factor;
-		for (var y=0;y<row;y++)
-		{
-			for (var x=0;x<col;x++)
-			{
-				var fidx = 0;
-				var r, g, b;
-				r = g = b = 0;
-				var idx = (y*col+x)*4;
-				for (var i=-hf, fi=0;i<=hf;i++,fi++)
-				{
-					var py = clamp(i+y,0,row-1);
-					for (var j=-wf, fj=0;j<=wf;j++,fj++)
-					{
-						var px = clamp(j+x,0,col-1);
-						
-						var pidx = (py * col + px) * 4;
-						
-						var weight = f.value[fidx++];
-						
-						r += data2[pidx] * weight;
-						g += data2[pidx+1] * weight;
-						b += data2[pidx+2] * weight;												
-					}
-				}
-				
-				r = clamp(r/factor+bias, 0.0, 255.0);
-				g = clamp(g/factor+bias, 0.0, 255.0);
-				b = clamp(b/factor+bias, 0.0, 255.0);
-																
-	  		  	data[idx] = r;
-	  		  	data[idx+1] = g;
-	  		  	data[idx+2] = b;
-	  		  	data[idx+3] = data2[idx+3];
-			}
-		}
-	}else{
-		return __src;
-	}
-	return dst;	
-}
-
-function grayscale(__src)
-{
-	if(__src.type && __src.type === "IMG_RGBA"){
-		var row = __src.row,
-		col = __src.col;
-		var dst = new Mat(row, col);
-		var data = dst.data,
-		data2 = __src.data;
-		var pix1, pix2, pix = __src.row * __src.col * 4;
-		while (pix){
-			data[pix -= 4] = data[pix1 = pix + 1] = data[pix2 = pix + 2] = (data2[pix] * 299 + data2[pix1] * 587 + data2[pix2] * 114) / 1000;
-			data[pix + 3] = data2[pix + 3];
-		}
-	}else{
-		return __src;
-	}
-	return dst;
-}
+    ctx.clearRect(0, 0, w, h);
+    return newImage;
+};
