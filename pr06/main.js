@@ -38,23 +38,11 @@ function loadImage( imgname, sid )
 
         var width = curImg.w;
         var height = curImg.h;
-        if( width > canvasWidth )
-        {
-            height = Math.floor(height * (canvasWidth/width));
-            width = canvasWidth;
-            curImg = imresize(curImg, width, height);
-        }
 
-        if( height > canvasHeight )
-        {
-            width = Math.floor(width * (canvasHeight/height));
-            height = canvasHeight;
-            curImg = imresize(curImg, width, height);
-        }
+        curImg = imresize(curImg, canvasWidth, canvasHeight);
 
-        cvs.width = width;
-        cvs.height = height;
-        console.log(width + ', ' + height);
+        cvs.width = canvasWidth;
+        cvs.height = canvasHeight;
         ctx.putImageData(curImg.toImageData(ctx), 0, 0);
     };
 
@@ -109,56 +97,18 @@ function sampleColorFromCanvas(e) {
 
 function applyComposition() {
     var comp = $('#compselect').val();
+    var img;
     switch( comp ) {
-        case 'in': {
-            var img = blend(leftImg, rightImg, function(a, b){
-                return a.mul(b.a / 255.0);
-            });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
-            break;
-        }
-        case 'out': {
-            var img = blend(leftImg, rightImg, function(a, b){
-                return a.mul(1.0 - b.a / 255.0);
-            });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
-            break;
-        }
-        case 'atop': {
-            var img = blend(leftImg, rightImg, function(a, b){
-                return a.mul(b.a / 255.0).add(b.mul(1.0- a.a/255.0));
-            });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
-            break;
-        }
-        case 'xor': {
-            var img = blend(leftImg, rightImg, function(a, b){
-                return a.mul(1.0 - b.a / 255.0).add(b.mul(1.0- a.a/255.0));
-            });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
-            break;
-        }
         case 'over': {
             var alpha = $('#alpha').val();
-            var img = blend(leftImg, rightImg, function(a, b){
+            img = blend(leftImg, rightImg, function(a, b){
                 return a.mul(alpha).add(b.mul(1-alpha));
             });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
         case 'mul': {
             var alpha = $('#alpha').val();
-            var img = blend(leftImg, rightImg, function(a, b){
+            img = blend(leftImg, rightImg, function(a, b){
                 var ca = a.mul(1.0/255.0);
                 var cb = b.mul(1.0/255.0);
                 var c = new Color(
@@ -169,34 +119,24 @@ function applyComposition() {
                 );
                 return c.mul(255.0*alpha).add(b.mul(1-alpha));
             });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
-
             break;
         }
         case 'add': {
-            var img = blend(leftImg, rightImg, function(a, b){
+            img = blend(leftImg, rightImg, function(a, b){
                 return a.add(b).clamp();
             });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
         case 'sub': {
-            var img = blend(leftImg, rightImg, function(a, b){
+            img = blend(leftImg, rightImg, function(a, b){
                 var c = a.add(b.mul(-1)).clamp();
                 c.a = 255;
                 return c;
             });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
         case 'diff': {
-            var img = blend(leftImg, rightImg, function(a, b){
+            img = blend(leftImg, rightImg, function(a, b){
                 var c = new Color();
                 c.r = Math.abs(a.r - b.r);
                 c.g = Math.abs(a.g - b.g);
@@ -204,13 +144,10 @@ function applyComposition() {
                 c.a = 255;
                 return c;
             });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
         case 'exc':{
-            var img = blend(leftImg, rightImg, function(a, b){
+            img = blend(leftImg, rightImg, function(a, b){
                 var ca = a.mul(1/255.0);
                 var cb = b.mul(1/255.0);
                 var c = new Color();
@@ -220,13 +157,10 @@ function applyComposition() {
                 c.a = 1.0;
                 return c.mul(255.0).clamp();
             });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
         case 'min': {
-            var img = blend(leftImg, rightImg, function(a, b){
+            img = blend(leftImg, rightImg, function(a, b){
                 var c = new Color();
                 c.r = Math.min(a.r, b.r);
                 c.g = Math.min(a.g, b.g);
@@ -234,13 +168,10 @@ function applyComposition() {
                 c.a = 255;
                 return c;
             });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
         case 'max': {
-            var img = blend(leftImg, rightImg, function(a, b){
+            img = blend(leftImg, rightImg, function(a, b){
                 var c = new Color();
                 c.r = Math.max(a.r, b.r);
                 c.g = Math.max(a.g, b.g);
@@ -248,9 +179,6 @@ function applyComposition() {
                 c.a = 255;
                 return c;
             });
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
         case 'matting': {
@@ -260,7 +188,7 @@ function applyComposition() {
             var v = $('#val').val();
             var tol = $('#tol').val();
 
-            var img = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
+            img = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
 
             // apply gaussian blur to alpha channel
             img = filter(img, Filter.blur);
@@ -268,13 +196,12 @@ function applyComposition() {
             img = blend(img, rightImg, function(a, b){
                 return a.mul(a.a / 255.0).add(b.mul(1.0 - a.a / 255.0));
             });
-
-            canvas.width = img.w;
-            canvas.height = img.h;
-            context.putImageData(img.toImageData(context), 0, 0);
             break;
         }
     }
+    canvas.width = img.w;
+    canvas.height = img.h;
+    context.putImageData(img.toImageData(context), 0, 0);
 }
 
 window.onload = (function(){
@@ -358,9 +285,4 @@ window.onload = (function(){
 
     // set up callback for uploading file
     $('#files').change(handleFileSelect);
-
-    loadImage('init0.jpg', 'left');
-    setTimeout(function(){
-        loadImage('init1.jpg', 'right');
-    }, 100);
 });

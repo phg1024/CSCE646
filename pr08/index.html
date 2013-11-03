@@ -3,6 +3,7 @@
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
     <link rel='stylesheet' type='text/css' href='webgl.css' media="screen, print, projection">
+    <script type="text/javascript" src="jquery-1.10.2.min.js"></script>
     <script type="text/javascript" src="filter.js"></script>
     <script type="text/javascript" src="image.js"></script>
     <script type="text/javascript" src="coeffs.js"></script>
@@ -36,16 +37,8 @@
                             <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
                         </div>
                         <div class="submissiondes">
-                            <p>Please try apply different filters to the above image.</p>
                             <p>
-                                Image:
-                                <select id="imgselect">
-									<option value="building">Building</option>
-                                    <option value="seal">Seal</option>
-                                    <option value="buck">Buck</option>
-                                    <option value="waterfall">Waterfall</option>
-                                </select>
-                                Filter:
+                                Method:
                                 <select id="ditherop">
                                     <option value="floyd">Floyd Steinberg</option>
                                     <option value="ordered">Ordered</option>
@@ -53,9 +46,18 @@
                                     <option value="simple">Simple</option>
                                 </select>
                                 Levesl:
-                                <input id="levels" value="4">
+                                <input id="levels" size="3" value="4">
+                                <button id="apply_btn">Apply</button>
                             </p>
-                            <p>Upload image:
+                            <p>
+                                Image:
+                                <select id="imgselect">
+                                    <option value="building">Building</option>
+                                    <option value="seal">Seal</option>
+                                    <option value="buck">Buck</option>
+                                    <option value="waterfall">Waterfall</option>
+                                </select>
+                                Upload image:
                                 <input type="file" id="files" name="files[]" />
                                 <output id="list"></output>
                             </p>

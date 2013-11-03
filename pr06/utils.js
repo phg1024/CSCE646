@@ -186,24 +186,10 @@ function uploadImage( file ) {
         if( sid=='left' ){ leftImg = imresize(curImg, mainCanvasWidth, mainCanvasHeight); }
         else{ rightImg = imresize(curImg, mainCanvasWidth, mainCanvasHeight); }
 
-        var width = curImg.w;
-        var height = curImg.h;
-        if( width > canvasWidth )
-        {
-            height = Math.floor(height * (canvasWidth/width));
-            width = canvasWidth;
-            curImg = imresize(curImg, width, height);
-        }
+        curImg = imresize(curImg, canvasWidth, canvasHeight);
 
-        if( height > canvasHeight )
-        {
-            width = Math.floor(width * (canvasHeight/height));
-            height = canvasHeight;
-            curImg = imresize(curImg, width, height);
-        }
-
-        cvs.width = width;
-        cvs.height = height;
+        cvs.width = canvasWidth;
+        cvs.height = canvasHeight;
 
         ctx.putImageData(curImg.toImageData(ctx), 0, 0);
     }

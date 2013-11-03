@@ -23,7 +23,12 @@
         td{
             text-align: center
         }
+        .sourcebox {
+            width: 320px;
+            height: 240px;
+        }
         #leftcanvas{
+            background-image: url(fg.png);
             float: left;
             display: block;
             border: 0;
@@ -35,16 +40,14 @@
             max-width: 320px;
             max-heigh: 240px;
             background-color: black;
+            border: solid 1px #000000;
             z-index: 0;
         }
         #leftcanvas.active {
             border: solid 1px #ff0000;
         }
-        #rightcanvas.active {
-            border: solid 1px #ff0000;
-        }
-
         #rightcanvas{
+            background-image: url(bg.png);
             float: left;
             display: block;
             border: 0;
@@ -54,7 +57,11 @@
             max-width: 320px;
             max-heigh: 240px;
             background-color: black;
+            border: solid 1px #000000;
             z-index: 0;
+        }
+        #rightcanvas.active {
+            border: solid 1px #ff0000;
         }
         #maincanvas{
             float: right;
@@ -102,8 +109,12 @@
                     <td align=center>
                         <div>
                             <canvas id="maincanvas"></canvas>
-                            <canvas id="leftcanvas"></canvas>
-                            <canvas id="rightcanvas"></canvas>
+                            <div class="sourcebox">
+                                <canvas id="leftcanvas" width="320px" height="240px"></canvas>
+                            </div>
+                            <div class="sourcebox">
+                                <canvas id="rightcanvas" width="320px" height="240px"></canvas>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -143,10 +154,6 @@
                                     <option value="exc">Exclusion</option>
                                     <option value="min">Min</option>
                                     <option value="max">Max</option>
-                                    <option value="in">In</option>
-                                    <option value="out">Out</option>
-                                    <option value="atop">Atop</option>
-                                    <option value="xor">Xor</option>
                                     <option value="matting">Blue Screening</option>
                                 </select>
                                 <button id="applybutton">Apply</button>

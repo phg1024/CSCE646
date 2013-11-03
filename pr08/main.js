@@ -20,7 +20,7 @@ function loadImage()
 
 function applyDithering()
 {
-    var method = ditherop.options[ditherop.selectedIndex].value;
+    var method = $('#ditherop').val();
     console.log('applying dithering ' + method);
 
     var levels = parseInt(document.getElementById("levels").value);
@@ -28,24 +28,19 @@ function applyDithering()
     var h = origImg.h,
         w = origImg.w;
     var newimg = new RGBAImage(w, h);
-    var data = newimg.data,
-        data2 = origImg.data;
-
     switch( method )
     {
         case 'simple':
         {
+            // copy the image
+            var tmpimg = origImg.toRGBAImagef();
+            var data = tmpimg.data,
+                data2 = origImg.data;
+
             var neighbor = [[1,0], [-1, 1], [0, 1]];
             var step = 255. / levels;
 
-            // copy the image
             var idx = 0;
-            for(var y=0;y<h;y++) {
-                for(var x=0;x<w;x++) {
-                    newimg.setPixel(x, y, origImg.getPixel(x, y));
-                }
-            }
-
             var nn = neighbor.length;
             idx = 0;
             for(var y=0;y<h;y++)
@@ -82,9 +77,9 @@ function applyDithering()
                         var pidx = ( py * w + px ) * 4;
                         var pr = data[pidx], pg = data[pidx+1], pb = data[pidx+2];
 
-                        pr = clamp(pr + weights[i] * er, 0., 255.);
-                        pg = clamp(pg + weights[i] * eg, 0., 255.);
-                        pb = clamp(pb + weights[i] * eb, 0., 255.);
+                        pr = pr + weights[i] * er;
+                        pg = pg + weights[i] * eg;
+                        pb = pb + weights[i] * eb;
 
                         data[pidx] = pr;
                         data[pidx+1] = pg;
@@ -92,23 +87,22 @@ function applyDithering()
                     }
                 }
             }
+
+            newimg = tmpimg.toRGBAImage();
             break;
         }
         case 'floyd':
         {
+            // copy the image
+            var tmpimg = origImg.toRGBAImagef();
+            var data = tmpimg.data,
+                data2 = origImg.data;
+
             var neighbor = [[1,0], [-1, 1], [0, 1], [1,1]];
             var weights = [7./16., 3./16., 5./16., 1./16.];
             var step = 255. / levels;
 
-            // copy the image
             var idx = 0;
-            for(var y=0;y<h;y++) {
-                for(var x=0;x<w;x++) {
-                    newimg.setPixel(x, y, origImg.getPixel(x, y));
-                }
-            }
-
-            idx = 0;
             for(var y=0;y<h;y++)
             {
                 for(var x=0;x<w;x++, idx+=4)
@@ -137,9 +131,9 @@ function applyDithering()
                         var pidx = ( py * w + px ) * 4;
                         var pr = data[pidx], pg = data[pidx+1], pb = data[pidx+2];
 
-                        pr = clamp(pr + weights[i] * er, 0., 255.);
-                        pg = clamp(pg + weights[i] * eg, 0., 255.);
-                        pb = clamp(pb + weights[i] * eb, 0., 255.);
+                        pr = pr + weights[i] * er;
+                        pg = pg + weights[i] * eg;
+                        pb = pb + weights[i] * eb;
 
                         data[pidx] = pr;
                         data[pidx+1] = pg;
@@ -147,10 +141,15 @@ function applyDithering()
                     }
                 }
             }
+
+            newimg = tmpimg.toRGBAImage();
             break;
         }
         case 'ordered':
         {
+            var data = newimg.data,
+                data2 = origImg.data;
+
             var m = [
                 [1, 9, 3, 11],
                 [13, 5, 15, 7],
@@ -186,6 +185,9 @@ function applyDithering()
         }
         case 'random':
         {
+            var data = newimg.data,
+                data2 = origImg.data;
+
             var step = 255. / levels;
             var max_diff = Math.round(step);
             var idx = 0;
@@ -224,7 +226,7 @@ function applyDithering()
 }
 
 var canvas, context;
-var ditherop, imgselect;
+var imgselect;
 window.onload = (function(){
     console.log('document loaded');
 
@@ -241,23 +243,21 @@ window.onload = (function(){
         context.putImageData(ditherredImg.toImageData(context), 0, 0);
     });
 
-    // set up callbacks for filter selection
-    ditherop = document.getElementById("ditherop");
-
-    ditherop.onchange=applyDithering;
-    ditherop.onfocus=(function(){
+    // set up callbacks for image selection
+    imgselect = document.getElementById("imgselect");
+    $('#imgselect').change(function(){loadImage();});
+    $('#imgselect').focus(function(){
         this.selectedIndex = -1;
     });
 
-    // set up callbacks for image selection
-    imgselect = document.getElementById("imgselect");
-    imgselect.onchange=loadImage;
-    imgselect.onfocus = (function(){
-        this.selectedIndex = -1;
+    $('#apply_btn').click(function() {
+        applyDithering();
     });
 
     // set up callback for uploading file
-    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    $('#files').change(function(e) {
+        handleFileSelect(e);
+    });
 
     loadImage();
 });
