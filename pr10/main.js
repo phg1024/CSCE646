@@ -191,7 +191,7 @@ function generateAsciiArt() {
     bitmapContext.textBaseline = 'center';
     bitmapContext.textBaseline = 'middle';
 
-    //var characterSet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[]{}\\|;:<>,.?/';
+    var characterSet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[]{}\\|;:<>,.?/';
     var characterSet = '.,"`:;/\\^~-+x<>coun';
     var characterPixmap = [];
 
@@ -206,6 +206,7 @@ function generateAsciiArt() {
 
     var asciiStr = "";
     var tmpImg = new RGBAImage(blockSizeW, blockSizeH);
+    var inImg = curImg;
 
     for(var i=0;i<rows;i++) {
         var ystart = i * blockSizeH;
@@ -217,7 +218,7 @@ function generateAsciiArt() {
             var c = new Color();
             for(var y=0; y<blockSizeH;y++) {
                 for(var x=0;x<blockSizeW;x++) {
-                    var pix = curImg.getPixel(x+xstart, y+ystart);
+                    var pix = inImg.getPixel(x+xstart, y+ystart);
                     tmpImg.setPixel(x, y, pix);
                     c = c.add(pix);
                 }

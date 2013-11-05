@@ -28,6 +28,70 @@ function clamp(v, lower, upper)
     return res;
 }
 
+// bilateral filter
+function bilateral(src, sigmap, sigmaf, size) {
+    var h = src.h,
+        w = src.w;
+    var dst = new RGBAImage(w, h);
+    var data = dst.data,
+        data2 = src.data;
+
+    var fp = new Filter.blurn(size, sigmap);
+    var sigmaf2 = sigmaf * sigmaf * 2;
+
+    var wf = Math.floor(size / 2);
+    var hf = Math.floor(size / 2);
+
+    for (var y=0;y<h;y++)
+    {
+        for (var x=0;x<w;x++)
+        {
+            var fidx = 0;
+            var wsum = 0;
+            var r0, g0, b0;
+            var c0 = src.getPixel(x, y);
+            r0 = c0.r, g0 = c0.g, b0 = c0.b;
+            var r, g, b;
+            r = g = b = 0;
+            var idx = (y*w+x)*4;
+            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            {
+                var py = clamp(i+y,0,h-1);
+                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                {
+                    var px = clamp(j+x,0,w-1);
+                    var pidx = (py * w + px) * 4;
+
+                    var weight = fp.value[fidx++];
+
+                    var c = src.getPixel(px, py);
+                    var dr = c.r - r0;
+                    var dg = c.g - g0;
+                    var db = c.b - b0;
+
+                    weight *= Math.exp(-(dr*dr+dg*dg+db*db)/(sigmaf2));
+                    wsum += weight;
+
+                    r += c.r * weight;
+                    g += c.g * weight;
+                    b += c.b * weight;
+                }
+            }
+
+            r = clamp((r)/wsum, 0.0, 255.0);
+            g = clamp((g)/wsum, 0.0, 255.0);
+            b = clamp((b)/wsum, 0.0, 255.0);
+
+            data[idx] = r;
+            data[idx+1] = g;
+            data[idx+2] = b;
+            data[idx+3] = data2[idx+3];
+        }
+    }
+    return dst;
+}
+
+// apply filter f to image __src
 function filter(__src, f)
 {
     var h = __src.h,
@@ -40,44 +104,89 @@ function filter(__src, f)
     var hf = Math.floor(f.height / 2);
     var bias = f.bias;
     var factor = f.factor;
-    for (var y=0;y<h;y++)
-    {
-        for (var x=0;x<w;x++)
+    var p = f.p;
+
+    if( p && p != 1.0 ) {
+        for (var y=0;y<h;y++)
         {
-            var fidx = 0;
-            var r, g, b;
-            r = g = b = 0;
-            var idx = (y*w+x)*4;
-            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            for (var x=0;x<w;x++)
             {
-                var py = clamp(i+y,0,h-1);
-                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                var fidx = 0;
+                var r, g, b;
+                r = g = b = 0;
+                var idx = (y*w+x)*4;
+                for (var i=-hf, fi=0;i<=hf;i++,fi++)
                 {
-                    var px = clamp(j+x,0,w-1);
+                    var py = clamp(i+y,0,h-1);
+                    for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                    {
+                        var px = clamp(j+x,0,w-1);
 
-                    var pidx = (py * w + px) * 4;
+                        var pidx = (py * w + px) * 4;
 
-                    var weight = f.value[fidx++];
+                        var weight = f.value[fidx++];
 
-                    r += data2[pidx] * weight;
-                    g += data2[pidx+1] * weight;
-                    b += data2[pidx+2] * weight;
+                        r += Math.pow(data2[pidx] * weight, p);
+                        g += Math.pow(data2[pidx+1] * weight, p);
+                        b += Math.pow(data2[pidx+2] * weight, p);
+                    }
                 }
+
+                r = clamp(Math.pow(r,1/p)/factor+bias, 0.0, 255.0);
+                g = clamp(Math.pow(g,1/p)/factor+bias, 0.0, 255.0);
+                b = clamp(Math.pow(b,1/p)/factor+bias, 0.0, 255.0);
+
+                data[idx] = r;
+                data[idx+1] = g;
+                data[idx+2] = b;
+                data[idx+3] = data2[idx+3];
             }
-
-            r = clamp(r/factor+bias, 0.0, 255.0);
-            g = clamp(g/factor+bias, 0.0, 255.0);
-            b = clamp(b/factor+bias, 0.0, 255.0);
-
-            data[idx] = r;
-            data[idx+1] = g;
-            data[idx+2] = b;
-            data[idx+3] = data2[idx+3];
         }
     }
+    else {
+        // p is undefined or p is 1.0
+        // no need to compute the power, which is time consuming
+        for (var y=0;y<h;y++)
+        {
+            for (var x=0;x<w;x++)
+            {
+                var fidx = 0;
+                var r, g, b;
+                r = g = b = 0;
+                var idx = (y*w+x)*4;
+                for (var i=-hf, fi=0;i<=hf;i++,fi++)
+                {
+                    var py = clamp(i+y,0,h-1);
+                    for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                    {
+                        var px = clamp(j+x,0,w-1);
+
+                        var pidx = (py * w + px) * 4;
+
+                        var weight = f.value[fidx++];
+
+                        r += data2[pidx] * weight;
+                        g += data2[pidx+1] * weight;
+                        b += data2[pidx+2] * weight;
+                    }
+                }
+
+                r = clamp(r/factor+bias, 0.0, 255.0);
+                g = clamp(g/factor+bias, 0.0, 255.0);
+                b = clamp(b/factor+bias, 0.0, 255.0);
+
+                data[idx] = r;
+                data[idx+1] = g;
+                data[idx+2] = b;
+                data[idx+3] = data2[idx+3];
+            }
+        }
+    }
+
     return dst;
 }
 
+// convert RGB image to grayscale imge
 function grayscale(__src)
 {
     var h = __src.h,
@@ -93,30 +202,130 @@ function grayscale(__src)
     return dst;
 }
 
-function add(img1, img2, weight)
-{
+// blend two images using given blend function
+function blend(img1, img2, blendfunc) {
     var h = img1.h,
         w = img1.w;
     var dst = new RGBAImage(w, h);
-    var data = dst.data,
-        data1 = img1.data,
-        data2 = img2.data;
 
-    var totalpix = w*h*4;
-    for (var idx=0;idx<totalpix;idx++)
+    for (var y=0;y<h;y++)
     {
-        data[idx] = data1[idx] * weight + data2[idx] * (1.0-weight);
+        for( var x=0;x<w;x++ )
+            dst.setPixel(x, y, blendfunc(img1.getPixel(x, y), img2.getPixel(x, y)));
     }
     return dst;
 }
 
-function equalize_blend(__src)
-{
-    var eimg = equalize(__src);
-    var dst = add(__src, eimg, 0.5);
+// median filter
+function median( src, size ) {
+
+    var h = src.h,
+        w = src.w;
+    var hf = ( size - 1 ) / 2;
+    var wf = hf;
+    var mid = (size * size - 1) / 2;
+
+    var dst = new RGBAImage(w, h);
+
+    for (var y=0;y<h;y++)
+    {
+        for (var x=0;x<w;x++)
+        {
+            var r = [], g = [], b = [];
+            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            {
+                var py = clamp(i+y,0,h-1);
+                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                {
+                    var px = clamp(j+x,0,w-1);
+
+                    var c = src.getPixel(px, py);
+                    r.push(c.r);
+                    g.push(c.g);
+                    b.push(c.b);
+                }
+            }
+
+            r.sort(function(a,b){return a-b;});
+            g.sort(function(a,b){return a-b;});
+            b.sort(function(a,b){return a-b;});
+
+            dst.setPixel(x, y, {
+                r: r[mid],
+                g: g[mid],
+                b: b[mid],
+                a: 255
+            });
+
+        }
+    }
+
     return dst;
 }
 
+// edge detection using Sobel operator in both x and y direction
+// edge intensity is sqrt( |Gx|^2 + |Gy|^2 )
+function edge( __src ) {
+    var gx = grayscale( filter(__src, new Filter.hsobel()) );
+    var gy = grayscale( filter(__src, new Filter.vsobel()) );
+
+    // sqrt(gx^2 + gy^2)
+    var h = gx.h,
+        w = gx.w;
+    var g = new RGBAImage(w, h);
+    var data = g.data,
+        data1 = gx.data,
+        data2 = gy.data;
+
+    for (var idx=0;idx<w*h*4;idx++)
+    {
+        data[idx] = clamp(Math.sqrt(data1[idx] * data1[idx] + data2[idx] * data2[idx]), 0.0, 255.0);
+    }
+
+    var dst = new RGBAImage(w, h);
+    var ddata = dst.data, sdata = __src.data;
+    for (var y= 0, idx = 0;y<h;y++)
+    {
+        for (var x=0;x<w;x++, idx+=4)
+        {
+            ddata[idx+0] = sdata[idx+0] * data[idx] / 255.0;
+            ddata[idx+1] = sdata[idx+1] * data[idx] / 255.0;
+            ddata[idx+2] = sdata[idx+2] * data[idx] / 255.0;
+            ddata[idx+3] = 255;
+        }
+    }
+    return dst;
+}
+
+// normal overlay
+// add img2 to to img1 with specified weight
+function add(img1, img2, weight) {
+    return blend(img1, img2, function(a, b){return a.mul(weight).add(b.mul(1-weight));});
+}
+
+// subtract img2 from img1
+function sub(img1, img2) {
+    return blend(img1, img2, function(a, b){
+        var c = a.sub(b);
+        c.a = 255;
+        c.clamp();
+        return c;
+    });
+}
+
+// difference between two images
+function diff(img1, img2) {
+    return blend(img1, img2, function(a, b){
+        var c = new Color();
+        c.r = Math.abs(a.r - b.r);
+        c.g = Math.abs(a.g - b.g);
+        c.b = Math.abs(a.b - b.b);
+        c.a = 255;
+        return c;
+    });
+}
+
+// build histogram of specified image region
 function histogram(img, x1, y1, x2, y2, num_bins)
 {
     if( num_bins == undefined )
@@ -141,6 +350,7 @@ function histogram(img, x1, y1, x2, y2, num_bins)
     return hist;
 }
 
+// build cdf from given pdf
 function buildcdf( hist, num_bins )
 {
     if( num_bins == undefined )
@@ -154,7 +364,9 @@ function buildcdf( hist, num_bins )
     return cumuhist;
 }
 
-function equalize(__src)
+// histogram equalization, blended with orignal image
+// amount is between 0 and 1
+function equalize(__src, amount)
 {
     var h = __src.h,
         w = __src.w;
@@ -163,7 +375,7 @@ function equalize(__src)
     var gimg = grayscale(__src);
 
     // build histogram
-    var hist = histogram(gimg, 0, 0, col, row);
+    var hist = histogram(gimg, 0, 0, w, h);
 
     var cumuhist = buildcdf( hist );
 
@@ -173,8 +385,6 @@ function equalize(__src)
 
     // equalize
     var dst = new RGBAImage(w, h);
-    var data = dst.data,
-        data2 = __src.data;
     idx = 0;
     for(var y=0;y<h;y++)
     {
@@ -182,18 +392,23 @@ function equalize(__src)
         {
             var val = gimg.data[idx];
             var mappedval = cumuhist[val];
-
             var ratio = mappedval / val;
-            data[idx] = data2[idx] * ratio;
-            data[idx + 1] = data2[idx + 1] * ratio;
-            data[idx + 2] = data2[idx + 2] * ratio;
-            data[idx + 3] = data2[idx + 3];
+            var c0 = __src.getPixel(x, y);
+            var c = c0.mul(ratio);
+            c.a = c0.a;
+            c.clamp();
+            dst.setPixel(x, y, c);
         }
     }
+
+    dst = add(dst, __src, amount);
+
     return dst;
 }
 
-function ahe(__src)
+// adaptive histogram equalization, blended with original image
+// amount is between 0 and 1
+function ahe(__src, amount)
 {
     // find a good window size
     var row = __src.h,
@@ -279,6 +494,7 @@ function ahe(__src)
             var cdf21 = cdfs[yt][xr][bin];
             var cdf22 = cdfs[yd][xr][bin];
 
+            // bilinear interpolation
             var Iout = (1 - fx) * (1 - fy) * cdf11
                 + (1 - fx) * 	   fy  * cdf12
                 +      fx  * (1 - fy) * cdf21
@@ -289,6 +505,29 @@ function ahe(__src)
             data[idx + 1] = clamp(data2[idx + 1] * ratio, 0, 255);
             data[idx + 2] = clamp(data2[idx + 2] * ratio, 0, 255);
             data[idx + 3] = data2[idx + 3];
+        }
+    }
+
+    dst = add(dst, __src, amount);
+
+    return dst;
+}
+
+// contrast adjustment
+function contrast( src, lev ) {
+    var level = lev || 32;
+    var factor = (259 * (level + 255)) / (255 * (259 - level));
+
+    var w = src.w, h = src.h;
+    var dst = new RGBAImage(w, h);
+    for(var y=0;y<h;y++)
+    {
+        for(var x=0;x<w;x++)
+        {
+            var c0 = src.getPixel(x, y);
+            var c = c0.sub({r:128,g:128,b:128,a:0}).mul(factor).add({r:128,g:128,b:128,a:0});
+            c.clamp();
+            dst.setPixel(x, y, c);
         }
     }
     return dst;

@@ -68,6 +68,20 @@ Color.interpolate = function(c1, c2, t)
     return c1.mul(t).add(c2.mul(1-t));
 };
 
+function AlphaMask( w, h ) {
+    this.w = w;
+    this.h = h;
+    this.data = new Float32Array(w*h);
+
+    this.getValue = function(x, y) {
+        return this.data[y*this.w + x];
+    };
+
+    this.setValue = function(x, y, val) {
+        this.data[y*this.w + x] = val;
+    };
+}
+
 function RGBAImage( w, h, data )
 {
     this.channels = 4;

@@ -188,14 +188,37 @@ function applyComposition() {
             var v = $('#val').val();
             var tol = $('#tol').val();
 
-            img = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
+            var mask = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
 
-            // apply gaussian blur to alpha channel
-            img = filter(img, Filter.blur);
+            // apply median filter and gaussian blur to alpha channel
+            mask = median_alpha(mask, 3);
 
-            img = blend(img, rightImg, function(a, b){
-                return a.mul(a.a / 255.0).add(b.mul(1.0 - a.a / 255.0));
+            mask = filter_alpha(mask, new Filter.blur5());
+
+
+            img = blend_mask(leftImg, rightImg, mask, function(a, b, alpha){
+                return a.mul(alpha / 255.0).add(b.mul(1.0 - alpha / 255.0));
             });
+
+            break;
+        }
+        case 'gmatting': {
+            // compute the alpha mat for the foreground image
+            var h = $('#hue').val();
+            var s = $('#sat').val();
+            var v = $('#val').val();
+            var tol = $('#tol').val();
+
+            var mask = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
+
+            // apply median filter and gaussian blur to alpha channel
+            mask = median_alpha(mask, 3);
+
+            // enlarge the mask a little bit
+            mask = filter_alpha(mask, new Filter.dialation(7, 'round'));
+
+            // perform gradient domain editing
+            img = gde(leftImg, rightImg, mask);
             break;
         }
     }
@@ -255,7 +278,7 @@ window.onload = (function(){
     });
 
     $('#compselect').change(function(){
-        if( this.value == 'matting' ) {
+        if( this.value == 'matting' || this.value == 'gmatting' ) {
             $('#alphapanel').hide();
             $('#hsvpanel').show();
         }
