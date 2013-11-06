@@ -9,6 +9,7 @@ var leftCanvas, leftContext;
 var rightCanvas, rightContext;
 
 var leftImg, rightImg;
+var leftImgResized, rightImgResized;
 var imgIdx = 0;
 var imgsrc = ['apple.jpg', 'lighthouse.jpg', 'landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
@@ -40,6 +41,10 @@ function loadImage( imgname, sid )
         var height = curImg.h;
 
         curImg = imresize(curImg, canvasWidth, canvasHeight);
+        if( sid=='left' )
+            leftImgResized = curImg;
+        else
+            rightImgResized = curImg;
 
         cvs.width = canvasWidth;
         cvs.height = canvasHeight;
@@ -209,13 +214,21 @@ function applyComposition() {
             var v = $('#val').val();
             var tol = $('#tol').val();
 
-            var mask = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
+            var mask;
+            console.log($('#alphamask').val());
+            if( $('#alphamask').is(':checked')  ) {
+                mask = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
 
-            // apply median filter and gaussian blur to alpha channel
-            //mask = median_alpha(mask, 3);
+                // apply median filter and gaussian blur to alpha channel
+                mask = median_alpha(mask, 3);
 
-            // shrink the mask a little bit
-            //mask = filter_alpha(mask, new Filter.dialation(17, 'round'));
+                // extend the mask a little bit
+                mask = filter_alpha(mask, new Filter.dialation(7, 'round'));
+
+            }
+            else
+                mask = getMaskFromInput();
+
 
             // perform gradient domain editing
             img = gde(leftImg, rightImg, mask);
@@ -225,6 +238,57 @@ function applyComposition() {
     canvas.width = img.w;
     canvas.height = img.h;
     context.putImageData(img.toImageData(context), 0, 0);
+}
+
+function getMaskFromInput() {
+    var poly = new Polygon(true);
+
+    for(var i=0;i<lasso.length;i++) {
+        poly.addVertex(lasso[i]);
+    }
+
+    poly.genEdges();
+
+    var mask = new AlphaMask(mainCanvasWidth, mainCanvasHeight);
+
+    for(var y=0;y<mainCanvasHeight;y++) {
+        var yPos = y / (mainCanvasHeight - 1) * (canvasHeight - 1);
+        for(var x=0;x<mainCanvasWidth;x++) {
+            var xPos = x / (mainCanvasWidth - 1) * (canvasWidth - 1);
+
+            var inside = poly.isInside(xPos, yPos);
+            mask.setValue(x, y, (inside)?255:0);
+        }
+    }
+
+    return mask;
+}
+
+var mouseDown;
+var lasso = [];
+function drawLasso(closeCurve) {
+
+    leftContext.fillStyle = '#FFFFFF';
+    leftContext.clearRect(0,0,canvasWidth,canvasHeight);
+
+    leftContext.putImageData(leftImgResized.toImageData(leftContext), 0, 0);
+
+    if( lasso.length == 0 )
+        return;
+
+    leftContext.beginPath();
+    leftContext.strokeStyle="#FF0000";
+    leftContext.moveTo(lasso[0].x, lasso[0].y);
+    for(var i=1;i<lasso.length;i++) {
+        leftContext.lineTo(lasso[i].x, lasso[i].y);
+    }
+
+    if( closeCurve ) {
+        leftContext.lineTo(lasso[0].x, lasso[0].y);
+        leftContext.closePath();
+    }
+
+    leftContext.stroke();
 }
 
 window.onload = (function(){
@@ -246,10 +310,32 @@ window.onload = (function(){
         $('#files').click();
     };
 
+    leftCanvas.onmousedown = function(e) {
+        mouseDown = true;
+        lasso = [];
+    };
+
+    leftCanvas.onmouseup = function(e) {
+        mouseDown = false;
+        console.log(lasso);
+        drawLasso(true);
+    };
+
     leftCanvas.onmousemove = function(e){
         if(e.shiftKey ) {
             leftCanvas.style.cursor="crosshair";
             sampleColorFromCanvas(e);
+        }
+        else if(e.which === 1) {
+            if( mouseDown ) {
+                var pos = findPos(leftCanvas);
+                var x = e.pageX - pos.x;
+                var y = e.pageY - pos.y;
+                var coord = "x=" + x + ", y=" + y;
+                console.log(coord);
+                lasso.push({x:x, y:y});
+                drawLasso();
+            }
         }
         else {
             leftCanvas.style.cursor="auto";

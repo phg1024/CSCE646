@@ -747,6 +747,9 @@ function gde(src, tgt, mask) {
     var lap = laplacian(src);
     var lr = lap[0], lg = lap[1], lb = lap[2];
 
+    var tlap = laplacian(tgt);
+    var tlr = tlap[0], tlg = tlap[1], tlb = tlap[2];
+
     // create index mapping for all pixels with non-zero alpha value
     for(var y= 0, idx=0;y<h;y++) {
         for(var x=0;x<w;x++, idx++) {
@@ -775,18 +778,12 @@ function gde(src, tgt, mask) {
             if( Math.abs(val) > THRES ) {
                 // the pixel is in region \Omega
 
-                // get the pixel value
-                var c = src.getPixel(x, y);
-                var tc = tgt.getPixel(x, y);
-
-                // target
-                var tr = tc.r, tg = tc.g, tb = tc.b;
-
                 // the neighbors on lhs
                 var lhs = [];
                 var fqstar = {r: 0, g: 0, b: 0};
 
                 // for its four neighbors
+                var inside = true;
                 for(var i=0;i<4;i++) {
                     var nx = x + neighbors[i][0];
                     var ny = y + neighbors[i][1];
@@ -802,6 +799,7 @@ function gde(src, tgt, mask) {
 
                     var ac = mask.getValue(nx, ny);
                     if( Math.abs(ac) <= THRES ) {
+                        inside = false;
                         // neighbor not in region \Omega, place it on the rhs
                         var ntc = tgt.getPixel(nx, ny);
 
@@ -815,7 +813,22 @@ function gde(src, tgt, mask) {
                     }
                 }
 
-                var vpq_sum = { r: lr.getValue(x, y), g: lg.getValue(x, y), b: lb.getValue(x, y) };
+                var vpqr = lr.getValue(x, y), vpqg = lg.getValue(x, y), vpqb = lb.getValue(x, y);
+                var tvpqr = tlr.getValue(x, y), tvpqg = tlg.getValue(x, y), tvpqb = tlb.getValue(x, y);
+
+                var vpq_sum;
+//                if( inside )
+//                    vpq_sum = {
+//                    r: Math.abs(vpqr)>=Math.abs(tvpqr)?vpqr:tvpqr,
+//                    g: Math.abs(vpqg)>=Math.abs(tvpqg)?vpqg:tvpqg,
+//                    b: Math.abs(vpqb)>=Math.abs(tvpqb)?vpqb:tvpqb
+//                    };
+//                else
+                    vpq_sum = {
+                    r: vpqr,
+                    g: vpqg,
+                    b: vpqb
+                    };
 
                 var rhs = {
                     r: vpq_sum.r + fqstar.r,

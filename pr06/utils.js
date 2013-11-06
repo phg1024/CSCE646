@@ -187,6 +187,10 @@ function uploadImage( file ) {
         else{ rightImg = imresize(curImg, mainCanvasWidth, mainCanvasHeight); }
 
         curImg = imresize(curImg, canvasWidth, canvasHeight);
+        if( sid=='left' )
+            leftImgResized = curImg;
+        else
+            rightImgResized = curImg;
 
         cvs.width = canvasWidth;
         cvs.height = canvasHeight;
