@@ -700,6 +700,41 @@ function gradient( __src ) {
     return [gr, gg, gb];
 }
 
+function laplacian( src ) {
+    var w = src.w, h = src.h;
+
+    var lr = new AlphaMask(w, h);
+    var lg = new AlphaMask(w, h);
+    var lb = new AlphaMask(w, h);
+
+    var neighbors = [[0, -1], [-1, 0], [1, 0], [0, 1]]; // 4 neighbors up, left, right, down
+
+    for (var y=0;y<h;y++) {
+        for(var x=0;x<w;x++) {
+            var c = src.getPixel(x, y);
+            var r = c.r * 4, g = c.g * 4, b = c.b * 4;
+
+            for(var ni=0;ni<4;ni++) {
+                var nx = x + neighbors[ni][0];
+                var ny = y + neighbors[ni][1];
+
+                if( nx > w-1 || nx < 0 ) continue;
+                if( ny > h-2 || ny < 0 ) continue;
+
+                var nc = src.getPixel(nx, ny);
+
+                r -= nc.r; g -= nc.g; b -= nc.b;
+            }
+
+            lr.setValue(x, y, r);
+            lg.setValue(x, y, g);
+            lb.setValue(x, y, b);
+        }
+    }
+
+    return [lr, lg, lb];
+}
+
 // gradient domain editing
 function gde(src, tgt, mask) {
     var w = src.w, h = src.h;
@@ -708,6 +743,9 @@ function gde(src, tgt, mask) {
     var pmapping = {};
     var cnt = 0;            // number of pixels in the region \Omega
     var THRES = 250;
+
+    var lap = laplacian(src);
+    var lr = lap[0], lg = lap[1], lb = lap[2];
 
     // create index mapping for all pixels with non-zero alpha value
     for(var y= 0, idx=0;y<h;y++) {
@@ -741,19 +779,14 @@ function gde(src, tgt, mask) {
                 var c = src.getPixel(x, y);
                 var tc = tgt.getPixel(x, y);
 
-                // source
-                var r = c.r, g = c.g, b = c.b;
                 // target
                 var tr = tc.r, tg = tc.g, tb = tc.b;
 
                 // the neighbors on lhs
                 var lhs = [];
-                var vpq_sum = { r: 0, g: 0, b: 0 };
                 var fqstar = {r: 0, g: 0, b: 0};
 
-
-                var inside = true;
-                // test to see if it is all in
+                // for its four neighbors
                 for(var i=0;i<4;i++) {
                     var nx = x + neighbors[i][0];
                     var ny = y + neighbors[i][1];
@@ -764,89 +797,25 @@ function gde(src, tgt, mask) {
                     if( ny > h-1 ) ny -= (h-1);
                     if( ny < 0 ) ny += (h-1);
 
+                    // if the neighbor is in regoin \Omega, it contribute to the left hand side
+                    // otherwise right hand side
+
                     var ac = mask.getValue(nx, ny);
                     if( Math.abs(ac) <= THRES ) {
-                        inside = false;
+                        // neighbor not in region \Omega, place it on the rhs
+                        var ntc = tgt.getPixel(nx, ny);
+
+                        // neighbor not in region \Omega, place it on the rhs
+                        fqstar.r += ntc.r;
+                        fqstar.g += ntc.g;
+                        fqstar.b += ntc.b;
+                    }
+                    else {
+                        lhs.push(ny * w + nx);
                     }
                 }
 
-
-                if( inside ) {
-                    // for its four neighbors
-                    for(var i=0;i<4;i++) {
-                        var nx = x + neighbors[i][0];
-                        var ny = y + neighbors[i][1];
-
-                        if( nx > w-1 ) nx -= (w-1);
-                        if( nx < 0 ) nx += (w-1);
-
-                        if( ny > h-1 ) ny -= (h-1);
-                        if( ny < 0 ) ny += (h-1);
-
-                        // if the neighbor is in regoin \Omega, it contribute to the left hand side
-                        // otherwise right hand side
-
-                            lhs.push(ny * w + nx);
-
-                            var nc = src.getPixel(nx, ny);
-                            var nr = nc.r, ng = nc.g, nb = nc.b;
-
-                            var ntc = tgt.getPixel(nx, ny);
-                            var ntr = ntc.r, ntg = ntc.g, ntb = ntc.b;
-
-                            var sdr = r - nr, sdg = g - ng, sdb = b - nb;
-                            var tdr = tr - ntr, tdg = tg - ntg, tdb = tb - ntb;
-
-                            vpq_sum.r += (Math.abs(tdr) > Math.abs(sdr))?tdr:sdr;
-                            vpq_sum.g += (Math.abs(tdg) > Math.abs(sdg))?tdg:sdg;
-                            vpq_sum.b += (Math.abs(tdb) > Math.abs(sdb))?tdb:sdb;
-                    }
-                }
-                else {
-                    // for its four neighbors
-                    bcount++;
-                    for(var i=0;i<4;i++) {
-                        var nx = x + neighbors[i][0];
-                        var ny = y + neighbors[i][1];
-
-                        if( nx > w-1 ) nx -= (w-1);
-                        if( nx < 0 ) nx += (w-1);
-
-                        if( ny > h-1 ) ny -= (h-1);
-                        if( ny < 0 ) ny += (h-1);
-
-                        // if the neighbor is in regoin \Omega, it contribute to the left hand side
-                        // otherwise right hand side
-
-                        var ac = mask.getValue(nx, ny);
-                        if( Math.abs(ac) > THRES ) {
-                            // neighbor in region \Omega, should be on the lhs
-                            lhs.push(ny * w + nx);
-
-                            var nc = src.getPixel(nx, ny);
-                            var nr = nc.r, ng = nc.g, nb = nc.b;
-
-                            var ntc = tgt.getPixel(nx, ny);
-                            var ntr = ntc.r, ntg = ntc.g, ntb = ntc.b;
-
-                            var sdr = r - nr, sdg = g - ng, sdb = b - nb;
-                            var tdr = tr - ntr, tdg = tg - ntg, tdb = tb - ntb;
-
-                            vpq_sum.r += tdr;
-                            vpq_sum.g += tdg;
-                            vpq_sum.b += tdb;
-                        }
-                        else {
-                            var ntc = tgt.getPixel(nx, ny);
-
-                            // neighbor not in region \Omega, place it on the rhs
-                            fqstar.r += ntc.r;
-                            fqstar.g += ntc.g;
-                            fqstar.b += ntc.b;
-                        }
-                    }
-                }
-
+                var vpq_sum = { r: lr.getValue(x, y), g: lg.getValue(x, y), b: lb.getValue(x, y) };
 
                 var rhs = {
                     r: vpq_sum.r + fqstar.r,
@@ -878,8 +847,8 @@ function gde(src, tgt, mask) {
     console.log('boundary pixels = ' + bcount);
     console.log('average number of neighbors = ' + nn_avg / lcnt);
 
-    $('#matA').html( stringify_mat(A) );
-    $('#vecB').html( stringify_vec(br) );
+    //$('#matA').html( stringify_mat(A) );
+    //$('#vecB').html( stringify_vec(br) );
 
     var L = new linearsolver();
 

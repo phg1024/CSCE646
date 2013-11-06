@@ -214,8 +214,8 @@ function applyComposition() {
             // apply median filter and gaussian blur to alpha channel
             //mask = median_alpha(mask, 3);
 
-            // enlarge the mask a little bit
-            //mask = filter_alpha(mask, new Filter.dialation(7, 'round'));
+            // shrink the mask a little bit
+            //mask = filter_alpha(mask, new Filter.dialation(17, 'round'));
 
             // perform gradient domain editing
             img = gde(leftImg, rightImg, mask);
@@ -254,6 +254,7 @@ window.onload = (function(){
         else {
             leftCanvas.style.cursor="auto";
         }
+
     }
 
     rightCanvas = document.getElementById("rightcanvas");
