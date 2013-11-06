@@ -212,10 +212,10 @@ function applyComposition() {
             var mask = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
 
             // apply median filter and gaussian blur to alpha channel
-            mask = median_alpha(mask, 3);
+            //mask = median_alpha(mask, 3);
 
             // enlarge the mask a little bit
-            mask = filter_alpha(mask, new Filter.dialation(7, 'round'));
+            //mask = filter_alpha(mask, new Filter.dialation(7, 'round'));
 
             // perform gradient domain editing
             img = gde(leftImg, rightImg, mask);
@@ -300,10 +300,6 @@ window.onload = (function(){
 
     $('.rgbtext').change(function(){
         updateColorPatch_rgb();
-    });
-
-    $('#applybutton').click(function(){
-        applyComposition();
     });
 
     // set up callback for uploading file

@@ -50,6 +50,10 @@ Color.prototype.add = function(that) {
     return new Color(this.r + that.r, this.g + that.g, this.b + that.b, this.a + that.a);
 };
 
+Color.prototype.sub = function(that) {
+    return new Color(this.r - that.r, this.g - that.g, this.b - that.b, this.a - that.a);
+};
+
 Color.prototype.mul = function(c)
 {
     return new Color(this.r * c, this.g * c, this.b * c, this.a * c);

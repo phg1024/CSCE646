@@ -194,3 +194,25 @@ function uploadImage( file ) {
         ctx.putImageData(curImg.toImageData(ctx), 0, 0);
     }
 }
+
+function stringify_mat( A ) {
+    var rows = A.length;
+    var str = '';
+    for(var i=0;i<rows;i++) {
+        for(var j=0;j<A[i].length;j++) {
+            var jidx = A[i][j].idx;
+            var val = A[i][j].val;
+            str += i + ' ' + jidx + ' ' + val + '<br>';
+        }
+    }
+    return str;
+}
+
+function stringify_vec( b ) {
+    var rows = b.length;
+    var str = '';
+    for(var i=0;i<rows;i++) {
+        str += b[i] + '<br>';
+    }
+    return str;
+}
