@@ -11,7 +11,11 @@ var rightCanvas, rightContext;
 var leftImg, rightImg;
 var leftImgResized, rightImgResized;
 var imgIdx = 0;
-var imgsrc = ['apple.jpg', 'lighthouse.jpg', 'landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
+var imgsrc = [
+'turtle_s.jpg', 'ocean_s.jpg', 'lighthouse.jpg', 'rain.jpg', 
+'beach.jpg', 'fox.jpg', 'bumblebee-small.jpg',
+'shuttle.jpg', 'grass_s.jpg', 'bird.jpg'
+];
 
 function loadImage( imgname, sid )
 {
@@ -133,8 +137,9 @@ function applyComposition() {
             break;
         }
         case 'sub': {
+            var alpha = $('#alpha').val();
             img = blend(leftImg, rightImg, function(a, b){
-                var c = a.add(b.mul(-1)).clamp();
+                var c = a.add(b.mul(-1)).mul(alpha).add(b.mul(1-alpha)).clamp();
                 c.a = 255;
                 return c;
             });
@@ -193,12 +198,19 @@ function applyComposition() {
             var v = $('#val').val();
             var tol = $('#tol').val();
 
-            var mask = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
+            console.log($('#alphamask').val());
+            if( $('#alphamask').is(':checked')  ) {
+                mask = computeAlpha(leftImg, {h:h, s:s, v:v}, tol);
 
-            // apply median filter and gaussian blur to alpha channel
-            mask = median_alpha(mask, 3);
+                // apply median filter and gaussian blur to alpha channel
+                mask = median_alpha(mask, 3);
 
-            mask = filter_alpha(mask, new Filter.blur5());
+                // extend the mask a little bit
+                mask = filter_alpha(mask, new Filter.dialation(7, 'round'));
+
+            }
+            else
+                mask = getMaskFromInput();
 
 
             img = blend_mask(leftImg, rightImg, mask, function(a, b, alpha){
@@ -391,4 +403,14 @@ window.onload = (function(){
 
     // set up callback for uploading file
     $('#files').change(handleFileSelect);
+});
+
+$(document).ready(function(){
+    $('.fbox').fancybox({
+        helpers: {
+            title : {
+                type : 'float'
+            }
+        }
+    });
 });

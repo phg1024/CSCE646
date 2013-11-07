@@ -816,15 +816,7 @@ function gde(src, tgt, mask) {
                 var vpqr = lr.getValue(x, y), vpqg = lg.getValue(x, y), vpqb = lb.getValue(x, y);
                 var tvpqr = tlr.getValue(x, y), tvpqg = tlg.getValue(x, y), tvpqb = tlb.getValue(x, y);
 
-                var vpq_sum;
-//                if( inside )
-//                    vpq_sum = {
-//                    r: Math.abs(vpqr)>=Math.abs(tvpqr)?vpqr:tvpqr,
-//                    g: Math.abs(vpqg)>=Math.abs(tvpqg)?vpqg:tvpqg,
-//                    b: Math.abs(vpqb)>=Math.abs(tvpqb)?vpqb:tvpqb
-//                    };
-//                else
-                    vpq_sum = {
+                var vpq_sum = {
                     r: vpqr,
                     g: vpqg,
                     b: vpqb
