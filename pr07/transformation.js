@@ -298,7 +298,7 @@ var transformation = function(){
             // create polygons for the patches
             var patchPolys = [];
             for(var i=0;i<mappedRegions.length;i++) {
-                var p = new Polygon(true);          // should be all convex
+                var p = new Polygon(false);          // should be all convex
                 var mp = mappedRegions[i];
                 p.addVertex({x:mp[0][0], y:mp[0][1]});
                 p.addVertex({x:mp[1][0], y:mp[1][1]});                
