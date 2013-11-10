@@ -102,7 +102,13 @@ function uploadImage( file ) {
 
         console.log(curImg);
         canvasresize(width, height);
-
+        adjustImageRegion(curImg.w, curImg.h);
+        
+        console.log($('#gridtrans').is(':checked'));
+        if( $('#gridtrans').is(':checked') )
+        {            
+            setupGrid();
+        }
         context.putImageData(curImg.toImageData(context), 0, 0);
     }
 }

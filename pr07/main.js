@@ -14,7 +14,12 @@ function loadImage()
         curImg = RGBAImage.fromImage(img, context);
         canvasresize(curImg.w, curImg.h);
         adjustImageRegion(curImg.w, curImg.h);
-        setupGrid();
+        
+        console.log($('#gridtrans').is(':checked'));
+        if( $('#gridtrans').is(':checked') )
+        {            
+            setupGrid();
+        }
         context.putImageData(curImg.toImageData(context), 0, 0);
     };
 
@@ -35,9 +40,9 @@ function setupGrid() {
     gridHandles = [];
 
     for(var i=0;i<=gridY;i++) {
-        var y = i / gridY * stepY;
+        var y = i * stepY;
         for(var j=0;j<=gridX;j++) {
-            var x = j / gridX * stepX;
+            var x = j * stepX;
 
             gridHandles.push([x, y]);
         }
@@ -47,19 +52,39 @@ function setupGrid() {
     updateGridHandles(gridHandles);
 }
 
-function performBilinearMapping( pts ) {
-    var params = [
-        pts[0][0], pts[0][1],
-        pts[1][0], pts[1][1],
-        pts[2][0], pts[2][1],
-        pts[3][0], pts[3][1]
-    ];
-    var newImg = Transformations.op['b'](curImg, params);
+function updateImageWithGrids( pts ) {
+    // perform a series of bilinear mapping for each cell
+    var gridX = parseInt($('#gridx').val());
+    var gridY = parseInt($('#gridy').val());
+    var stepX = curImg.w / gridX;
+    var stepY = curImg.h / gridY;
+    
+    // get the original cell region
+    var cellRegion = [];
+    var mappedRegion = [];
+    for(var i=0;i<gridY;i++) {
+        var y0 = i * stepY;
+        var y1 = (i + 1) * stepY;
+        for(var j=0;j<gridX;j++) {
+            var x0 = j * stepX;
+            var x1 = (j+1) * stepX;
+            cellRegion.push([[x0, y0], [x1, y0], [x0, y1], [x1, y1]]);
+            
+            mappedRegion.push([
+                pts[i*(gridX+1) + j], // top-left
+                pts[i*(gridX+1) + j + 1], // top-right
+                pts[(i + 1)*(gridX+1) + j], // bottom-left
+                pts[(i + 1)*(gridX+1) + j + 1], // bottom-right
+            ]);
+        }
+    }
+    
+    // for each cell region, perform a bilinear mapping defined by the input points
+    var newImg = Transformations.op['mb'](curImg, pts, cellRegion, mappedRegion);
     canvasresize(newImg.w, newImg.h);
     adjustImageRegion(newImg.w, newImg.h);
-    context.putImageData(newImg.toImageData(context), 0, 0);
+    context.putImageData(newImg.toImageData(context), 0, 0);    
 }
-
 
 function applyTransformation() {
     var trans = document.getElementById('operations').value;
@@ -106,6 +131,8 @@ function applyTransformation() {
 function adjustImageRegion(w, h) {
     $('#imageregion').height(h);
 
+    $('#mycanvas').width(w);
+    $('#mycanvas').height(h);
     $('#mycanvas').css('margin-left', -w / 2 + 'px');
 
     $('#mysvg').width(w);
@@ -251,13 +278,23 @@ window.onload = (function(){
         this.selectedIndex = -1;
     });
 
-    $('#transparams').hide();
+    $('#gridparams').hide();
     $('#paramtrans').click(function(){
+        $('#gridparams').hide();
         $('#transparams').show();
+        // hide the grid handles
+        updateGridHandles([]);
     });
     $('#gridtrans').click(function(){
         $('#transparams').hide();
         $('#gridparams').show();
+        setupGrid();
+    });
+    
+    $('#gridx').change(function() {
+        setupGrid();
+    });
+    $('#gridy').change(function() {
         setupGrid();
     });
 

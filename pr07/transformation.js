@@ -11,7 +11,8 @@ var transformation = function(){
         'p': perspective,
         'b': bilinear,
         'm': mirror,
-        'c': composite
+        'c': composite,
+        'mb': multipleBilinear
     }
 
     var mapping = 'forward';
@@ -249,6 +250,232 @@ var transformation = function(){
             dst.setPixel(w-1-offset.x, y - offset.y, Color.RED);
         }
 
+        return dst;
+    }
+    
+    function multipleBilinear(src, inpts, regions, mappedRegions) {
+        // find out the dimensions of the new image first
+                
+        console.log('multiple bilinear transformation');
+        var w = src.w, h = src.h;
+        
+        var xcoords = [], ycoords = [];
+        for(var i=0;i<inpts.length;i++) {
+            xcoords.push(inpts[i][0]);
+            ycoords.push(inpts[i][1]);
+        }
+        var inpoints = {
+            x: xcoords,
+            y: ycoords
+        };
+        var minX = Math.min(0, inpoints.x.min());
+        var minY = Math.min(0, inpoints.y.min());
+        var maxX = Math.max(w, inpoints.x.max());
+        var maxY = Math.max(h, inpoints.y.max());
+        
+        var neww = Math.ceil(maxX - minX);
+        var newh = Math.ceil(maxY - minY);
+
+        var offset = {
+            x: Math.round(minX),
+            y: Math.round(minY)
+        };
+
+        console.log(offset);
+        
+        var dst = new RGBAImage(neww, newh);
+
+        // set all pixels to black
+        for(var y=0;y<newh;y++) {
+            for(var x=0;x<neww;x++) {
+                dst.setPixel(x, y, Color.BLACK);
+            }
+        }
+                
+
+//        if( mapping == 'inverse' ) {
+                console.log('inverse mapping');
+            // create polygons for the patches
+            var patchPolys = [];
+            for(var i=0;i<mappedRegions.length;i++) {
+                var p = new Polygon(true);          // should be all convex
+                var mp = mappedRegions[i];
+                p.addVertex({x:mp[0][0], y:mp[0][1]});
+                p.addVertex({x:mp[1][0], y:mp[1][1]});                
+                p.addVertex({x:mp[3][0], y:mp[3][1]});
+                p.addVertex({x:mp[2][0], y:mp[2][1]});
+                p.genEdges();
+                patchPolys.push(p);
+            }
+                // first assign patch id to each pixel
+                var patchID = [];
+            
+                for(var i=0;i<newh;i++) {
+                    var rpid = Array(neww);
+                    for(var j=0;j<neww;j++) {
+                        rpid[j] = 0;
+                        for(var ri=0;ri<mappedRegions.length;ri++) {
+                            if( patchPolys[ri].isInside(j, i) ) {
+                                rpid[j] = ri;
+                                break;
+                            }
+                        }
+                    }
+                    patchID.push(rpid);
+                }
+            
+                // determine mapping parameters for each patch
+                var mappingParams = [];
+                for(var ri=0;ri<regions.length;ri++) {
+                    var r = regions[ri];
+                    var x0, y0, x1, y1;
+                    x0 = r[0][0], y0 = r[0][1];
+                    x1 = r[3][0], y1 = r[3][1];          
+                    var rw = x1 - x0;
+                    var rh = y1 - y0;
+                            
+                    // mapped region
+                    var p00 = new Point2(mappedRegions[ri][0][0], mappedRegions[ri][0][1]);
+                    var p10 = new Point2(mappedRegions[ri][1][0], mappedRegions[ri][1][1]);
+                    var p01 = new Point2(mappedRegions[ri][2][0], mappedRegions[ri][2][1]);
+                    var p11 = new Point2(mappedRegions[ri][3][0], mappedRegions[ri][3][1]);
+            
+                    var v1 = Vector2.fromPoint2(p00, p10);
+                    var v2 = Vector2.fromPoint2(p00, p01);
+                    var v3 = Vector2.fromPoint2(p11, p01);
+                    var e1 = v1.normalized();
+                    var e2 = v2.normalized();
+                    
+                    mappingParams.push({
+                        x0: x0, x1: x1, y0: y0, y1: y1,
+                        rw: rw, rh: rh,
+                        p00: p00, p11: p11, p01: p01, p10: p10,
+                        v1: v1, v2: v2, v3: v3, e1: e1, e2: e2
+                    });
+                }
+            
+                // inverse mapping
+                for(var i= 0, idx=0;i<newh;i++) {
+                    var y = i;
+                    for(var j=0;j<neww;j++, idx+=dst.channels) {
+                        var x = j;
+    
+                        var p = new Point2(x, y);
+                        var pid = patchID[i][j];
+                        // mapping parameters
+                        var mp = mappingParams[pid];
+                        
+                        // retrieve the parameters
+                        var x0 = mp.x0, x1 = mp.x1, y0 = mp.y0, y1 = mp.y1;
+                        var rw = mp.rw, rh = mp.rh;
+                        var p00 = mp.p00, p11 = mp.p11, p01 = mp.p01, p10 = mp.p10;
+                        var v1 = mp.v1, v2 = mp.v2, v3 = mp.v3, e1 = mp.e1, e2 = mp.e2;
+    
+                        // solve for a and b
+                        // p00 + v1 * a + v2 * b - (v1 + v3) * ab = p
+                        // equivalent to
+                        // (x00 - x) + x1 * a + x2 * b - (x1 + x3) * ab = 0
+                        // (y00 - y) + y1 * a + y2 * b - (y1 + y3) * ab = 0
+    
+                        // (x00 - x) + x1 * a + b * (x2 - (x1 + x3) * a) = 0
+                        // (y00 - y) + y1 * a + b * (y2 - (y1 + y3) * a) = 0
+    
+                        // b = - (x00 - x + x1 * a) / (x2 - (x1 + x3) * a)
+                        // b = - (y00 - y + y1 * a) / (y2 - (y1 + y3) * a)
+    
+                        // (x00 - x + x1 * a) / (x2 - (x1 + x3) * a) = (y00 - y + y1 * a) / (y2 - (y1 + y3) * a)
+                        // (x00 - x + x1 * a) * (y2 - (y1 + y3) * a) = (y00 - y + y1 * a) * (x2 - (x1 + x3) * a)
+                        // equivalent to
+                        // A * a^2 + B * a + C = 0
+                        // A = x1*(y1+y3) -y1*(x1+x3)
+                        // B = (x00-x)*(y1+y3) - y2*x1 + x2*y1 - (y00-y)*(x1+x3)
+                        // C = (y00-y)*x2 - (x00-x)*y2
+                        var A = v1.x*(v1.y+v3.y) - v1.y*(v1.x+v3.x);
+                        var B = (p00.x-p.x)*(v1.y+v3.y)-v2.y*v1.x+v2.x*v1.y-(p00.y-p.y)*(v1.x+v3.x);
+                        var C = (p00.y- p.y)*v2.x-(p00.x- p.x)*v2.y;
+                        var roots = quadraticSolve(A, B, C);
+    
+                        if( roots.length == 0 ) {
+                            // set the pixel to black
+                            dst.setPixel(j, i, Color.BLACK);
+                        }
+                        else {
+                            var a = roots.min();
+                            if( a < 0 ) a = roots.max();
+                            if( a < 0 || a > 1.0 ) {
+                                dst.setPixel(j, i, Color.BLACK);
+                                continue;
+                            }
+                            var b = ( - (p00.x - p.x + v1.x * a) / (v2.x - (v1.x + v3.x) * a) )
+                                || (- (p00.y - p.y + v1.y * a) / (v2.y - (v1.y + v3.y) * a));
+    
+                            if( b < 0 || b > 1.0 ) {
+                                //dst.setPixel(j, i, Color.BLACK);
+                                continue;
+                            }
+                            else {
+                                // set the pixel by bilinearly sampling the source image
+                                var px = a * (rw-1) + x0, py = b * (rh-1) + y0;
+                                dst.setPixel(j, i, src.sample(px, py));
+                            }
+                        }
+                        
+                    }
+                }
+//            }
+//            else
+//            {
+//                // perform mapping for each region individually
+//                for(var ri = 0; ri < regions.length; ri ++ ) {
+//                            console.log('forward mapping');
+//                // forward mapping
+//
+//                // original region
+//                var r = regions[ri];
+//                var x0, y0, x1, y1;
+//                x0 = r[0][0], y0 = r[0][1];
+//                x1 = r[3][0], y1 = r[3][1];          
+//                var rw = x1 - x0;
+//                var rh = y1 - y0;
+//                        
+//                // mapped region
+//                var p00 = new Point2(mappedRegions[ri][0][0], mappedRegions[ri][0][1]);
+//                var p10 = new Point2(mappedRegions[ri][1][0], mappedRegions[ri][1][1]);
+//                var p01 = new Point2(mappedRegions[ri][2][0], mappedRegions[ri][2][1]);
+//                var p11 = new Point2(mappedRegions[ri][3][0], mappedRegions[ri][3][1]);
+//        
+//                var v1 = Vector2.fromPoint2(p00, p10);
+//                var v2 = Vector2.fromPoint2(p00, p01);
+//                var v3 = Vector2.fromPoint2(p11, p01);
+//                var e1 = v1.normalized();
+//                var e2 = v2.normalized();
+//    
+//                for(var i=y0;i<y1;i++) {
+//                    var y = i;
+//                    for(var j=x0;j<x1;j++) {
+//                        var x = j;
+//    
+//                        var a = (x-x0) / (rw-1);
+//                        var b = (y-y0) / (rh-1);
+//    
+//                        var p = p00.add(v1.mul(a)).add(v2.mul(b)).sub(v1.add(v3).mul(a*b));
+//    
+//                        p.x += offset.x;
+//                        p.y += offset.y;
+//    
+//                        if( p.x < 0 || p.y < 0 || p.x > neww-1 || p.y > newh-1 ) {
+//                            continue;
+//                        }
+//                        else
+//                        {
+//                            // set the pixel by bilinearly sampling the source image
+//                            dst.setPixel(Math.round(p.x), Math.round(p.y), src.getPixel(x, y));
+//                        }
+//                    }
+//                }
+//            }
+//        }
+        
         return dst;
     }
 

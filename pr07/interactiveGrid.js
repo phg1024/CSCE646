@@ -141,12 +141,14 @@ function mousemove() {
         //console.log(pos);
         return;
     }
+    
+    // make a copy of old points
 
     var m = d3.mouse(svg.node());
     dragged[0] = Math.max(0, Math.min(width, m[0]));
     dragged[1] = Math.max(0, Math.min(height, m[1]));
 
-    performBilinearMapping(points);
+    updateImageWithGrids(points);
 
     redraw();
 }
