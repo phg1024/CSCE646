@@ -3,10 +3,30 @@
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
     <link rel='stylesheet' type='text/css' href='webgl.css' media="screen, print, projection">
+    <script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="d3.v3.min.js"></script>
+
+    <!-- Add mousewheel plugin (this is optional) -->
+    <script type="text/javascript" src="./fancybox/lib/jquery.mousewheel-3.0.6.pack.js"></script>
+
+    <!-- Add fancyBox -->
+    <link rel="stylesheet" href="./fancybox/source/jquery.fancybox.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/jquery.fancybox.pack.js"></script>
+
+    <!-- Optionally add helpers - button, thumbnail and/or media -->
+    <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-buttons.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-buttons.js"></script>
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-media.js"></script>
+
+    <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-thumbs.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
+
+    <!-- My library -->
     <script type="text/javascript" src="point.js"></script>
     <script type="text/javascript" src="vector.js"></script>
     <script type="text/javascript" src="matrix.js"></script>
     <script type="text/javascript" src="filter.js"></script>
+    <script type="text/javascript" src="interactiveGrid.js"></script>
     <script type="text/javascript" src="image.js"></script>
     <script type="text/javascript" src="imageutils.js"></script>
     <script type="text/javascript" src="transformation.js"></script>
@@ -22,6 +42,75 @@
         td{
             text-align: center
         }
+
+        td p {
+            font-size: 12px;
+        }
+
+        #imageregion {
+            width: auto;
+            min-height: 480px;
+            height: auto;
+            overflow: auto;
+        }
+
+        #mysvg, #mycanvas {
+            left: 50%;
+            position: absolute;
+            margin-left: -320px;
+        }
+
+        svg{
+            background: rgba(1, 1, 1, 0);
+            border: 1px solid;
+        }
+
+        rect {
+            fill: none;
+            pointer-events: all;
+        }
+
+        circle {
+            fill: red;
+            stroke: steelblue;
+            stroke-width: 1.5px;
+        }
+
+        circle {
+            fill: red;
+            fill-opacity: .5;
+            cursor: move;
+        }
+
+        .selected {
+            fill: #ff7f0e;
+            stroke: #ff7f0e;
+        }
+
+        .resimg {
+            height: auto;
+            width: 100%;
+        }
+
+        .fmelem {
+            text-indent: 0;
+            text-align: center;
+            border: solid 1px;
+        }
+
+        .fmtable {
+            border: solid 1px;
+        }
+
+        .note {
+            color: red;
+        }
+
+        .control {
+            fill: #ccc;
+            stroke: #000;
+            stroke-width: .5px;
+        }
     </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
@@ -34,125 +123,340 @@
     </div>
 </header>
 <article>
-    <div id="maincontent">
-        <div class="content">
+<div id="maincontent">
+<div class="content">
 
-            <div align=center>
-                <h2>Project 07</h2>
-                <h3>Transformation and Warping</h3>
+<div align=center>
+    <h2>Project 07</h2>
+    <h3>Transformation and Warping</h3>
+</div>
+
+<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+
+    <tr>
+        <td align=center>
+            <div id="imageregion">
+                <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
+                <svg id="mysvg" width="640px" height="480px"></svg>
             </div>
+            <div class="submissiondes">
+                <p>
+                    Image:
+                    <select id="imgselect">
+                        <option value="landscape">Landscape</option>
+                        <option value="seal">Seal</option>
+                        <option value="buck">Buck</option>
+                        <option value="waterfall">Waterfall</option>
+                    </select>
+                    &nbsp or &nbsp Upload image:
+                    <input type="file" id="files" name="files[]" />
+                    <output id="list"></output>
+                </p>
+                <p>
+                    <input type="radio" name="transmode" id="gridtrans" value="gridtrans">Grid based interactive transformation
+                    <input type="radio" name="transmode" id="paramtrans" value="paramtrans" checked="checked">Parameterized transformation
+                </p>
+                <div id="gridparams">
+                    <p>
+                        Grid Size:&nbsp<input type="text" id="gridx" size="3" value="1"> x <input type="text" id="gridy" size="3" value="1">
+                    </p>
+                </div>
+                <div id="transparams">
+                    <p>Transformation parameters <button id="transbutton">Apply Transformation</button></p>
+                    <form><p>
+                        <input type="radio" id="forwardbutton" name="maptype" value="forward" checked="checked">Forward Map
+                        <input type="radio" id="inversebutton" name="maptype" value="inverse">Inverse Map
 
-            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                        <input type="checkbox" id="supersampling">Super Sampling
+                    </p>
+                    </form>
+                    <p>
+                        <textarea id="operations" rows="8" cols="16">Please input the operations here.</textarea>
+                    </p>
+                    <div>
+                        <p>
+                            Operations supported:<br>
+                        <table class="operations" border=1 cellspacing=5 cellpadding=5 width=60% align=center>
+                            <tr><td width="20%">Operation</td><td width="20%">Command format</td><td width="60%">Example</td></tr>
+                            <tr><td>Scaling</td><td><em>s sx sy</em></td>
+                                <td>
+                                    Scaling by 0.5 in <em>x</em> direction and 0.75 in <em>y</em> direction:<br>
+                                    <em>s 0.5 0.75</em>
+                                </td></tr>
+                            <tr><td>Translation</td><td> <em>t tx ty</em></td>
+                                <td>
+                                    Translation by 32 in <em>x</em> direction and 64 in <em>y</em> direction:<br>
+                                    <em>t 32 64</em>
+                                </td>
+                            </tr>
+                            <tr><td>Rotation</td><td> <em>r deg</em></td>
+                                <td>
+                                    Rotation by 45 degree counter clockwise:<br>
+                                    <em>r 45</em>
+                                </td>
+                            </tr>
+                            <tr><td>Shear</td><td> <em>sh shx shy</em></td>
+                                <td>
+                                    Shear transformation with 0.5 in <em>x</em> direction and 0.25 in <em>y</em> direction:<br>
+                                    <em>sh 0.5 0.25</em>
+                                </td>
+                            </tr>
+                            <tr><td>Mirror</td><td> <em>m axis</em></td>
+                                <td>
+                                    Mirror along <em>x</em> axis:<br>
+                                    <em>m x</em><br>
+                                    <em>Note: axis can only be x or y</em>
+                                </td>
+                            </tr>
+                            <tr><td>Perspective</td><td> <em>p px py</em></td>
+                                <td>
+                                    Perspective transformation with vanishing point at <em>(1.0/a,0)</em> and <em>(0, 1.0/b)</em>:<br>
+                                    <em>p a b</em>
+                                </td>
+                            </tr>
+                            <tr><td>Bilinear</td><td> <em>b x0 y0 x1 y1 x2 y2 x3 y3</em></td>
+                                <td>
+                                    Bilinear transformation with 4 corners(top left, bottom left, top right, bottom right) at
+                                    (0, 0), (256, 16), (32, 200), (200, 168):<br>
+                                    <em>b 0 0 256 16 32 200 200 168</em>
+                                </td>
+                            </tr>
+                            <tr><td>Composition</td>
+                                <td>
+                                    <em>cbegin<br>
+                                        op1 params<br>
+                                        op2 params<br>
+                                        ...<br>
+                                        cend</em>
+                                </td>
+                                <td>
+                                    <em>
+                                        cbegin<br>
+                                        s 0.5 1.5<br>
+                                        t 32 64<br>
+                                        sh 0.1 0.2<br>
+                                        p 0.001 0.002<br>
+                                        cend
+                                    </em>
+                                </td>
+                            </tr>
+                        </table>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </td>
+    </tr>
 
-                <tr>
-                    <td align=center>
-                        <div>
-                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
-                        </div>
-                        <div class="submissiondes">
-                            <p>
-                                Image:
-                                <select id="imgselect">
-                                    <option value="landscape">Landscape</option>
-                                    <option value="seal">Seal</option>
-                                    <option value="buck">Buck</option>
-                                    <option value="waterfall">Waterfall</option>
-                                </select>
-                                &nbsp or &nbsp Upload image:
-                                <input type="file" id="files" name="files[]" />
-                                <output id="list"></output>
-                            </p>
-                            <p>Transformation parameters <button id="transbutton">Apply Transformation</button></p>
-                            <p>
-                            <form><p>
-                                <input type="radio" id="forwardbutton" name="maptype" value="forward" checked="checked">Forward Map
-                                <input type="radio" id="inversebutton" name="maptype" value="inverse">Inverse Map
+</table>
 
-                                <input type="checkbox" id="supersampling">Super Sampling
-                            </p></form>
-                            <p>
-                                <textarea id="operations" rows="8" cols="16">Please input the operations here.</textarea>
-                            </p>
-                            <div>
-                                <p>
-                                    Operations supported:<br>
-                                <table class="operations" border=1 cellspacing=5 cellpadding=5 width=60% align=center>
-                                    <tr><td width="20%">Operation</td><td width="20%">Command format</td><td width="60%">Example</td></tr>
-                                    <tr><td>Scaling</td><td><em>s sx sy</em></td>
-                                        <td>
-                                            Scaling by 0.5 in <em>x</em> direction and 0.75 in <em>y</em> direction:<br>
-                                            <em>s 0.5 0.75</em>
-                                        </td></tr>
-                                    <tr><td>Translation</td><td> <em>t tx ty</em></td>
-                                        <td>
-                                            Translation by 32 in <em>x</em> direction and 64 in <em>y</em> direction:<br>
-                                            <em>t 32 64</em>
-                                        </td>
-                                    </tr>
-                                    <tr><td>Rotation</td><td> <em>r deg</em></td>
-                                        <td>
-                                            Rotation by 45 degree counter clockwise:<br>
-                                            <em>r 45</em>
-                                        </td>
-                                    </tr>
-                                    <tr><td>Shear</td><td> <em>sh shx shy</em></td>
-                                        <td>
-                                            Shear transformation with 0.5 in <em>x</em> direction and 0.25 in <em>y</em> direction:<br>
-                                            <em>sh 0.5 0.25</em>
-                                        </td>
-                                    </tr>
-                                    <tr><td>Mirror</td><td> <em>m axis</em></td>
-                                        <td>
-                                            Mirror along <em>x</em> axis:<br>
-                                            <em>m x</em><br>
-                                            <em>Note: axis can only be x or y</em>
-                                        </td>
-                                    </tr>
-                                    <tr><td>Perspective</td><td> <em>p px py</em></td>
-                                        <td>
-                                            Perspective transformation with vanishing point at <em>(1.0/a,0)</em> and <em>(0, 1.0/b)</em>:<br>
-                                            <em>p a b</em>
-                                        </td>
-                                    </tr>
-                                    <tr><td>Bilinear</td><td> <em>b x0 y0 x1 y1 x2 y2 x3 y3</em></td>
-                                        <td>
-                                            Bilinear transformation with 4 corners(top left, bottom left, top right, bottom right) at
-                                            (0, 0), (256, 16), (32, 200), (200, 168):<br>
-                                            <em>b 0 0 256 16 32 200 200 168</em>
-                                        </td>
-                                    </tr>
-                                    <tr><td>Composition</td>
-                                        <td>
-                                            <em>cbegin<br>
-                                                op1 params<br>
-                                                op2 params<br>
-                                                ...<br>
-                                                cend</em>
-                                        </td>
-                                        <td>
-                                            <em>
-                                                cbegin<br>
-                                                s 0.5 1.5<br>
-                                                t 32 64<br>
-                                                sh 0.1 0.2<br>
-                                                p 0.001 0.002<br>
-                                                cend
-                                            </em>
-                                        </td>
-                                    </tr>
-                                </table>
-                                </p>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+<div id="results">
+<p>
+    <b>Results</b>
+</p>
+<p class="note">Note: the images are rescaled for webpage viewing, please click on them to see the full size images.</p>
 
-            </table>
+<p><b><em>Scaling</em></b></p>
+<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+    <tr>
+        <td width="5%">Original Image</td>
+        <td width="47.5%">
+            <a class="fbox" href="landscape.jpg" title="Landscape, original">
+                <img class="resimg" src="landscape.jpg">
+            </a>
+            <p>Original Image</p>
+        </td>
+        <td width="47.5%">
+            <a class="fbox" href="chessboard_s.jpg" title="Chessboard, original">
+                <img class="resimg" src="chessboard_s.jpg">
+            </a>
+            <p>Original Image</p>
+        </td>
+    </tr>
+    <tr>
+        <td>Scale</td>
+        <td>
+            <a class="fbox" href="gallery/landscape/s_0.5_0.75.png" title="Scaling with 0.5, 0.75">
+                <img class="resimg" src="gallery/landscape/s_0.5_0.75.png">
+            </a>
+            <p>Scaling with 0.5, 0.75</p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/s_0.5_0.75.png" title="Scaling with 0.5, 0.75">
+                <img class="resimg" src="gallery/chessboard/s_0.5_0.75.png">
+            </a>
+            <p>Scaling with 0.5, 0.75</p>
+        </td>
+    </tr>
 
-        </div>
-    </div>
-    </div>
-    </div>
+    <tr>
+        <td>Translation</td>
+        <td>
+            <a class="fbox" href="gallery/landscape/t_32_64.png" title="Translation with 32, 64">
+                <img class="resimg" src="gallery/landscape/t_32_64.png">
+            </a>
+            <p>Translation with 32, 64</p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/t_32_64.png" title="Translation with 32, 64">
+                <img class="resimg" src="gallery/chessboard/t_32_64.png">
+            </a>
+            <p>Translation with 32, 64</p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>Rotation</td>
+        <td>
+            <a class="fbox" href="gallery/landscape/r_128.png" title="Rotation with 128 degree, counter clockwise">
+                <img class="resimg" src="gallery/landscape/r_128.png">
+            </a>
+            <p>Rotation with 128 degree, counter clockwise</p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/r_128.png" title="Rotation with 128 degree, counter clockwise">
+                <img class="resimg" src="gallery/chessboard/r_128.png">
+            </a>
+            <p>Rotation with 128 degree, counter clockwise</p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>Shear</td>
+        <td>
+            <a class="fbox" href="gallery/landscape/sh_0.5_0.25.png" title="Shear with 0.5, 0.25">
+                <img class="resimg" src="gallery/landscape/sh_0.5_0.25.png">
+            </a>
+            <p>Shear with 0.5, 0.25</p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/sh_0.5_0.25.png" title="Shear with 0.5, 0.25">
+                <img class="resimg" src="gallery/chessboard/sh_0.5_0.25.png">
+            </a>
+            <p>Shear with 0.5, 0.25</p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>Mirror</td>
+        <td>
+            <a class="fbox" href="gallery/landscape/m_x.png" title="Mirror with respect to x axis">
+                <img class="resimg" src="gallery/landscape/m_x.png">
+            </a>
+            <p>Mirror with respect to x axis</p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/m_x.png" title="Mirror with respect to x axis">
+                <img class="resimg" src="gallery/chessboard/m_x.png">
+            </a>
+            <p>Mirror with respect to x axis</p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>Perspective</td>
+        <td>
+            <a class="fbox" href="gallery/landscape/p_0.0005_0.0007.png" title="Perspective with 0.0005, 0.0007">
+                <img class="resimg" src="gallery/landscape/p_0.0005_0.0007.png">
+            </a>
+            <p>Perspective with 0.0005, 0.0007</p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/s_0.5_0.75.png" title="Perspective with 0.0005, 0.0007">
+                <img class="resimg" src="gallery/chessboard/s_0.5_0.75.png">
+            </a>
+            <p>Perspective with 0.0005, 0.0007</p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>Bilinear</td>
+        <td>
+            <a class="fbox" href="gallery/landscape/b_64_128_512_16_32_400_600_320.png" title="Scaling with 0.5, 0.75">
+                <img class="resimg" src="gallery/landscape/b_64_128_512_16_32_400_600_320.png">
+            </a>
+            <p>Shear with 0.5, 0.25</p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/b_64_128_512_16_32_400_600_320.png" title="Scaling with 0.5, 0.75">
+                <img class="resimg" src="gallery/chessboard/b_64_128_512_16_32_400_600_320.png">
+            </a>
+            <p>Shear with 0.5, 0.25</p>
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            Composition 1
+        </td>
+        <td>
+            <a class="fbox" href="gallery/landscape/comp_center_45.png" title="Rotate 45 with respect to image center.">
+                <img class="resimg" src="gallery/landscape/comp_center_45.png">
+            </a>
+            <p>
+                Rotate 45 with respect to image center.<br>
+                <em>
+                    cbegin<br>
+                    t 320 214<br>
+                    r 45<br>
+                    t -320 -214<br>
+                    cend<br>
+                </em>
+            </p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/comp_center_45.png" title="Rotate 45 with respect to image center.">
+                <img class="resimg" src="gallery/chessboard/comp_center_45.png">
+            </a>
+            <p>Rotate 45 with respect to image center.</p>
+            <em>
+                cbegin<br>
+                t 256 256<br>
+                r 45<br>
+                t -256 -256<br>
+                cend<br>
+            </em>
+        </td>
+    </tr>
+
+    <tr>
+        <td>Composition 2</td>
+        <td>
+            <a class="fbox" href="gallery/landscape/comp2.png" title="Composition 2">
+                <img class="resimg" src="gallery/landscape/comp2.png">
+            </a>
+            <p>
+                <em>
+                    cbegin<br>
+                    sh -0.1 -0.1<br>
+                    p 0.0005 -0.0005<br>
+                    r 6<br>
+                    t 64 0<br>
+                    cend<br>
+                </em>
+            </p>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/comp2.png" title="Composition 2">
+                <img class="resimg" src="gallery/chessboard/comp2.png">
+            </a>
+            <p>
+                <em>
+                    cbegin<br>
+                    sh -0.1 -0.1<br>
+                    p 0.0005 -0.0005<br>
+                    r 6<br>
+                    t 64 0<br>
+                    cend<br>
+                </em>
+            </p>
+        </td>
+
+    </tr>
+</table>
+</div>
+</div>
+</div>
 </article>
 <footer>
     <div class="info">

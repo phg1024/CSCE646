@@ -58,8 +58,8 @@ Matrix3x3.translate = function(tx, ty) {
 Matrix3x3.prototype.det = function() {
     var m = this.data;
     return m[0] * (m[4]*m[8] - m[5]*m[7])
-         - m[1] * (m[8]*m[3] - m[5]*m[6])
-         + m[2] * (m[3]*m[7] - m[4]*m[6]);
+        - m[1] * (m[8]*m[3] - m[5]*m[6])
+        + m[2] * (m[3]*m[7] - m[4]*m[6]);
 };
 
 Matrix3x3.prototype.getElement = function(row, col) {
@@ -73,35 +73,35 @@ Matrix3x3.prototype.setElement = function(row, col, val) {
     return this;
 };
 
-Matrix3x3.prototype.mul = function( v ) {
-    if( v instanceof Matrix3x3 ) {
-        var mat = new Matrix3x3();
+Matrix3x3.prototype.mulV = function( v ) {
+    var m = this.data;
+    var x = m[0] * v.x + m[1] * v.y + m[2] * v.z;
+    var y = m[3] * v.x + m[4] * v.y + m[5] * v.z;
+    var z = m[6] * v.x + m[7] * v.y + m[8] * v.z;
+    return new Vector3(x, y, z);
+}
 
-        for(var i=0;i<3;i++) {
-            for(var j=0;j<3;j++) {
-                var s = 0;
-                for(var k=0;k<3;k++) {
-                    s += v.getElement(k, j) * this.getElement(i, k);
-                }
-                mat.setElement(i, j, s);
+Matrix3x3.prototype.mulP = function( p ) {
+    var m = this.data;
+    var x = m[0] * p.x + m[1] * p.y + m[2] * p.z;
+    var y = m[3] * p.x + m[4] * p.y + m[5] * p.z;
+    var z = m[6] * p.x + m[7] * p.y + m[8] * p.z;
+    return new Point3(x, y, z);
+}
+
+Matrix3x3.prototype.mulM = function( v ) {
+    var mat = new Matrix3x3();
+
+    for(var i=0;i<3;i++) {
+        for(var j=0;j<3;j++) {
+            var s = 0;
+            for(var k=0;k<3;k++) {
+                s += v.getElement(k, j) * this.getElement(i, k);
             }
+            mat.setElement(i, j, s);
         }
-        return mat;
     }
-    else if( v instanceof Point3 ) {
-        var m = this.data;
-        var x = m[0] * v.x + m[1] * v.y + m[2] * v.z;
-        var y = m[3] * v.x + m[4] * v.y + m[5] * v.z;
-        var z = m[6] * v.x + m[7] * v.y + m[8] * v.z;
-        return new Point3(x, y, z);
-    }
-    else if( v instanceof Vector3 ) {
-        var m = this.data;
-        var x = m[0] * v.x + m[1] * v.y + m[2] * v.z;
-        var y = m[3] * v.x + m[4] * v.y + m[5] * v.z;
-        var z = m[6] * v.x + m[7] * v.y + m[8] * v.z;
-        return new Vector3(x, y, z);
-    }
+    return mat;
 };
 
 Matrix3x3.prototype.inv = function() {

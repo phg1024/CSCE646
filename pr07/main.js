@@ -12,11 +12,54 @@ function loadImage()
     img = new Image();
     img.onload = function(){
         curImg = RGBAImage.fromImage(img, context);
+        canvasresize(curImg.w, curImg.h);
+        adjustImageRegion(curImg.w, curImg.h);
+        setupGrid();
         context.putImageData(curImg.toImageData(context), 0, 0);
     };
 
     img.src = imgsrc[imgIdx];
 }
+
+
+var gridHandles = [];
+function setupGrid() {
+    // get grid size
+    var gridX = $('#gridx').val();
+    var gridY = $('#gridy').val();
+
+    var stepX = canvas.width / gridX;
+    var stepY = canvas.height / gridY;
+
+    // initialize handles
+    gridHandles = [];
+
+    for(var i=0;i<=gridY;i++) {
+        var y = i / gridY * stepY;
+        for(var j=0;j<=gridX;j++) {
+            var x = j / gridX * stepX;
+
+            gridHandles.push([x, y]);
+        }
+    }
+
+    console.log(gridHandles);
+    updateGridHandles(gridHandles);
+}
+
+function performBilinearMapping( pts ) {
+    var params = [
+        pts[0][0], pts[0][1],
+        pts[1][0], pts[1][1],
+        pts[2][0], pts[2][1],
+        pts[3][0], pts[3][1]
+    ];
+    var newImg = Transformations.op['b'](curImg, params);
+    canvasresize(newImg.w, newImg.h);
+    adjustImageRegion(newImg.w, newImg.h);
+    context.putImageData(newImg.toImageData(context), 0, 0);
+}
+
 
 function applyTransformation() {
     var trans = document.getElementById('operations').value;
@@ -53,10 +96,21 @@ function applyTransformation() {
         var startT = new Date();
         newImg = Transformations.op[t](newImg, params);
         var endT = new Date();
-        console.log( endT - startT );
+        console.log( endT - startT + 'ms');
     }
     canvasresize(newImg.w, newImg.h);
+    adjustImageRegion(newImg.w, newImg.h);
     context.putImageData(newImg.toImageData(context), 0, 0);
+}
+
+function adjustImageRegion(w, h) {
+    $('#imageregion').height(h);
+
+    $('#mycanvas').css('margin-left', -w / 2 + 'px');
+
+    $('#mysvg').width(w);
+    $('#mysvg').height(h);
+    $('#mysvg').css('margin-left', -w / 2 + 'px');
 }
 
 function applyFilter()
@@ -197,8 +251,29 @@ window.onload = (function(){
         this.selectedIndex = -1;
     });
 
+    $('#transparams').hide();
+    $('#paramtrans').click(function(){
+        $('#transparams').show();
+    });
+    $('#gridtrans').click(function(){
+        $('#transparams').hide();
+        $('#gridparams').show();
+        setupGrid();
+    });
+
     // set up callback for uploading file
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
 
     loadImage();
+    initGridTool([]);
+});
+
+$(document).ready(function(){
+    $('.fbox').fancybox({
+        helpers: {
+            title : {
+                type : 'float'
+            }
+        }
+    });
 });

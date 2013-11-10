@@ -28,6 +28,25 @@ function clamp(v, lower, upper)
     return res;
 }
 
+function genChessBoard( n ) {
+    var img = new RGBAImage(n, n);
+    var blockSize = Math.ceil(n / 8);
+
+    for(var i=0;i<n;i++) {
+        var rf = Math.floor(i / blockSize);
+        for(var j=0;j<n;j++) {
+            var cf = Math.floor(j / blockSize);
+
+            if( (rf & 0x1)^(cf & 0x1) ) {
+                img.setPixel(j, i, Color.BLACK);
+            }
+            else
+                img.setPixel(j, i, Color.WHITE);
+        }
+    }
+    return img;
+}
+
 function filter(__src, f)
 {
     var h = __src.h,

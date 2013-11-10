@@ -37,31 +37,31 @@ var transformation = function(){
             switch( params[0] ) {
                 case 'r': {
                     var deg = parseFloat(params[1]);
-                    mat = mat.mul(Matrix3x3.rotation(deg));
+                    mat = mat.mulM(Matrix3x3.rotation(deg));
                     break;
                 }
                 case 'p': {
                     var px = parseFloat(params[1]);
                     var py = parseFloat(params[2]);
-                    mat = mat.mul(Matrix3x3.perspective(px, py));
+                    mat = mat.mulM(Matrix3x3.perspective(px, py));
                     break;
                 }
                 case 's': {
                     var sx = parseFloat(params[1]);
                     var sy = parseFloat(params[2]);
-                    mat = mat.mul(Matrix3x3.scale(sx, sy));
+                    mat = mat.mulM(Matrix3x3.scale(sx, sy));
                     break;
                 }
                 case 't': {
                     var tx = parseFloat(params[1]);
                     var ty = parseFloat(params[2]);
-                    mat = mat.mul(Matrix3x3.translate(tx, ty));
+                    mat = mat.mulM(Matrix3x3.translate(tx, ty));
                     break;
                 }
                 case 'sh': {
                     var shx = parseFloat(params[1]);
                     var shy = parseFloat(params[2]);
-                    mat = mat.mul(Matrix3x3.shear(shx, shy));
+                    mat = mat.mulM(Matrix3x3.shear(shx, shy));
                     break;
                 }
                 default: {
@@ -114,7 +114,7 @@ var transformation = function(){
 
     function affineTransform(u, v, mat) {
         var p = new Point3(u, v, 1);
-        var pp = mat.mul(p);
+        var pp = mat.mulP(p);
         return {
             x : pp.x / pp.z,
             y : pp.y / pp.z
@@ -123,7 +123,7 @@ var transformation = function(){
 
     function inverseAffineTransform(x, y, invMat) {
         var p = new Point3(x, y, 1);
-        var pp = invMat.mul(p);
+        var pp = invMat.mulP(p);
 
         return {
             u : pp.x / pp.z,
@@ -193,7 +193,7 @@ var transformation = function(){
                         var p  = inverseAffineTransform(xx, yy, invmat);
 
 
-                        if( p.u < 0 || p.v < 0 || p.u >= w || p.v >= h ) {
+                        if( p.u < 0 || p.v < 0 || p.u > w-1 || p.v > h-1 ) {
                             // set the pixel to black
                             c = c.add(Color.BLACK);
                         }
@@ -228,7 +228,7 @@ var transformation = function(){
                     p.x -= offset.x;
                     p.y -= offset.y;
 
-                    if( p.x < 0 || p.y < 0 || p.x >= neww || p.y >= newh ) {
+                    if( p.x < 0 || p.y < 0 || p.x > neww-1 || p.y > newh-1 ) {
                     }
                     else
                     {
@@ -249,18 +249,6 @@ var transformation = function(){
             dst.setPixel(w-1-offset.x, y - offset.y, Color.RED);
         }
 
-        // put the original image in background
-        for(var y=0;y<h;y++) {
-            for(var x=0;x<w;x++) {
-                var c1 = src.getPixel(x,y).mul(0.4);
-                var c2 = dst.getPixel(x-offset.x, y-offset.y);
-                var alpha = 1.0;
-                if( c2.equal(Color.BLACK) ) alpha = 0.0;
-                var c = Color.interpolate(c2, c1, alpha);
-                c.a = 255;
-                dst.setPixel(x-offset.x, y-offset.y, c);
-            }
-        }
         return dst;
     }
 
@@ -388,7 +376,7 @@ var transformation = function(){
                     p.x += offset.x;
                     p.y += offset.y;
 
-                    if( p.x < 0 || p.y < 0 || p.x >= neww || p.y >= newh ) {
+                    if( p.x < 0 || p.y < 0 || p.x > neww-1 || p.y > newh-1 ) {
                     }
                     else
                     {
@@ -407,19 +395,6 @@ var transformation = function(){
         for(var y=0;y<h;y++) {
             dst.setPixel(0-offset.x, y - offset.y, Color.RED);
             dst.setPixel(w-1-offset.x, y - offset.y, Color.RED);
-        }
-
-        // put the original image in background
-        for(var y=0;y<h;y++) {
-            for(var x=0;x<w;x++) {
-                var c1 = src.getPixel(x,y).mul(0.4);
-                var c2 = dst.getPixel(x-offset.x, y-offset.y);
-                var alpha = 1.0;
-                if( c2.equal(Color.BLACK) ) alpha = 0.0;
-                var c = Color.interpolate(c2, c1, alpha);
-                c.a = 255;
-                dst.setPixel(x-offset.x, y-offset.y, c);
-            }
         }
 
         return dst;
