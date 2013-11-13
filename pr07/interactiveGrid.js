@@ -188,8 +188,6 @@ function mousemove() {
     dragged[1] = Math.max(0, Math.min(height, m[1]));
 
     var method = $("input[name=transmode]:checked").val();
-    console.log(method);
-
     if( method == 'gridtrans' )
         updateImageWithGrids(points);
     else {
@@ -213,6 +211,26 @@ function mouseup() {
     if (!dragged) return;
     mousemove();
     dragged = null;
+
+    var method = $("input[name=transmode]:checked").val();
+    if( method == 'gridtrans' )
+        updateImageWithGrids(points);
+    else {
+        for(var i=0;i<points.length;i++) {
+            console.log(
+                '(' + points[i][0] + ', ' + points[i][1] + ' <- ' + '(' + initHandlePos[i][0] + ', ' + initHandlePos[i][1] + ')'
+            );
+        }
+
+        var mappedGrids = solveMLSDeformation(points, initHandlePos, width, height);
+        points2 = [];
+        for(var i=0;i<mappedGrids.length;i++) {
+            points2.push([mappedGrids[i].x, mappedGrids[i].y]);
+        }
+
+        if( points.length > 3 )
+            updateImageWithMLSGrids(points2);
+    }
 }
 
 function keydown() {
