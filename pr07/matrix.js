@@ -15,6 +15,10 @@ Matrix2x2.outerProduct = function(p1, p2) {
     return new Matrix2x2([p1.x * p2.x, p1.x * p2.y, p1.y * p2.x, p1.y * p2.y]);
 }
 
+Matrix2x2.identity = function() {
+    return new Matrix2x2([1, 0, 0, 1]);
+}
+
 Matrix2x2.prototype.mul = function( p ) {
     var m = this.data;
     return new Point2( m[0] * p.x + m[1] * p.y, m[2] * p.x + m[3] * p.y );

@@ -9,6 +9,20 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
     var p = new Array(controlPts.length);
     var q = new Array(deformedPts.length);
 
+    if(p.length !== q.length){
+        throw 'The number of control points is not equal to the number of deformed points.'
+        return;
+    }
+
+    var m = p.length;
+
+    for(var i=0;i<m;i++) {
+        p[i].x = controlPts[i][0];
+        p[i].y = controlPts[i][1];
+        q[i].x = deformedPts[i][0];
+        q[i].y = deformedPts[i][1];
+    }
+
     // first set up grid
     var n = n | 100;
 
@@ -21,7 +35,7 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
         for(var j=0;j<=n;j++) {
             var x = j * stepX;
 
-            gridPoints.push([x, y]);
+            gridPoints.push(new Point2(x, y));
         }
     }
 
@@ -32,12 +46,12 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
         w[i] = new Array(gridPoints.length);
         var wi = w[i];
 
-        var px = p[i][0], py = p[i][1];
+        var pi = p[i];
 
         for(var j=0;j<gridPoints.length;j++) {
 
-            var dx = px - gridPoints[j][0];
-            var dy = py - gridPoints[j][1];
+            var dx = pi.x - gridPoints[j].x;
+            var dy = pi.y - gridPoints[j].y;
             var norm = dx * dx + dy * dy;
 
             var wij = 1.0 / Math.pow(norm, alpha);
@@ -49,37 +63,61 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
     // compute p* and q*
     var pStar = new Array(gridPoints.length), qStar = new Array(gridPoints.length);
     for(var j=0;j< gridPoints.length;j++) {
-        var wSumi = 0;
-        var pStari = [0, 0], qStari = [0, 0];
+        var wSumj = 0;
+        var pStarj = [0, 0], qStarj = [0, 0];
 
-        for(var i=0;i< p.length;i++) {
+        for(var i=0;i<m;i++) {
             var wij = w[i][j];
-            wSumi += wij;
-            pStari[0] += wij * p[i][0];
-            pStari[1] += wij * p[i][1];
-            qStari[0] += wij * q[i][0];
-            qStari[1] += wij * q[i][1];
+            wSumj += wij;
+            pStarj = pStarj.add(p[i].mul(wij));
+            qStarj = qStarj.add(q[i].mul(wij));
         }
 
-        pStari[0] /= wSumi;
-        pStari[1] /= wSumi;
-        qStari[0] /= wSumi;
-        qStari[1] /= wSumi;
-
-        pStar[i] = pStari;
-        qStar[i] = qStari;
+        pStar[j] = pStarj.mul(1.0 / wSumj);
+        qStar[j] = qStarj.mul(1.0 / wSumj);
     }
 
     // compute phat and qhat
     var phat = new Array(gridPoints.length), qhat = new Array(gridPoints.length);
-    for(var i=0;i< p.length;i++) {
-        phat[i][0] = p[i][0] - pStar[i][0];
-        phat[i][1] = p[i][1] - pStar[i][1];
-
-        qhat[i][0] = q[i][0] - qStar[i][0];
-        qhat[i][1] = q[i][1] - qStar[i][1];
+    for(var j=0;j<gridPoints.length;j++) {
+        var phatj = new Array(m);
+        var qhatj = new Array(m);
+        for(var i=0;i<m;i++) {
+            phatj[i] = p[i].sub(pStar[i]);
+            qhatj[i] = q[i].sub(qStar[i]);
+        }
+        phat[j] = phatj;
+        qhat[j] = qhatj;
     }
 
     // compute the local affine matrix
+    var M = new Array(gridPoints.length);
+    var A = new Array(gridPoints.length);
 
+    for(var r= 0, idx=0;r<=n;r++) {
+        for(var c=0;c<=n;c++, idx++) {
+            if( r == 0 || c == 0 || r == n || c == n ) {
+                M.push(new Matrix2x2.identity());
+            }
+            else {
+                var v = gridPoints[idx];
+                var pStari = pStar[idx];
+                var Acurr = [];
+
+                var C = new Matrix2x2([0, 0, 0, 0]);
+                for(var i=0;i<m;i++) {
+                    var phati = phat[idx][i];
+                    var Ci = Matrix2x2.outerProduct(phati, phati).mul(w[i][idx]);
+                    C = C.add(Ci);
+                }
+
+                C = C.inv();
+                for(var i=0;i<m;i++) {
+                    var Ai = (v.sub(pStari)).dot(C.mul(phat[idx][i].w[i][idx]));
+                    Acurr.push(Ai);
+                }
+                A.push(Acurr);
+            }
+        }
+    }
 }
