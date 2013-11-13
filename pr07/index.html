@@ -29,6 +29,7 @@
     <script type="text/javascript" src="matrix.js"></script>
     <script type="text/javascript" src="filter.js"></script>
     <script type="text/javascript" src="shape.js"></script>
+    <script type="text/javascript" src="movingLeastSquare.js"></script>
     <script type="text/javascript" src="interactiveGrid.js"></script>
     <script type="text/javascript" src="image.js"></script>
     <script type="text/javascript" src="imageutils.js"></script>
@@ -57,7 +58,7 @@
             overflow: auto;
         }
 
-        #mysvg, #mycanvas {
+        #mysvg, #mysvg2, #mycanvas {
             left: 50%;
             position: absolute;
             margin-left: -320px;
@@ -140,6 +141,7 @@
         <td align=center>
             <div id="imageregion">
                 <canvas id="mycanvas" border=0></canvas>
+                <svg id="mysvg2"></svg>
                 <svg id="mysvg"></svg>
             </div>
             <div class="submissiondes">

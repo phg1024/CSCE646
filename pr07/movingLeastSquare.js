@@ -17,14 +17,12 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
     var m = p.length;
 
     for(var i=0;i<m;i++) {
-        p[i].x = controlPts[i][0];
-        p[i].y = controlPts[i][1];
-        q[i].x = deformedPts[i][0];
-        q[i].y = deformedPts[i][1];
+        p[i] = new Point2(controlPts[i][0], controlPts[i][1]);
+        q[i] = new Point2(deformedPts[i][0], deformedPts[i][1]);
     }
 
     // first set up grid
-    var n = n | 100;
+    var n = n | 3;
 
     var stepX = w / n;
     var stepY = h / n;
@@ -64,7 +62,7 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
     var pStar = new Array(gridPoints.length), qStar = new Array(gridPoints.length);
     for(var j=0;j< gridPoints.length;j++) {
         var wSumj = 0;
-        var pStarj = [0, 0], qStarj = [0, 0];
+        var pStarj = new Point2(0, 0), qStarj = new Point2(0, 0);
 
         for(var i=0;i<m;i++) {
             var wij = w[i][j];
@@ -91,13 +89,12 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
     }
 
     // compute the local affine matrix
-    var M = new Array(gridPoints.length);
     var A = new Array(gridPoints.length);
 
     for(var r= 0, idx=0;r<=n;r++) {
         for(var c=0;c<=n;c++, idx++) {
             if( r == 0 || c == 0 || r == n || c == n ) {
-                M.push(new Matrix2x2.identity());
+                A[idx] = [];
             }
             else {
                 var v = gridPoints[idx];
@@ -107,17 +104,39 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
                 var C = new Matrix2x2([0, 0, 0, 0]);
                 for(var i=0;i<m;i++) {
                     var phati = phat[idx][i];
-                    var Ci = Matrix2x2.outerProduct(phati, phati).mul(w[i][idx]);
+                    var Ci = Matrix2x2.outerProduct(phati, phati).muls(w[i][idx]);
                     C = C.add(Ci);
                 }
 
                 C = C.inv();
                 for(var i=0;i<m;i++) {
-                    var Ai = (v.sub(pStari)).dot(C.mul(phat[idx][i].w[i][idx]));
+                    var Ai = Vector2.fromPoint2(pStari, v).dot(C.mul(phat[idx][i].mul(w[i][idx])));
                     Acurr.push(Ai);
                 }
-                A.push(Acurr);
+                A[idx] = Acurr;
             }
         }
     }
+
+    // compute mapped grid points
+    var mappedGrids = [];
+    for(var r= 0,idx=0;r<=n;r++) {
+        for(var c=0;c<=n;c++, idx++) {
+            if( r == 0 || c == 0 || r == n || c == n ) {
+                mappedGrids.push(gridPoints[idx]);
+            }
+            else {
+                var v = new Point2(0, 0);
+                for(var j=0;j<m;j++) {
+                    v = v.add(qhat[idx][j].mul(A[idx][j]));
+                }
+                v = v.add(qStar[idx]);
+                mappedGrids.push(v);
+            }
+        }
+    }
+
+    console.log(mappedGrids);
+
+    return mappedGrids;
 }

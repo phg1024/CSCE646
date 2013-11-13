@@ -19,12 +19,24 @@ Matrix2x2.identity = function() {
     return new Matrix2x2([1, 0, 0, 1]);
 }
 
+Matrix2x2.prototype.add = function( that ) {
+    var m = that.data;
+    var mm = this.data;
+    return new Matrix2x2([m[0] + mm[0], m[1] + mm[1], m[2] + mm[2], m[3] + mm[3]]);
+}
+
+Matrix2x2.prototype.muls = function( s ) {
+    var m = this.data;
+    return new Matrix2x2([s*m[0], s*m[1], s*m[2], s*m[3]]);
+}
+
 Matrix2x2.prototype.mul = function( p ) {
     var m = this.data;
     return new Point2( m[0] * p.x + m[1] * p.y, m[2] * p.x + m[3] * p.y );
 };
 
 Matrix2x2.prototype.det = function() {
+    var m = this.data;
     return m[0] * m[3] - m[1] * m[2];
 }
 

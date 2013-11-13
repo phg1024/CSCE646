@@ -2,12 +2,13 @@
  * Created by Peihong Guo on 11/9/13.
  */
 var points = [];
+var points2 = [];
 var width, height;
 
 var dragged = null,
     selected = points[0];
 
-var svg;
+var svg, svg2;
 
 function updateGridHandles(pts) {
     points = pts;
@@ -35,12 +36,18 @@ function initGridTool(pts)
     height = $('#mysvg').height();
 
     svg = d3.select("#mysvg");
+    svg2 = d3.select("#mysvg2");
 
     svg.append("rect")
         .attr("id", "rect")
         .attr("width", width)
         .attr("height", height)
         .on("mousedown", mousedown);
+
+    svg2.append("rect")
+        .attr("id", "rect2")
+        .attr("width", width)
+        .attr("height", height);
 
     d3.select(window)
         .on("mousemove", mousemove)
@@ -70,6 +77,25 @@ function redraw() {
         .attr("cy", function(d) { return d[1]; });
 
     circle.exit().remove();
+
+
+    var circle2 = svg2.selectAll("circle")
+        .data(points2, function(d) {return d;});
+
+    circle2.enter().append("circle")
+        .attr("r", 1e-6)
+        .on("mousedown", function(d) { selected = dragged = d; redraw(); })
+        .transition()
+        .duration(750)
+        .ease("elastic")
+        .attr("r", 3.0);
+
+    circle2
+        .classed("selected", function(d) { return d === selected; })
+        .attr("cx", function(d) { return d[0]; })
+        .attr("cy", function(d) { return d[1]; });
+
+    circle2.exit().remove();
 
     if (d3.event) {
         d3.event.preventDefault();
@@ -173,7 +199,11 @@ function mousemove() {
             );
         }
 
-        solveMLSDeformation(points, initHandlePos, width, height);
+        var mappedGrids = solveMLSDeformation(points, initHandlePos, width, height);
+        points2 = [];
+        for(var i=0;i<mappedGrids.length;i++) {
+            points2.push([mappedGrids[i].x, mappedGrids[i].y]);
+        }
     }
 
     redraw();

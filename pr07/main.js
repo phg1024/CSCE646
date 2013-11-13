@@ -142,6 +142,13 @@ function adjustImageRegion(w, h) {
     $('#mysvg').width(w);
     $('#mysvg').height(h);
     $('#mysvg').css('margin-left', -w / 2 + 'px');
+
+    $('#mysvg2').width(w);
+    $('#mysvg2').height(h);
+    $('#mysvg2').css('margin-left', -w / 2 + 'px');
+
+    width  = w;
+    height = h;
 }
 
 function applyFilter()
