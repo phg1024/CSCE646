@@ -46,7 +46,7 @@ function Polygon( isConcave )
     if( !isConcave || (isConcave === undefined))
     {
         that.distanceTo = function(x, y) {
-            var res = -1e32;
+            var res = -0.01;
             for(var i=0; i<this.e.length; i++) {
                 var dist = this.e[i].distanceTo(x, y);
                 res = Math.max(res, dist);

@@ -94,12 +94,6 @@ function change() {
     redraw();
 }
 
-function mousedown() {
-    //points.push(selected = dragged = d3.mouse(svg.node()));
-    //sortpoints();
-    //redraw();
-}
-
 function pathPos( x )
 {
     var pathEl = svg.select("path").node();
@@ -134,6 +128,25 @@ function trackMouse()
     return pathPos( x );
 }
 
+var initHandlePos = [];
+
+function mousedown() {
+
+    var method = $("input[name=transmode]:checked").val();
+    console.log(method);
+
+    if( method == 'mls' ) {
+        points.push(selected = dragged = d3.mouse(svg.node()));
+
+        var m = d3.mouse(svg.node());
+        console.log(m);
+        initHandlePos.push(m);
+
+        //sortpoints();
+        redraw();
+    }
+}
+
 function mousemove() {
     if (!dragged)
     {
@@ -148,7 +161,20 @@ function mousemove() {
     dragged[0] = Math.max(0, Math.min(width, m[0]));
     dragged[1] = Math.max(0, Math.min(height, m[1]));
 
-    updateImageWithGrids(points);
+    var method = $("input[name=transmode]:checked").val();
+    console.log(method);
+
+    if( method == 'gridtrans' )
+        updateImageWithGrids(points);
+    else {
+        for(var i=0;i<points.length;i++) {
+            console.log(
+                '(' + points[i][0] + ', ' + points[i][1] + ' <- ' + '(' + initHandlePos[i][0] + ', ' + initHandlePos[i][1] + ')'
+            );
+        }
+
+        solveMLSDeformation(points, initHandlePos, width, height);
+    }
 
     redraw();
 }
@@ -166,6 +192,7 @@ function keydown() {
         case 46: { // delete
             var i = points.indexOf(selected);
             points.splice(i, 1);
+            initHandlePos.splice(i, 1);
             selected = points.length ? points[i > 0 ? i - 1 : 0] : null;
             redraw();
             break;

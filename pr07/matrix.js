@@ -2,6 +2,39 @@
  * Created by phg on 10/15/13.
  */
 
+function Matrix2x2( val ) {
+    if( arguments.length < 1 ) {
+        this.data = [];
+    }
+    else {
+        this.data = val;
+    }
+}
+
+Matrix2x2.outerProduct = function(p1, p2) {
+    return new Matrix2x2([p1.x * p2.x, p1.x * p2.y, p1.y * p2.x, p1.y * p2.y]);
+}
+
+Matrix2x2.prototype.mul = function( p ) {
+    var m = this.data;
+    return new Point2( m[0] * p.x + m[1] * p.y, m[2] * p.x + m[3] * p.y );
+};
+
+Matrix2x2.prototype.det = function() {
+    return m[0] * m[3] - m[1] * m[2];
+}
+
+Matrix2x2.prototype.inv = function() {
+    var det = this.det();
+    var invDet = 1.0 / det;
+    var m = this.data;
+    var m11 =  invDet * m[3];
+    var m12 = -invDet * m[1];
+    var m21 = -invDet * m[2];
+    var m22 =  invDet * m[0];
+    return new Matrix2x2([m11, m12, m21, m22]);
+}
+
 function Matrix3x3( val ) {
     if( arguments.length < 1 ) {
         this.data = [];

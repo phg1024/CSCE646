@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-thumbs.css" type="text/css" media="screen" />
     <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
 
+    <script type="text/javascript" src="FileSaver.js"></script>
+    
     <!-- My library -->
     <script type="text/javascript" src="point.js"></script>
     <script type="text/javascript" src="vector.js"></script>
@@ -151,10 +153,12 @@
                     </select>
                     &nbsp or &nbsp Upload image:
                     <input type="file" id="files" name="files[]" />
-                    <output id="list"></output>
+                    <output id="list"></output>                    
                 </p>
+                <p><button id="save_btn">Save</button></p>
                 <p>
                     <input type="radio" name="transmode" id="gridtrans" value="gridtrans">Grid based interactive transformation
+                    <input type="radio" name="transmode" id="mls" value="mls">Moving Least Square
                     <input type="radio" name="transmode" id="paramtrans" value="paramtrans" checked="checked">Parameterized transformation
                 </p>
                 <div id="gridparams">
@@ -241,6 +245,20 @@
                                     </em>
                                 </td>
                             </tr>
+                            <tr><td>Swirl</td>
+                                <td>
+                                    <em>sw degree</em>
+                                </td>
+                                <td>
+                                    Swirl with 90 degree:<br>
+                                    <em>sw 90</em>
+                                </td>
+                            </tr>
+                            <tr><td>Iteractive Warping</td>
+                                <td>Switch to interactive mode by choosing grid based interactive transformation. Enter the grid size.
+                                    By default, a 1x1 grid is used, and bilinear warping is performed. If a larger grid is used, 
+                                </td>
+                            </tr>
                         </table>
                         </p>
                     </div>
@@ -257,6 +275,16 @@
 </p>
 <p class="note">Note: the images are rescaled for webpage viewing, please click on them to see the full size images.</p>
 
+    <p>
+        <b>Grid-based warping</b><br>
+        <iframe width="420" height="315" src="//www.youtube.com/embed/MxVrrbthlkk" frameborder="0" allowfullscreen></iframe>
+    </p>
+    
+    <p>
+        <b>Bilinear warping</b><br>
+        <iframe width="420" height="315" src="//www.youtube.com/embed/67PMzNB2hbg" frameborder="0" allowfullscreen></iframe>
+    </p>
+    
 <p><b><em>Scaling</em></b></p>
 <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
     <tr>
@@ -452,7 +480,20 @@
                 </em>
             </p>
         </td>
-
+    </tr>
+    
+    <tr>
+        <td>Swirl</td>
+                <td>
+            <a class="fbox" href="gallery/landscape/sw_90.png" title="Composition 2">
+                <img class="resimg" src="gallery/landscape/sw_90.png">
+            </a>
+        </td>
+        <td>
+            <a class="fbox" href="gallery/chessboard/sw_90.png" title="Composition 2">
+                <img class="resimg" src="gallery/chessboard/sw_90.png">
+            </a>
+        </td>       
     </tr>
 </table>
 </div>

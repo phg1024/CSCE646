@@ -52,6 +52,10 @@ function setupGrid() {
     updateGridHandles(gridHandles);
 }
 
+function clearGrid() {
+    updateGridHandles([]);
+}
+
 function updateImageWithGrids( pts ) {
     // perform a series of bilinear mapping for each cell
     var gridX = parseInt($('#gridx').val());
@@ -232,6 +236,13 @@ var canvas, context;
 var transbutton, filterop, imgselect;
 var Transformations;
 
+function saveImage() {
+    // save the image
+    canvas.toBlob(function(blob) {
+        saveAs(blob, "renderedImage.png");
+    });
+}
+        
 window.onload = (function(){
     console.log('document loaded');
 
@@ -290,12 +301,21 @@ window.onload = (function(){
         $('#gridparams').show();
         setupGrid();
     });
+    $('#mls').click(function(){
+        $('#transparams').hide();
+        $('#gridparams').hide();
+        clearGrid();
+    });
     
     $('#gridx').change(function() {
         setupGrid();
     });
     $('#gridy').change(function() {
         setupGrid();
+    });
+    
+    $('#save_btn').click(function() {
+        saveImage();
     });
 
     // set up callback for uploading file

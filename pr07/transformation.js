@@ -12,7 +12,8 @@ var transformation = function(){
         'b': bilinear,
         'm': mirror,
         'c': composite,
-        'mb': multipleBilinear
+        'mb': multipleBilinear,
+        'sw': swirl
     }
 
     var mapping = 'forward';
@@ -298,7 +299,7 @@ var transformation = function(){
             // create polygons for the patches
             var patchPolys = [];
             for(var i=0;i<mappedRegions.length;i++) {
-                var p = new Polygon(false);          // should be all convex
+                var p = new Polygon(true);          // should be all convex
                 var mp = mappedRegions[i];
                 p.addVertex({x:mp[0][0], y:mp[0][1]});
                 p.addVertex({x:mp[1][0], y:mp[1][1]});                
@@ -654,6 +655,48 @@ var transformation = function(){
                 break;
             }
         }
+        return dst;
+    }
+    
+    function swirl(img, params) {
+        var deg = parseFloat(params[0]);
+        var theta = deg / 180.0 * Math.PI;
+        var w = img.w, h = img.h;
+        var xc = w*0.5, yc = h*0.5;
+        
+        var dst = new RGBAImage(w, h);
+        
+        var rot = function(x, y, theta) {
+            var cosTheta = Math.cos(theta);
+            var sinTheta = Math.sin(theta);
+            return {
+                u: x * cosTheta - y * sinTheta,
+                v: x * sinTheta + y * cosTheta
+            }
+        };
+        
+        var dist = function(a, b){ return Math.abs(a-b); }
+
+        for(var y=0;y<h;y++) {
+            var dy = (y - yc)/yc;
+            for(var x=0;x<w;x++) {
+                var dx = (x - xc)/xc;
+                
+                var dist = dx*dx+dy*dy;
+                
+                if( dist >= 1.0 ) {
+                    dst.setPixel(x, y, img.sample(x, y));
+                }
+                else {
+                    var coords = rot(dx, dy, theta * Math.pow(1.0 - dist, 3));
+                    var u = coords.u * xc + xc;
+                    var v = coords.v * yc + yc;
+                    
+                    dst.setPixel(x, y, img.sample(u, v));
+                }
+            }
+        }
+        
         return dst;
     }
 
