@@ -1,7 +1,7 @@
 var img, origImgData;
 var curImg;
 var imgIdx = 0;
-var imgsrc = ['landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
+var imgsrc = ['chessboard_s.jpg', 'Mona_Lisa_s.jpg', 'landscape.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
 function loadImage()
 {
@@ -78,7 +78,7 @@ function updateImageWithGrids( pts ) {
                 pts[i*(gridX+1) + j], // top-left
                 pts[i*(gridX+1) + j + 1], // top-right
                 pts[(i + 1)*(gridX+1) + j], // bottom-left
-                pts[(i + 1)*(gridX+1) + j + 1], // bottom-right
+                pts[(i + 1)*(gridX+1) + j+1], // bottom-right
             ]);
         }
     }

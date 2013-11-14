@@ -233,6 +233,9 @@ function mouseup() {
     }
 }
 
+var gridVisible = true;
+var cpVisible = true;
+
 function keydown() {
     if (!selected) return;
     switch (d3.event.keyCode) {
@@ -244,6 +247,23 @@ function keydown() {
             selected = points.length ? points[i > 0 ? i - 1 : 0] : null;
             redraw();
             break;
+        }
+        case 71: {
+            gridVisible = !gridVisible;
+            if( gridVisible )
+                $('#mysvg2').show();
+            else
+                $('#mysvg2').hide();
+            break;
+        }
+        case 67: {
+            cpVisible = !cpVisible;
+            if( cpVisible ) {
+                $('#mysvg').show();
+            }
+            else {
+                $('#mysvg').hide();
+            }
         }
     }
 }

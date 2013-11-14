@@ -2,11 +2,12 @@
  * Created by PhG on 11/13/13.
  */
 
+var MLSgrid = 32;
 
 function updateImageWithMLSGrids( pts ) {
     // perform a series of bilinear mapping for each cell
     // first set up grid
-    var n = n | 8;
+    var n = n | MLSgrid;
 
     var stepX = width / n;
     var stepY = height / n;
@@ -40,7 +41,7 @@ function updateImageWithMLSGrids( pts ) {
 
 function solveMLSDeformation(controlPts, deformedPts, w, h) {
 
-    var alpha = 1.5;
+    var alpha = 1.25;
 
     var p = new Array(controlPts.length);
     var q = new Array(deformedPts.length);
@@ -57,8 +58,23 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
         p[i] = new Point2(deformedPts[i][0], deformedPts[i][1]);
     }
 
+//    // add boundary control points
+    var nBCX = 32, nBCY = 32;
+    for(var i=0;i<=nBCY;i++) {
+        var y = i * (h/nBCY);
+        for(var j=0;j<=nBCX;j++) {
+            var x = j * (w/nBCX);
+
+            if( i == 0 || j == 0 ) {
+                p.push(new Point2(x, y));
+                q.push(new Point2(x, y));
+            }
+        }
+    }
+    m = p.length;
+
     // first set up grid
-    var n = n | 8;
+    var n = n | MLSgrid;
 
     var stepX = w / n;
     var stepY = h / n;
@@ -74,9 +90,9 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
     }
 
     // compute weights for each control point p
-    var w = new Array(p.length);
+    var w = new Array(m);
 
-    for(var i=0;i< p.length;i++) {
+    for(var i=0;i<m;i++) {
         w[i] = new Array(gridPoints.length);
         var wi = w[i];
 
@@ -88,7 +104,12 @@ function solveMLSDeformation(controlPts, deformedPts, w, h) {
             var dy = pi.y - gridPoints[j].y;
             var norm = dx * dx + dy * dy;
 
-            var wij = 1.0 / Math.pow(norm, alpha);
+            var wij;
+            if(norm == 0) {
+                wij = 10.0;
+            }
+            else
+                wij = 1.0 / Math.pow(norm, alpha);
 
             wi[j] = (wij);
         }

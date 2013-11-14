@@ -464,10 +464,11 @@ var transformation = function(){
                         p.x += offset.x;
                         p.y += offset.y;
 
-                        var u = clamp(p.x, 0, neww-1);
-                        var v = clamp(p.y, 0, newh-1);
+                        if( p.x < 0 || p.y < 0 || p.x > neww-1 || p.y > newh-1 ) {
+                            continue;
+                        }
 
-                        dst.setPixel(Math.round(u), Math.round(v), src.getPixel(x, y));
+                        dst.setPixel(Math.round(p.x), Math.round(p.y), src.getPixel(Math.round(x), Math.round(y)));
                     }
                 }
             }

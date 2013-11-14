@@ -148,6 +148,8 @@
                 <p>
                     Image:
                     <select id="imgselect">
+                        <option value="chessboard">Chessboard</option>
+                        <option value="Monalisa">Mona Lisa</option>
                         <option value="landscape">Landscape</option>
                         <option value="seal">Seal</option>
                         <option value="buck">Buck</option>
@@ -257,8 +259,22 @@
                                 </td>
                             </tr>
                             <tr><td>Iteractive Warping</td>
-                                <td>Switch to interactive mode by choosing grid based interactive transformation. Enter the grid size.
-                                    By default, a 1x1 grid is used, and bilinear warping is performed. If a larger grid is used, 
+                                <td>Switch to interactive mode by choosing grid based interactive transformation or moving least square. Enter the grid size.
+                                    By default, a 1x1 grid is used, and bilinear warping is performed. Grid-based warping is performed if a larger grid is used. <br>
+                                    <br>
+                                    Basic operations:
+                                    <ol>
+                                        <li>Press 'c' to show/hide control points;</li>
+                                        <li>Press 'g' to show/hide grids;</li>
+                                        <li>Drag around the control points to deform the image.</li>
+                                    </ol>
+
+
+                                </td>
+                                <td>
+                                    Please see the video below for details.<br>
+                                    For speed consideration, please use <a href="https://www.google.com/intl/en/chrome/browser/">Chrome browser</a> <b><em>ONLY</em></b> for the interactive warping, and use forward mapping when image quality
+                                    is not a main concern.
                                 </td>
                             </tr>
                         </table>
@@ -277,8 +293,16 @@
 </p>
 <p class="note">Note: the images are rescaled for webpage viewing, please click on them to see the full size images.</p>
 
+    <div>
+        <p><b><a href="http://dl.acm.org/citation.cfm?id=1141920">Moving least square deformation</a></b><br></p>
+        <p>The warping uses forward mapping for speed consideration. Inverse mapping is also implemented, but runs at a significantly slower
+        speed. The grid lines presented are due to the forward mapping method.</p>
+
+        <iframe width="420" height="315" src="//www.youtube.com/embed/g5l4IdtUCOo" frameborder="0" allowfullscreen></iframe>
+    </div>
+
     <p>
-        <b>Grid-based warping</b><br>
+        <b>Grid-based warping using bilinear warping for each grid cell</b><br>
         <iframe width="420" height="315" src="//www.youtube.com/embed/MxVrrbthlkk" frameborder="0" allowfullscreen></iframe>
     </p>
     
