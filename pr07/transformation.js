@@ -448,8 +448,8 @@ var transformation = function(){
                 //var e1 = v1.normalized();
                 //var e2 = v2.normalized();
 
-                var invW = 1.0 / (rw-1);
-                var invH = 1.0 / (rh-1);
+                var invW = 1.0 / rw;
+                var invH = 1.0 / rh;
 
                 for(var i=y0;i<=y1;i++) {
                     var y = i;
@@ -464,7 +464,7 @@ var transformation = function(){
                         p.x += offset.x;
                         p.y += offset.y;
 
-                        if( p.x < 0 || p.y < 0 || p.x > neww-1 || p.y > newh-1 ) {
+                        if( p.x < 0 || p.y < 0 || p.x > neww - 1 || p.y > newh - 1 ) {
                             continue;
                         }
 
