@@ -187,7 +187,7 @@ function filter(__src, f)
 }
 
 function rgb2intensity( c ) {
-    var val =  Math.round((c.r * 299 + c.g * 587 + c.b * 114) / 1000);
+    var val =  clamp(Math.round((c.r * 299 + c.g * 587 + c.b * 114) / 1000), 0, 255);
 
     return new Color(val, val, val, c.a);
 }

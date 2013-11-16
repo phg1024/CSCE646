@@ -105,17 +105,17 @@ function uploadImage( file ) {
         var width = curImg.w;
         var height = curImg.h;
 
-        if( width > 640 )
+        if( width > maxWidth )
         {
-            height = Math.floor(height * (640/width));
-            width = 640;
+            height = Math.floor(height * (maxWidth/width));
+            width = maxWidth;
             curImg = imresize(curImg, width, height);
         }
 
-        if( height > 640 )
+        if( height > maxWidth )
         {
-            width = Math.floor(width * (640/height));
-            height = 640;
+            width = Math.floor(width * (maxWidth/height));
+            height = maxWidth;
             curImg = imresize(curImg, width, height);
         }
 

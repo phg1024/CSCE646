@@ -59,13 +59,18 @@ Color.prototype.mul = function(c)
     return new Color(this.r * c, this.g * c, this.b * c, this.a * c);
 };
 
+Color.prototype.mulc = function(c)
+{
+    return new Color(this.r * c, this.g * c, this.b * c, this.a);
+};
+
 Color.prototype.round = function() {
     this.r = Math.round(this.r);
     this.g = Math.round(this.g);
     this.b = Math.round(this.b);
     this.a = Math.round(this.a);
     return this;
-}
+};
 
 Color.prototype.clamp = function() {
     this.r = clamp(this.r, 0, 255);
@@ -73,7 +78,7 @@ Color.prototype.clamp = function() {
     this.b = clamp(this.b, 0, 255);
     this.a = clamp(this.a, 0, 255);
     return this;
-}
+};
 
 Color.interpolate = function(c1, c2, t)
 {
