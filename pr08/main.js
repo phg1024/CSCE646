@@ -12,7 +12,7 @@ function loadImage( filename, cvs, tgt )
 		if( imgIdx < 0 ) imgIdx = 0;
 		filename = imgsrc[imgIdx];
 	}
-    console.log('loading image ' + imgsrc[imgIdx]);	
+    console.log('loading image ' + filename);
 	
 	cvs = cvs || canvas;
 	tgt = tgt || origImg;
@@ -386,25 +386,48 @@ function applyDithering()
         }
         case 'artistic2':
         {
-            var blockSize = 16;
-            console.log(maskImg);
-			var Imask = imresize(maskImg, blockSize, blockSize);
-			console.log(Imask);
-			
+            var blockSize = 12;
+
 			// there should be 16 masks
-			var masks = new Array(blockSize);
+			var masks = [];
+            var nsamples = 16;
+            var step = 1.0 / nsamples;
+            var bStep = 0.25;
+            var totalMasks = Math.ceil(blockSize/bStep);
 			// create mask from the given mask image
-			for(var sid=0;sid<blockSize;sid++) {
-				// subsample to generate a set of masks
+			for(var sid=0;sid<totalMasks;sid++) {
+                var maskSize = blockSize - sid * bStep;
+                var topY = 0.5 * (blockSize - maskSize);
+                var bottomY = topY + maskSize;
+                var leftX = topY;
+                var rightX = bottomY;
+                var m = [];
 				for(var i=0;i<blockSize;i++) {
+                    var y = i;
 					for(var j=0;j<blockSize;j++) {
-						var c = Imask.getPixel(j, i);
-						mask.push(c.r/255.0);
+                        var x = j;
+                        var cnt = 0;
+                        for(var ny=0;ny<nsamples;ny++) {
+                            var yy = ny * step + y;
+                            var yyy = (yy - topY) / maskSize;
+                            for(var nx=0;nx<nsamples;nx++) {
+                                var xx = nx * step + x;
+                                var xxx = (xx - leftX) / maskSize;
+
+                                if( xxx >= 0 && xxx < 1.0
+                                 && yyy >= 0 && yyy < 1.0 ) {
+                                    cnt += (maskImg.sample(xxx * maskImg.w, yyy * maskImg.h).r>0)?1:0;
+                                }
+                            }
+                        }
+
+						m.push(cnt / (nsamples*nsamples));
 					}
 				}
+                masks.push(m);
 			}
 			
-            newimg = artisticScreen( origImg, {mask:masks, blockSize: blockSize} );
+            newimg = artisticScreen( origImg, {mask:masks, blockSize: blockSize}, masks.length );
 
             break;
         }
@@ -444,6 +467,9 @@ function artisticScreen( inImg, m, n ) {
 
     var newimg = new RGBAImage(w, h);
 
+    console.log(m);
+    console.log(nmasks);
+
     var fillBlock;
 	if( nmasks == 1 ) {
 		fillBlock = function(x0, y0, x1, y1) {
@@ -462,10 +488,33 @@ function artisticScreen( inImg, m, n ) {
 	else {
 		fillBlock = function(x0, y0, x1, y1) {
 			// determine the average brightness first
-			
+            var levSum = 0;
+            for(var y=y0, i=0;y<y1;y++,i++) {
+                for(var x=x0, j=0;x<x1;x++, j++) {
+                    var c = inImg.getPixel(x, y);
+                    var lev = c.intensity();
+                    levSum += lev;
+                }
+            }
 			// choose a mask based on the average brightness
-			
+            var avgLev = levSum / ((x1-x0) * (y1-y0));
+            var mid = Math.round((1.0 - (avgLev/255.0)) * (nmasks-1));
+			var m = mask[mid];
+
 			// apply the mask
+            for(var y=y0, i=0;y<y1;y++,i++) {
+                for(var x=x0, j=0;x<x1;x++, j++) {
+
+                    var mVal = m[i*blockSize+j];
+                    newimg.setPixel(x, y, inImg.getPixel(x, y).mulc(mVal));
+
+
+//                    if( mVal > 0.5 )
+//                        newimg.setPixel(x, y, inImg.getPixel(x, y));
+//                    else
+//                        newimg.setPixel(x, y, inImg.getPixel(x, y).mulc(ratio));
+                }
+            }
 		};
 	}
 
@@ -523,7 +572,13 @@ window.onload = (function(){
     });
 	
 	$('#worker').hide();
-	
+
+    $('#maskselect').change(function(){
+        var filename = $('#maskselect').val();
+        console.log(filename);
+        loadImage(filename, wcanvas, maskImg);
+    });
+
 	loadImage('TAM.jpg', wcanvas, maskImg);
     loadImage();
 });
