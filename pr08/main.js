@@ -1,24 +1,29 @@
-var origImg, ditherredImg;
+var origImg = new RGBAImage(0, 0), ditherredImg;
 var imgIdx = 0;
 var imgsrc = ['building.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
 
 var maxWidth = 1024;
 var maxHeight = 600;
 
-function loadImage()
+function loadImage( filename, cvs, tgt )
 {
-    imgIdx = imgselect.selectedIndex;
-    if( imgIdx < 0 ) imgIdx = 0;
-
-    console.log('loading image ' + imgsrc[imgIdx]);
+	if( !filename ) {
+		imgIdx = imgselect.selectedIndex;
+		if( imgIdx < 0 ) imgIdx = 0;
+		filename = imgsrc[imgIdx];
+	}
+    console.log('loading image ' + imgsrc[imgIdx]);	
+	
+	cvs = cvs || canvas;
+	tgt = tgt || origImg;
     var img = new Image();
     img.onload = function(){
-        origImg = RGBAImage.fromImage(img, canvas);
-        console.log(origImg);
-        context.putImageData(origImg.toImageData(context), 0, 0);
+        tgt.setImage(RGBAImage.fromImage(img, cvs));
+		ctx = cvs.getContext('2d');
+		ctx.putImageData(tgt.toImageData(ctx), 0, 0);
     };
 
-    img.src = imgsrc[imgIdx];
+    img.src = filename;
 }
 
 function applyDithering()
@@ -381,18 +386,20 @@ function applyDithering()
         }
         case 'artistic2':
         {
-            var blockSize = 8;
-            var mask = [
-                1, 1, 1, 1, 1, 1, 1, 1,
-                1, 0, 0, 0, 0, 0, 0, 0,
-                1, 0, 1, 1, 1, 1, 1, 1,
-                1, 0, 1, 0, 0, 0, 0, 1,
-                1, 0, 1, 0, 0, 1, 0, 1,
-                1, 0, 1, 1, 1, 1, 0, 1,
-                1, 0, 0, 0, 0, 0, 0, 1,
-                1, 1, 1, 1, 1, 1, 1, 1
-            ];
-
+            var blockSize = 16;
+            console.log(maskImg);
+			var Imask = imresize(maskImg, blockSize, blockSize);
+			console.log(Imask);
+			
+			var mask = [];
+			// create mask from the given mask image
+			for(var i=0;i<blockSize;i++) {
+				for(var j=0;j<blockSize;j++) {
+					var c = Imask.getPixel(j, i);
+					mask.push(c.r/255.0);
+				}
+			}
+			
             newimg = artisticScreen( origImg, {mask:mask, blockSize: blockSize} );
 
             break;
@@ -436,10 +443,11 @@ function artisticScreen( inImg, m ) {
         for(var y=y0, i=0;y<y1;y++,i++) {
             for(var x=x0, j=0;x<x1;x++, j++) {
 
+				var ratio = mask[i*blockSize+j] * inImg.getPixel(x, y).intensity() / 255.0;
                 if( mask[i*blockSize+j] )
-                    newimg.setPixel(x, y, origImg.getPixel(x, y));
+                    newimg.setPixel(x, y, inImg.getPixel(x, y));
                 else
-                    newimg.setPixel(x, y, origImg.getPixel(x, y).mulc(ratio));
+                    newimg.setPixel(x, y, inImg.getPixel(x, y).mulc(ratio));
             }
         }
     };
@@ -459,12 +467,17 @@ function artisticScreen( inImg, m ) {
 }
 
 var canvas, context;
+var wcanvas, wcontext;
+var maskImg = new RGBAImage(0, 0);
 var imgselect;
 window.onload = (function(){
     console.log('document loaded');
 
-    canvas = document.getElementById("mycanvas");
+    canvas = document.getElementById("mycanvas");	
     context = canvas.getContext("2d");
+	
+	wcanvas = document.getElementById("worker");
+	wcontext = wcanvas.getContext("2d");
 
     canvas.onmousedown = (function(){
         console.log('mouse down');
@@ -491,6 +504,9 @@ window.onload = (function(){
     $('#files').change(function(e) {
         handleFileSelect(e);
     });
-
+	
+	$('#worker').hide();
+	
+	loadImage('TAM.jpg', wcanvas, maskImg);
     loadImage();
 });

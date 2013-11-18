@@ -27,6 +27,10 @@ Color.WHITE = new Color(255, 255, 255, 255);
 Color.BLACK = new Color(0, 0, 0, 255);
 Color.GRAY = new Color(128, 128, 128, 255);
 
+Color.prototype.intensity = function() {
+	return Math.round(0.2989*this.r + 0.5870*this.g + 0.1140*this.b);
+};
+
 Color.prototype.setColor = function(that)
 {
     if( that != null &&
@@ -152,6 +156,14 @@ function RGBAImagef(w, h, data) {
     };
 
     return that;
+}
+
+ImageBase.prototype.setImage = function( img ) {
+	this.w = img.w;
+	this.h = img.h;
+	this.data = new Uint8Array(this.w*this.h*this.channels);
+	this.data.set(img.data);
+	return this;
 }
 
 function RGBAImage( w, h, data )
