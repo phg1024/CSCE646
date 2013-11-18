@@ -386,11 +386,11 @@ function applyDithering()
         }
         case 'artistic2':
         {
-            var blockSize = 12;
+            var blockSize = parseInt($('#levels').val());
 
 			// there should be 16 masks
 			var masks = [];
-            var nsamples = 16;
+            var nsamples = 8;
             var step = 1.0 / nsamples;
             var bStep = 0.25;
             var totalMasks = Math.ceil(blockSize/bStep);
@@ -488,16 +488,16 @@ function artisticScreen( inImg, m, n ) {
 	else {
 		fillBlock = function(x0, y0, x1, y1) {
 			// determine the average brightness first
-            var levSum = 0;
+            var cSum = new Color(0, 0, 0, 0);
             for(var y=y0, i=0;y<y1;y++,i++) {
                 for(var x=x0, j=0;x<x1;x++, j++) {
                     var c = inImg.getPixel(x, y);
-                    var lev = c.intensity();
-                    levSum += lev;
+                    cSum = cSum.add(c);
                 }
             }
 			// choose a mask based on the average brightness
-            var avgLev = levSum / ((x1-x0) * (y1-y0));
+            var cAvg = cSum.mul(1.0 / ((x1-x0) * (y1-y0)));
+            var avgLev = cAvg.intensity();
             var mid = Math.round((1.0 - (avgLev/255.0)) * (nmasks-1));
 			var m = mask[mid];
 
@@ -506,13 +506,12 @@ function artisticScreen( inImg, m, n ) {
                 for(var x=x0, j=0;x<x1;x++, j++) {
 
                     var mVal = m[i*blockSize+j];
-                    newimg.setPixel(x, y, inImg.getPixel(x, y).mulc(mVal));
 
+                    // color
+                    newimg.setPixel(x, y, cAvg.round().clamp().mulc(mVal));
 
-//                    if( mVal > 0.5 )
-//                        newimg.setPixel(x, y, inImg.getPixel(x, y));
-//                    else
-//                        newimg.setPixel(x, y, inImg.getPixel(x, y).mulc(ratio));
+                    // black-white
+                    //newimg.setPixel(x, y, Color.WHITE.mulc(mVal));
                 }
             }
 		};
