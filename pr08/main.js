@@ -391,16 +391,20 @@ function applyDithering()
 			var Imask = imresize(maskImg, blockSize, blockSize);
 			console.log(Imask);
 			
-			var mask = [];
+			// there should be 16 masks
+			var masks = new Array(blockSize);
 			// create mask from the given mask image
-			for(var i=0;i<blockSize;i++) {
-				for(var j=0;j<blockSize;j++) {
-					var c = Imask.getPixel(j, i);
-					mask.push(c.r/255.0);
+			for(var sid=0;sid<blockSize;sid++) {
+				// subsample to generate a set of masks
+				for(var i=0;i<blockSize;i++) {
+					for(var j=0;j<blockSize;j++) {
+						var c = Imask.getPixel(j, i);
+						mask.push(c.r/255.0);
+					}
 				}
 			}
 			
-            newimg = artisticScreen( origImg, {mask:mask, blockSize: blockSize} );
+            newimg = artisticScreen( origImg, {mask:masks, blockSize: blockSize} );
 
             break;
         }
@@ -428,10 +432,11 @@ function applyDithering()
     context.putImageData(ditherredImg.toImageData(context), 0, 0);
 }
 
-function artisticScreen( inImg, m ) {
+function artisticScreen( inImg, m, n ) {
     var w = inImg.w, h = inImg.h;
     var blockSize = m.blockSize;
     var mask = m.mask;
+	var nmasks = n || 1;
     var ratio = m.ratio || 0.65;
 
     var yBlocks = Math.ceil(h / blockSize);
@@ -439,18 +444,30 @@ function artisticScreen( inImg, m ) {
 
     var newimg = new RGBAImage(w, h);
 
-    var fillBlock = function(x0, y0, x1, y1) {
-        for(var y=y0, i=0;y<y1;y++,i++) {
-            for(var x=x0, j=0;x<x1;x++, j++) {
+    var fillBlock;
+	if( nmasks == 1 ) {
+		fillBlock = function(x0, y0, x1, y1) {
+			for(var y=y0, i=0;y<y1;y++,i++) {
+				for(var x=x0, j=0;x<x1;x++, j++) {
 
-				var ratio = mask[i*blockSize+j] * inImg.getPixel(x, y).intensity() / 255.0;
-                if( mask[i*blockSize+j] )
-                    newimg.setPixel(x, y, inImg.getPixel(x, y));
-                else
-                    newimg.setPixel(x, y, inImg.getPixel(x, y).mulc(ratio));
-            }
-        }
-    };
+					var ratio = mask[i*blockSize+j] * inImg.getPixel(x, y).intensity() / 255.0;
+					if( mask[i*blockSize+j] )
+						newimg.setPixel(x, y, inImg.getPixel(x, y));
+					else
+						newimg.setPixel(x, y, inImg.getPixel(x, y).mulc(ratio));
+				}
+			}
+		};
+	}
+	else {
+		fillBlock = function(x0, y0, x1, y1) {
+			// determine the average brightness first
+			
+			// choose a mask based on the average brightness
+			
+			// apply the mask
+		};
+	}
 
     for(var i=0;i<yBlocks;i++) {
         var y0 = i * blockSize;
