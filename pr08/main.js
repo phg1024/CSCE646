@@ -520,7 +520,7 @@ function artisticScreen( inImg, m, n ) {
 			// choose a mask based on the average brightness
             var cAvg = cSum.mul(1.0 / ((x1-x0) * (y1-y0)));
             var avgLev = cAvg.intensity();
-            var mid = Math.round((1.0 - (avgLev/255.0) * 0.75) * (nmasks-1));
+            var mid = Math.round((1.0 - (avgLev/255.0)) * 0.75 * (nmasks-1));
 			var m = mask[mid];
 
 			// apply the mask
