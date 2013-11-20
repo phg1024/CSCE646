@@ -230,14 +230,14 @@ function applyDithering()
             break;
         }
         case 'halftoning': {
-            var blockSize = 8;
+            var blockSize = parseInt($('#levels').val());
 
             var yBlocks = Math.ceil(h / blockSize);
             var xBlocks = Math.ceil(w / blockSize);
 
             newimg = new RGBAImage(w, h);
 
-            var nsamples = 4;
+            var nsamples = 8;
             var delta = 1.0 / nsamples;
 
             var fillBlock = function(x0, y0, x1, y1, r, c) {
@@ -287,7 +287,7 @@ function applyDithering()
                     lev /= pixCount;
                     c = c.mul(1.0/pixCount);
 
-                    var r = Math.round((lev / 256) * blockSize * 0.5);
+                    var r = (lev / 256) * blockSize * 0.5;
 
                     // fill the region with a dot of radius r, using color c
                     fillBlock(x0, y0, x1, y1, r, c);
@@ -296,14 +296,14 @@ function applyDithering()
             break;
         }
         case 'halftoning2': {
-            var blockSize = 8;
+            var blockSize = parseInt($('#levels').val());
 
             var yBlocks = Math.ceil(h / blockSize);
             var xBlocks = Math.ceil(w / blockSize);
 
             newimg = new RGBAImage(w, h);
 
-            var nsamples = 4;
+            var nsamples = 8;
             var delta = 1.0 / nsamples;
 
             var fillBlock = function(x0, y0, x1, y1, r, c) {
