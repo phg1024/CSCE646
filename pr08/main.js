@@ -602,11 +602,16 @@ window.onload = (function(){
     });
 
     $('#ditherop').change(function() {
-        if($('#ditherop').val() == 'artistic3') {
+		var dop = $('#ditherop').val();
+        if( dop == 'artistic3')
             $('#patterns').show();
-        }
         else
             $('#patterns').hide();
+
+		if( dop == 'floyd' || dop == 'ordered' || dop == 'random' || dop == 'simple' ) {
+		}
+		else {
+		}
     });
 
 	loadImage('TAM.jpg', wcanvas, maskImg);

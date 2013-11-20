@@ -85,7 +85,7 @@
                                     <option value="artistic2">Artistic 2</option>
                                     <option value="artistic3">Artistic with Patterns</option>
                                 </select>
-                                Levesl:
+                                Levels / BlockSize:
                                 <input id="levels" size="3" value="4">
                                 <button id="apply_btn">Apply</button>
                                 <div id="patterns">
@@ -114,8 +114,17 @@
                         </div>
                     </td>
                 </tr>
-
             </table>
+			<b><p>Usage</p></b>
+			<p>
+				<ol>
+					<li>Choose the desired operation with the <em>Method</em> dropdown menu;</li>
+					<li>Input a number of color levels (for dithering) / blocksize (for halftoning and pattern-based screening);</li>
+					<li>Click on the <em>Apply</em> button to see the effect;</li>
+					<li>For artistic screening using patterns, choose the pattern you want to use in the <em>Patterns</em> dropdown menu. Please make sure the block size is an even number, and use a block size larger than 4. Smaller block size are allowed but the results are not feasible.
+					<li>For comparison between the original image and the processed one, click and hold on the images to toggle the original images.</li>
+				</ol>
+			</p>
             <b><p>Results</p></b>
             <p class="note">Please click on the images to see the full size versions.</p>
 
