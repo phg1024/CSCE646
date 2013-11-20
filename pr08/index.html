@@ -2,14 +2,48 @@
     <title>Viza654/CSCE646 - Digital Image</title>
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
-    <link rel='stylesheet' type='text/css' href='webgl.css' media="screen, print, projection">
+
     <script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+
+    <!-- Add mousewheel plugin (this is optional) -->
+    <script type="text/javascript" src="./fancybox/lib/jquery.mousewheel-3.0.6.pack.js"></script>
+
+    <!-- Add fancyBox -->
+    <link rel="stylesheet" href="./fancybox/source/jquery.fancybox.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/jquery.fancybox.pack.js"></script>
+
+    <!-- Optionally add helpers - button, thumbnail and/or media -->
+    <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-buttons.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-buttons.js"></script>
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-media.js"></script>
+
+    <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-thumbs.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
+
+    <!-- My library -->
     <script type="text/javascript" src="filter.js"></script>
     <script type="text/javascript" src="image.js"></script>
     <script type="text/javascript" src="coeffs.js"></script>
     <script type="text/javascript" src="imageutils.js"></script>
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="main.js"></script>
+
+    <style>
+        .resimg {
+            height: auto;
+            width: 100%;
+        }
+        td{
+            text-align: center
+        }
+
+        td p {
+            font-size: 12px;
+        }
+        .note {
+            color: red;
+        }
+    </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
 <header>
@@ -35,7 +69,7 @@
                     <td align=center>
                         <div>
                             <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
-							<canvas id="worker"></canvas>							
+                            <canvas id="worker"></canvas>
                         </div>
                         <div class="submissiondes">
                             <p>
@@ -47,26 +81,15 @@
                                     <option value="simple">Simple</option>
                                     <option value="halftoning">Halftoning</option>
                                     <option value="halftoning2">Halftoning 2</option>
-                                    <option value="artistic">Artistic</option>
+                                    <option value="artistic1">Artistic</option>
                                     <option value="artistic2">Artistic 2</option>
-                                    <option value="artistic3">Artistic 3</option>
+                                    <option value="artistic3">Artistic with Patterns</option>
                                 </select>
                                 Levesl:
                                 <input id="levels" size="3" value="4">
                                 <button id="apply_btn">Apply</button>
-                            </p>
-                            <p>
-                                Image:
-                                <select id="imgselect">
-                                    <option value="building">Building</option>
-                                    <option value="seal">Seal</option>
-                                    <option value="buck">Buck</option>
-                                    <option value="waterfall">Waterfall</option>
-                                </select>
-                                Upload image:
-                                <input type="file" id="files" name="files[]" />
-                                <output id="list"></output><br>
-                                Mask Image:
+                                <div id="patterns">
+                                Pattern:
                                 <select id="maskselect">
                                     <option value="TAM.jpg">TAM logo</option>
                                     <option value="transformers.jpg">Transformer logo</option>
@@ -74,13 +97,297 @@
                                     <option value="maze.jpg">Maze</option>
                                     <option value="apple.jpg">Apple logo</option>
                                 </select>
+                                </div>
+                            </p>
+                            <p>
+                                Image:
+                                <select id="imgselect">
+                                    <option value="building">Building</option>
+                                    <option value="bumblebee">Bumblebee</option>
+                                    <option value="zebra">Zebra</option>
+                                    <option value="fox">Fox</option>
+                                </select>
+                                Upload image:
+                                <input type="file" id="files" name="files[]" />
+                                <output id="list"></output><br>
                             </p>
                         </div>
                     </td>
                 </tr>
 
             </table>
+            <b><p>Results</p></b>
+            <p class="note">Please click on the images to see the full size versions.</p>
 
+            <p><b>Floyd-Steinberg Error diffusion</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <a class="fbox" href="building.jpg" title="Building">
+                            <img class="resimg" src="building.jpg">
+                        </a>
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_fs_2.png" title="Floyd-Steinberg Error diffusion 2 Levels">
+                            <img class="resimg" src="gallery/tamu_fs_2.png">
+                        </a>
+                        <p>Floyd-Steinberg Error diffusion with 2 levels in each color channel</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_fs_4.png" title="Floyd-Steinberg Error diffusion 4 Levels">
+                            <img class="resimg" src="gallery/tamu_fs_4.png">
+                        </a>
+                        <p>Floyd-Steinberg Error diffusion with 4 levels in each color channel</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_fs_8.png" title="Floyd-Steinberg Error diffusion 8 Levels">
+                            <img class="resimg" src="gallery/tamu_fs_8.png">
+                        </a>
+                        <p>Floyd-Steinberg Error diffusion with 8 levels in each color channel</p>
+                    </td>
+                </tr>
+            </table>
+
+            <p><b>Ordered Dithering</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <a class="fbox" href="building.jpg" title="Building">
+                            <img class="resimg" src="building.jpg">
+                        </a>
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_or_2.png" title="Ordered Dithering 2 Levels">
+                            <img class="resimg" src="gallery/tamu_or_2.png">
+                        </a>
+                        <p>Ordered dithering with 2 levels in each color channel</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_or_4.png" title="Ordered Dithering 4 Levels">
+                            <img class="resimg" src="gallery/tamu_or_4.png">
+                        </a>
+                        <p>Ordered dithering with 4 levels in each color channel</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_or_8.png" title="Ordered Dithering 8 Levels">
+                            <img class="resimg" src="gallery/tamu_or_8.png">
+                        </a>
+                        <p>Ordered dithering with 8 levels in each color channel</p>
+                    </td>
+                </tr>
+            </table>
+
+            <p><b>Random Dithering</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <a class="fbox" href="building.jpg" title="Building">
+                            <img class="resimg" src="building.jpg">
+                        </a>
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_rd_2.png" title="Random dithering 2 Levels">
+                            <img class="resimg" src="gallery/tamu_rd_2.png">
+                        </a>
+                        <p>Random dithering with 2 levels in each color channel</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_rd_4.png" title="Random dithering 4 Levels">
+                            <img class="resimg" src="gallery/tamu_rd_4.png">
+                        </a>
+                        <p>Random dithering with 4 levels in each color channel</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_rd_8.png" title="Random dithering 8 Levels">
+                            <img class="resimg" src="gallery/tamu_rd_8.png">
+                        </a>
+                        <p>Random dithering with 8 levels in each color channel</p>
+                    </td>
+                </tr>
+            </table>
+
+            <p><b><a href="http://dx.doi.org/10.1145/383259.383326">Simple Error Diffusion</a></b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <a class="fbox" href="building.jpg" title="Building">
+                            <img class="resimg" src="building.jpg">
+                        </a>
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_sp_2.png" title="Simple Error Diffusion 2 Levels">
+                            <img class="resimg" src="gallery/tamu_sp_2.png">
+                        </a>
+                        <p>Simple Error Diffusion with 2 levels in each color channel</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_sp_4.png" title="Simple Error Diffusion 4 Levels">
+                            <img class="resimg" src="gallery/tamu_sp_4.png">
+                        </a>
+                        <p>Simple Error Diffusion with 4 levels in each color channel</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_sp_8.png" title="Simple Error Diffusion 8 Levels">
+                            <img class="resimg" src="gallery/tamu_sp_8.png">
+                        </a>
+                        <p>Simple Error Diffusion with 8 levels in each color channel</p>
+                    </td>
+                </tr>
+            </table>
+
+            <p><b>Halftoning</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <a class="fbox" href="building.jpg" title="Building">
+                            <img class="resimg" src="building.jpg">
+                        </a>
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_ht_6.png" title="Halftoning using 6x6 blocks">
+                            <img class="resimg" src="gallery/tamu_ht_6.png">
+                        </a>
+                        <p>Halftoning using 6x6 blocks</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_ht_8.png" title="Halftoning using 8x8 blocks">
+                            <img class="resimg" src="gallery/tamu_ht_8.png">
+                        </a>
+                        <p>Halftoning using 8x8 blocks</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_ht_12.png" title="Halftoning using 12x12 blocks">
+                            <img class="resimg" src="gallery/tamu_ht_12.png">
+                        </a>
+                        <p>Halftoning using 12x12 blocks</p>
+                    </td>
+                </tr>
+            </table>
+
+            <p><b>Halftoning with 4 Colors</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <a class="fbox" href="building.jpg" title="Building">
+                            <img class="resimg" src="building.jpg">
+                        </a>
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_ht4_6.png" title="Halftoning with 4 colors using 6x6 blocks">
+                            <img class="resimg" src="gallery/tamu_ht4_6.png">
+                        </a>
+                        <p>Halftoning with 4 colors using 6x6 blocks</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_ht4_8.png" title="Halftoning with 4 colors using 8x8 blocks">
+                            <img class="resimg" src="gallery/tamu_ht4_8.png">
+                        </a>
+                        <p>Halftoning with 4 colors using 8x8 blocks</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_ht4_12.png" title="Halftoning with 4 colors using 12x12 blocks">
+                            <img class="resimg" src="gallery/tamu_ht4_12.png">
+                        </a>
+                        <p>Halftoning with 4 colors using 12x12 blocks</p>
+                    </td>
+                </tr>
+            </table>
+
+            <p><b>Artistic Screening</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <a class="fbox" href="building.jpg" title="Building">
+                            <img class="resimg" src="building.jpg">
+                        </a>
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_art1.png" title="Artistic Screening 1">
+                            <img class="resimg" src="gallery/tamu_art1.png">
+                        </a>
+                        <p>Artistic Screening 1</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_art2.png" title="Artistic Screening 2">
+                            <img class="resimg" src="gallery/tamu_art2.png">
+                        </a>
+                        <p>Artistic Screening 2</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/tamu_art_tamu.png" title="Artistic Screening with TAM logo">
+                            <img class="resimg" src="gallery/tamu_art_tamu.png">
+                        </a>
+                        <p>Artistic Screening with TAM logo</p>
+                    </td>
+                </tr>
+            </table>
+
+            <p><b>More Results</b></p>
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+                <tr>
+                    <td width="50%">
+                        <a class="fbox" href="bumblebee-transformers-18217-1280x800.jpg" title="Bumble Bee">
+                            <img class="resimg" src="bumblebee-transformers-18217-1280x800.jpg">
+                        </a>
+                        <p>Original Image</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/bumblebee_fs_2.png" title="Bumble Bee Floyd-Steinberg Error diffusion with 2 levels">
+                            <img class="resimg" src="gallery/bumblebee_fs_2.png">
+                        </a>
+                        <p>Floyd-Steinberg Error diffusion with 2 levels</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/bumblebee_ht_12.png" title="Bumble Bee Halftoning">
+                            <img class="resimg" src="gallery/bumblebee_ht_12.png">
+                        </a>
+                        <p>Halftoning</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/bumblebee_ht4_8.png" title="Bumble Bee Halftoning with 4 colors">
+                            <img class="resimg" src="gallery/bumblebee_ht4_8.png">
+                        </a>
+                        <p>Halftoning with 4 colors</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a class="fbox" href="gallery/bumblebee_art_tf.png" title="Bumble Bee Artistic Screening with the Transformers logo">
+                            <img class="resimg" src="gallery/bumblebee_art_tf.png">
+                        </a>
+                        <p>Artistic Screening with the Transformers logo</p>
+                    </td>
+                    <td>
+                        <a class="fbox" href="gallery/bumblebee_art_sm.png" title="Bumble Bee Artistic Screening with the Superman logo">
+                            <img class="resimg" src="gallery/bumblebee_art_sm.png">
+                        </a>
+                        <p>Artistic Screening with the Superman logo</p>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
     </div>

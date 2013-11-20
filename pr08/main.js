@@ -1,6 +1,6 @@
 var origImg = new RGBAImage(0, 0), ditherredImg;
 var imgIdx = 0;
-var imgsrc = ['building.jpg', 'seal.jpg', 'buck.jpg', 'waterfall.jpg'];
+var imgsrc = ['building.jpg', 'bumblebee-transformers-18217-1280x800.jpg', 'zebra.jpg', 'fox.jpg'];
 
 var maxWidth = 1024;
 var maxHeight = 600;
@@ -18,7 +18,29 @@ function loadImage( filename, cvs, tgt )
 	tgt = tgt || origImg;
     var img = new Image();
     img.onload = function(){
-        tgt.setImage(RGBAImage.fromImage(img, cvs));
+        var curImg = RGBAImage.fromImage(img, cvs);
+
+        var width = curImg.w;
+        var height = curImg.h;
+
+        if( width > maxWidth )
+        {
+            height = Math.floor(height * (maxWidth/width));
+            width = maxWidth;
+            curImg = imresize(curImg, width, height);
+        }
+
+        if( height > maxWidth )
+        {
+            width = Math.floor(width * (maxWidth/height));
+            height = maxWidth;
+            curImg = imresize(curImg, width, height);
+        }
+
+        cvs.width = width;
+        cvs.height = height;
+
+        tgt.setImage(curImg);
 		ctx = cvs.getContext('2d');
 		ctx.putImageData(tgt.toImageData(ctx), 0, 0);
     };
@@ -287,7 +309,7 @@ function applyDithering()
                     lev /= pixCount;
                     c = c.mul(1.0/pixCount);
 
-                    var r = (lev / 256) * blockSize * 0.5;
+                    var r = clamp(((lev / 256) + 0.25), 0, 1) * blockSize * 0.5;
 
                     // fill the region with a dot of radius r, using color c
                     fillBlock(x0, y0, x1, y1, r, c);
@@ -351,10 +373,10 @@ function applyDithering()
                     lev /= pixCount;
                     c = c.mul(1.0/pixCount);
 
-                    var r = ((lev / 255) * blockSize * 0.25);
-                    var rr = ((c.r / 255) * blockSize * 0.25);
-                    var rg = ((c.g / 255) * blockSize * 0.25);
-                    var rb = ((c.b / 255) * blockSize * 0.25);
+                    var r = (clamp((lev / 255) + 0.1, 0, 1) * blockSize * 0.25);
+                    var rr = (clamp((c.r / 255) + 0.1, 0, 1) * blockSize * 0.25);
+                    var rg = (clamp((c.g / 255) + 0.1, 0, 1) * blockSize * 0.25);
+                    var rb = (clamp((c.b / 255) + 0.1, 0, 1) * blockSize * 0.25);
 
                     // fill the region with a dot of radius r, using color c
                     var xc = (x0+x1) * 0.5;
@@ -367,7 +389,7 @@ function applyDithering()
             }
             break;
         }
-        case 'artistic':
+        case 'artistic1':
         {
             var blockSize = 8;
             var mask = [
@@ -384,7 +406,7 @@ function applyDithering()
 
             break;
         }
-        case 'artistic2':
+        case 'artistic3':
         {
             var blockSize = parseInt($('#levels').val());
 
@@ -431,7 +453,7 @@ function applyDithering()
 
             break;
         }
-        case 'artistic3':
+        case 'artistic2':
         {
             var blockSize = 8;
             var mask = [
@@ -498,7 +520,7 @@ function artisticScreen( inImg, m, n ) {
 			// choose a mask based on the average brightness
             var cAvg = cSum.mul(1.0 / ((x1-x0) * (y1-y0)));
             var avgLev = cAvg.intensity();
-            var mid = Math.round((1.0 - (avgLev/255.0)) * (nmasks-1));
+            var mid = Math.round((1.0 - (avgLev/255.0) * 0.75) * (nmasks-1));
 			var m = mask[mid];
 
 			// apply the mask
@@ -571,6 +593,7 @@ window.onload = (function(){
     });
 	
 	$('#worker').hide();
+    $('#patterns').hide();
 
     $('#maskselect').change(function(){
         var filename = $('#maskselect').val();
@@ -578,6 +601,24 @@ window.onload = (function(){
         loadImage(filename, wcanvas, maskImg);
     });
 
+    $('#ditherop').change(function() {
+        if($('#ditherop').val() == 'artistic3') {
+            $('#patterns').show();
+        }
+        else
+            $('#patterns').hide();
+    });
+
 	loadImage('TAM.jpg', wcanvas, maskImg);
     loadImage();
+});
+
+$(document).ready(function(){
+    $('.fbox').fancybox({
+        helpers: {
+            title : {
+                type : 'float'
+            }
+        }
+    });
 });
