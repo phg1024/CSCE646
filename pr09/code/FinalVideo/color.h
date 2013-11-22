@@ -1,13 +1,10 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+#include "utils.hpp"
+
 namespace Color
 {
-template <typename T>
-T clamp(T val, T low, T high)
-{
-    return max(min(val, high), low);
-}
 
 struct RGB
 {
@@ -51,9 +48,9 @@ struct RGB
     }
 
     void clamp() {
-        r = Color::clamp(r, 0, 255);
-        g = Color::clamp(g, 0, 255);
-        b = Color::clamp(b, 0, 255);
+        r = Utils::clamp<channel_t>(r, 0, 255);
+        g = Utils::clamp<channel_t>(g, 0, 255);
+        b = Utils::clamp<channel_t>(b, 0, 255);
     }
 
     channel_t r, g, b;
@@ -69,9 +66,9 @@ const RGB RGB::yellow = RGB(255, 255, 0);
 static RGB interpolate(const RGB& c1, const RGB& c2, float t)
 {
     RGB c;
-    c.r = c1.r * t + c2.r * (1-t);
-    c.g = c1.g * t + c2.g * (1-t);
-    c.b = c1.b * t + c2.b * (1-t);
+    c.r = Utils::interpolate<RGB::channel_t>(c1.r, c2.r, t);
+    c.g = Utils::interpolate<RGB::channel_t>(c1.g, c2.g, t);
+    c.b = Utils::interpolate<RGB::channel_t>(c1.b, c2.b, t);
     return c;
 }
 

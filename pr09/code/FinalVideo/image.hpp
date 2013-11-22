@@ -12,7 +12,8 @@ public:
 
     Image():w(0),h(0),pixmap(NULL){}
     Image(int w, int h):w(w),h(h),pixmap(new T[w*h]){}
-    Image(const Image& other):w(other.w), h(other.h) {
+    Image(const Image& other):w(other.w), h(other.h), pixmap(NULL) {
+        resize(w, h);
         memcpy(pixmap, other.pixmap, sizeof(T)*w*h);
     }
 
@@ -21,7 +22,10 @@ public:
     Image& operator=(const Image& other) {
         w = other.w;
         h = other.h;
+        resize(w, h);
         memcpy(pixmap, other.pixmap, sizeof(T)*w*h);
+
+        return (*this);
     }
 
     template <typename FT>
@@ -51,27 +55,24 @@ public:
         pixmap[y*w + x] = p;
     }
 
-    pixel_t getPixel(int x, int y) const
-    {
+    pixel_t getPixel(int x, int y) const {
         return pixmap[y*w+x];
     }
 
-    pixel_t sample(float x, float y) {
-        int ty = Math.floor(y);
-        int dy = Math.ceil(y);
+    pixel_t sample(float x, float y) const {
+        int ty = floor(y);
+        int dy = ceil(y);
 
-        int lx = Math.floor(x);
-        int rx = Math.ceil(x);
+        int lx = floor(x);
+        int rx = ceil(x);
 
         float fx = x - lx;
         float fy = y - ty;
 
-        pixel_t c = this.getPixel(lx, ty) * ((1-fy) * (1-fx))
-                + (this.getPixel(lx, dy) * (fy * (1-fx)))
-                + (this.getPixel(rx, ty) * ((1-fy) * fx))
-                + (this.getPixel(rx, dy) * (fy * fx));
-
-        c.clamp();
+        pixel_t c = getPixel(lx, ty) * ((1-fy) * (1-fx))
+                + (getPixel(lx, dy) * (fy * (1-fx)))
+                + (getPixel(rx, ty) * ((1-fy) * fx))
+                + (getPixel(rx, dy) * (fy * fx));
 
         return c;
     }
@@ -98,5 +99,7 @@ private:
 };
 
 typedef Image<RGB> RGBImage;
+typedef Image<unsigned char> GrayScaleImage;
+typedef Image<float> GrayScaleImagef;
 
 #endif // IMAGE_HPP
