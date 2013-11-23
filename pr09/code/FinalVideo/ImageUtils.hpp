@@ -45,6 +45,19 @@ T flip(const T& img) {
 	return I;
 }
 
+template <typename T>
+T blend(const T& img, const T& img2, float t) {
+    int w = img.width(), h = img.height();
+    T I(w, h);
+
+    for(int i=0;i<h;i++) {
+        for(int j=0;j<w;j++) {
+            I.setPixel(j, i, Color::interpolate( img.getPixel(j, i), img2.getPixel(j, i), t) );
+        }
+    }
+    return I;
+}
+
 }
 
 #endif // IMAGEUTILS_HPP

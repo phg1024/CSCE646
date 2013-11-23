@@ -6,31 +6,32 @@
 namespace Color
 {
 
-struct RGB
+class RGBPixel
 {
+public:
     typedef unsigned char channel_t;
-    static const RGB white;
-    static const RGB black;
-    static const RGB red;
-    static const RGB green;
-    static const RGB blue;
-    static const RGB yellow;
+    static const RGBPixel white;
+    static const RGBPixel black;
+    static const RGBPixel red;
+    static const RGBPixel green;
+    static const RGBPixel blue;
+    static const RGBPixel yellow;
 
-    RGB(){}
-    RGB(unsigned char r,
+    RGBPixel(){}
+    RGBPixel(unsigned char r,
         unsigned char g,
         unsigned char b):r(r), g(g), b(b){}
 
-    RGB operator+(const RGB& rhs)
+    RGBPixel operator+(const RGBPixel& rhs)
     {
-        RGB c = (*this);
+        RGBPixel c = (*this);
         c.r += rhs.r;
         c.g += rhs.g;
         c.b += rhs.b;
         return c;
     }
 
-    RGB& operator+=(const RGB& rhs)
+    RGBPixel& operator+=(const RGBPixel& rhs)
     {
         r += rhs.r;
         g += rhs.g;
@@ -38,9 +39,9 @@ struct RGB
         return (*this);
     }
 
-    RGB operator*(float f) const
+    RGBPixel operator*(float f) const
     {
-        RGB c = (*this);
+        RGBPixel c = (*this);
         c.r *= f;
         c.g *= f;
         c.b *= f;
@@ -56,19 +57,19 @@ struct RGB
     channel_t r, g, b;
 };
 
-const RGB RGB::white = RGB(255, 255, 255);
-const RGB RGB::black = RGB(0, 0, 0);
-const RGB RGB::red = RGB(255, 0, 0);
-const RGB RGB::green = RGB(0, 255, 0);
-const RGB RGB::blue = RGB(0, 0, 255);
-const RGB RGB::yellow = RGB(255, 255, 0);
+const RGBPixel RGBPixel::white = RGBPixel(255, 255, 255);
+const RGBPixel RGBPixel::black = RGBPixel(0, 0, 0);
+const RGBPixel RGBPixel::red = RGBPixel(255, 0, 0);
+const RGBPixel RGBPixel::green = RGBPixel(0, 255, 0);
+const RGBPixel RGBPixel::blue = RGBPixel(0, 0, 255);
+const RGBPixel RGBPixel::yellow = RGBPixel(255, 255, 0);
 
-static RGB interpolate(const RGB& c1, const RGB& c2, float t)
+static RGBPixel interpolate(const RGBPixel& c1, const RGBPixel& c2, float t)
 {
-    RGB c;
-    c.r = Utils::interpolate<RGB::channel_t>(c1.r, c2.r, t);
-    c.g = Utils::interpolate<RGB::channel_t>(c1.g, c2.g, t);
-    c.b = Utils::interpolate<RGB::channel_t>(c1.b, c2.b, t);
+    RGBPixel c;
+    c.r = Utils::interpolate<RGBPixel::channel_t>(c1.r, c2.r, t);
+    c.g = Utils::interpolate<RGBPixel::channel_t>(c1.g, c2.g, t);
+    c.b = Utils::interpolate<RGBPixel::channel_t>(c1.b, c2.b, t);
     return c;
 }
 

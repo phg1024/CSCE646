@@ -18,7 +18,11 @@
 
 #include <cstdlib>
 #include <iostream>
+#ifdef WIN32
+#include "GL/glut.h"
+#else
 #include <GLUT/glut.h>
+#endif
 
 #include <fstream>
 #include <cassert>
@@ -32,11 +36,10 @@
 using namespace std;
 
 #include "image.hpp"
-#include "shape.hpp"
 #include "imageutils.hpp"
 
 string option;
-int samples = 8;
+int samples = 6;
 
 int width, height;
 
@@ -60,7 +63,7 @@ RGBImage loadImage(const string& filename) {
     for(int y=0;y<h;y++) {
         for(int x=0;x<w;x++) {
             QRgb pix = img.pixel(x, y);
-            RGB c(qRed(pix), qGreen(pix), qBlue(pix));
+            RGBPixel c(qRed(pix), qGreen(pix), qBlue(pix));
             I.setPixel(x, y, c);
         }
     }
@@ -107,7 +110,7 @@ void createMasks(const RGBImage& img) {
     float step = 1.0 / samples;
     // create a set of masks
     for(int i=0;i<256;i++) {
-        //cout << i << endl;
+        cout << "level " << i << endl;
         float maskSize = i+1;
         float topY = 0.5 * (h - maskSize);
         float bottomY = topY + maskSize;
@@ -164,15 +167,28 @@ void fillBlock(int x0, int y0, int x1, int y1,
     int lev = (int)Utils::clamp<float>(0.2989*rAvg + 0.5870*gAvg + 0.1140*bAvg, 128.f, 255.f);
     const GrayScaleImagef& m = masks[lev];
 
+    float hFactor = (m.height() - 1) / H;
+    float wFactor = (m.width() - 1) / W;
+    float invSamples = 1.0 / (samples * samples);
+    float step = 1.0 / samples;
     // apply the mask
     for(int y=y0, i=0;y<y1;y++,i++) {
-        float yy = (y - y0) / H * (m.height() - 1);
+        float yy = (y - y0);
         for(int x=x0, j=0;x<x1;x++, j++) {
-            float xx = (x - x0) / W * (m.width() - 1);
-            float mVal = m.sample(xx, yy);
+            float xx = (x - x0);
+
+            float mVal = 0;
+            for(int ny=0;ny<samples;ny++) {
+                float yyy = yy + ny * step;
+                for(int nx=0;nx<samples;nx++) {
+                    float xxx = xx + nx * step;
+                    mVal += m.sample(xxx * wFactor, yyy * hFactor);
+                }
+            }
+            mVal *= invSamples;
             //cout << mVal << endl;
             // color
-            I.setPixel(x, y, RGB(rAvg, gAvg, bAvg) * mVal);
+            I.setPixel(x, y, RGBPixel(rAvg, gAvg, bAvg) * mVal);
         }
     }
 }
@@ -207,12 +223,38 @@ void animation() {
     int totalPic = 120;
     float blkSize = 2;
     int pid = 0;
-    for(int i=0;i<totalPic/2;i++, pid++) {
-        blkSize *= 1.1;
-        currentBlkSize = Utils::clamp<int>(blkSize, 2, 1024);
-        currentBlkSize = (currentBlkSize&0x1)?currentBlkSize-1:currentBlkSize;
+    RGBImage sImg = imgs[0];
+    RGBImage fadeInImg = halftone(imgs[0], 2);
+    RGBImage fadeOutImg = halftone(imgs[1], 2);
 
-        RGBImage hImg = halftone(imgs[showIdx], currentBlkSize);
+    float fadeInL = 10.0f, fadeOutL = 10.0f;
+    for(int i=0;i<fadeInL;i++,pid++) {
+        float ratio = 1.0 - i / (fadeInL-1.0);
+        sImg = ImageUtils::blend(imgs[0], fadeInImg, ratio);
+        img = ImageUtils::flip(sImg);
+
+        sprintf(filename, "img%d.png", pid);
+        saveImage(sImg, filename);
+
+        glClear(GL_COLOR_BUFFER_BIT);
+        glRasterPos2i(0,0);
+        glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+        glDrawPixels(img.width(), img.height(), GL_RGB, GL_UNSIGNED_BYTE, img.raw_data());
+        glFlush();
+    }
+
+    float transitionL = 10.0f;
+    int tstartId = (totalPic-transitionL)/2;
+
+    float ratio=1.0;
+    for(int i=0;i<totalPic/2;i++, pid++) {
+        blkSize += 2;
+        currentBlkSize = Utils::clamp<int>(blkSize, 2, 1280);
+
+        ratio = 1.0 - Utils::clamp((pid - tstartId) / transitionL, 0.0f, 1.0f);
+        sImg = ImageUtils::blend(imgs[0], imgs[1], ratio);
+
+        RGBImage hImg = halftone(sImg, currentBlkSize);
 
         img = ImageUtils::flip(hImg);
 
@@ -226,18 +268,32 @@ void animation() {
         glFlush();
     }
 
-    showIdx = (showIdx+1) % 2;
-
     for(int i=0;i<totalPic/2;i++, pid++) {
-        blkSize /= 1.1;
-        currentBlkSize = Utils::clamp<int>(blkSize, 2, 1024);
-        currentBlkSize = (currentBlkSize&0x1)?currentBlkSize-1:currentBlkSize;
+        blkSize -= 2;
+        currentBlkSize = Utils::clamp<int>(blkSize, 2, 1280);
+        ratio = 1.0 - Utils::clamp((pid - tstartId) / transitionL, 0.0f, 1.0f);
+        sImg = ImageUtils::blend(imgs[0], imgs[1], ratio);
 
-        RGBImage hImg = halftone(imgs[showIdx], currentBlkSize);
+        RGBImage hImg = halftone(sImg, currentBlkSize);
         img = ImageUtils::flip(hImg);
 
         sprintf(filename, "img%d.png", pid);
         saveImage(hImg, filename);
+
+        glClear(GL_COLOR_BUFFER_BIT);
+        glRasterPos2i(0,0);
+        glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+        glDrawPixels(img.width(), img.height(), GL_RGB, GL_UNSIGNED_BYTE, img.raw_data());
+        glFlush();
+    }
+
+    for(int i=0;i<fadeOutL;i++,pid++) {
+        float ratio = i / (fadeOutL-1.0);
+        sImg = ImageUtils::blend(imgs[1], fadeOutImg, ratio);
+        img = ImageUtils::flip(sImg);
+
+        sprintf(filename, "img%d.png", pid);
+        saveImage(sImg, filename);
 
         glClear(GL_COLOR_BUFFER_BIT);
         glRasterPos2i(0,0);
@@ -370,7 +426,7 @@ void printHelp()
 int main(int argc, char *argv[])
 {
     //initialize the global variables
-    width = 1024, height = 768;
+    width = 1280, height = 720;
 
     if( argc < 4 )
     {
@@ -382,7 +438,7 @@ int main(int argc, char *argv[])
         imgs[0] = ImageUtils::imresize(loadImage(argv[1]), width, height);
         imgs[1] = ImageUtils::imresize(loadImage(argv[2]), width, height);
         createMasks(ImageUtils::imresize(loadImage(argv[3]), 256, 256));
-        img = ImageUtils::flip(imgs[0]);
+        img = ImageUtils::flip(ImageUtils::blend(imgs[0], imgs[1], 0.25));
         cout << "Images loaded." << endl;
     }
 

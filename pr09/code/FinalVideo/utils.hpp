@@ -9,7 +9,7 @@ T clamp(T val, T low, T high)
 }
 
 template <typename T>
-T interpolate(T x1, T x2, T t) {
-	return x1 * t + x2 * (1-t);
+T interpolate(T x1, T x2, float t) {
+    return x1 * t + x2 * (1.0-t);
 }
 }

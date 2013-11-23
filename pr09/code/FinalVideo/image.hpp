@@ -98,7 +98,7 @@ private:
     T* pixmap;
 };
 
-typedef Image<RGB> RGBImage;
+typedef Image<RGBPixel> RGBImage;
 typedef Image<unsigned char> GrayScaleImage;
 typedef Image<float> GrayScaleImagef;
 
