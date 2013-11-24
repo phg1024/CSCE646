@@ -15,7 +15,9 @@ INCLUDEPATH += "C:\Libs\freeglut-2.8.1\include"
 LIBS += "C:\Libs\freeglut-2.8.1\lib\x64\freeglut.lib"
 }
 
-#LIBS += -framework OpenGL -framework GLUT
+macx{
+LIBS += -framework OpenGL -framework GLUT
+}
 
 TEMPLATE = app
 
