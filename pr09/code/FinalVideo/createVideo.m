@@ -1,12 +1,21 @@
 %% create a video sequece
-vs = VideoWriter('video.avi');
+function createVideo( filename, ...
+                   filepath, ...
+                   basename, ...
+                   extension, ...
+                   fstart, ...
+                   fend )
+                   
+vs = VideoWriter(filename);
 vs.FrameRate = 24;
 open(vs);
 
-for i=0:139
+for i=fstart:fend
     fprintf('processing image %d ...\n', i);
-    img = imread(strcat('img', num2str(i), '.png'));
+    img = imread(strcat(filepath, basename, num2str(i), '.', extension));
     writeVideo(vs, img);
 end
 
 close(vs);
+
+end
