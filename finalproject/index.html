@@ -1,0 +1,93 @@
+<head>
+    <title>Viza654/CSCE646 - Digital Image</title>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+    <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
+    <link rel='stylesheet' type='text/css' href='webgl.css' media="screen, print, projection">
+    <script type="text/javascript" src="jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="point.js"></script>
+    <script type="text/javascript" src="vector.js"></script>
+    <script type="text/javascript" src="matrix.js"></script>
+    <script type="text/javascript" src="filter.js"></script>
+    <script type="text/javascript" src="image.js"></script>
+    <script type="text/javascript" src="imageutils.js"></script>
+    <script type="text/javascript" src="transformation.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+    <style>
+        p.operations{
+            font-size: 11
+        }
+        table.operations{
+            font-size: 11
+        }
+        td{
+            align: center
+        }
+        .sourceimg {
+            border: 1px solid yellow;
+        }
+    </style>
+</head>
+<body text="#000000" bgcolor="#ffffff">
+<header>
+    <h1>Peihong Guo's CSCE 646 Projects</h1>
+    <div id="navbar" class="stretchx">
+        <table id="navtable" class="left">
+            <tr><td><a class="navlink" href="../index.html" id="nav_bio">Projects</a></td></tr>
+        </table>
+    </div>
+</header>
+<article>
+    <div id="maincontent">
+        <div class="content">
+
+            <div align=center>
+                <h2>Final Project</h2>
+                <h3>Recovering HDR Radiance Map and Tonemapping</h3>
+            </div>
+
+            <div id="sourceimages" border=0 padding="0" width=90% align=center>
+            <p>Source Images</p>
+            </div>
+
+            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+
+                <tr>
+                    <td align=center>
+                        <div>
+                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
+                        </div>
+                        <div class="submissiondes">
+                            <p>Upload Images:
+                                <input type="file" id="files" name="files[]" multiple/>
+                                <output id="list"></output>
+                            </p>
+                            <p>
+                                <button id="genButton">Generate</button>
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center">
+                        <div id="pascii">
+                        </div>
+                        <canvas id="bitmap"></canvas>
+                    </td>
+                </tr>
+
+            </table>
+
+        </div>
+    </div>
+    </div>
+    </div>
+</article>
+<footer>
+    <div class="info">
+        Last Modified: <script type="text/javascript">document.write(document.lastModified)</script><br>
+        &copy 2009-2013, Peihong Guo
+    </div>
+</footer>
+</body>
+</html>
