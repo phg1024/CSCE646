@@ -88,75 +88,29 @@ Color.interpolate = function(c1, c2, t)
     return c1.mul(t).add(c2.mul(1-t));
 };
 
-/*
-function RGBAImage( w, h, data )
-{
-    this.channels = 4;
-    this.w = w;
-    this.h = h;
-    this.data = new Uint8Array(w*h*this.channels);
-    data && this.data.set(data);
-}
-
-RGBAImage.prototype.getPixel = function(x, y) {
-    var idx = (y * this.w + x) * this.channels;
-    return new Color(
-        this.data[idx+0],
-        this.data[idx+1],
-        this.data[idx+2],
-        this.data[idx+3]
-    );
-}
-
-// bilinear sample of the image
-RGBAImage.prototype.sample = function(x, y) {
-    var w = this.w, h = this.h;
-    var ty = Math.floor(y);
-    var dy = Math.ceil(y);
-
-    var lx = Math.floor(x);
-    var rx = Math.ceil(x);
-
-    var fx = x - lx;
-    var fy = y - ty;
-
-    var c = this.getPixel(lx, ty).mul((1-fy) * (1-fx))
-        .add(this.getPixel(lx, dy).mul(fy * (1-fx)))
-        .add(this.getPixel(rx, ty).mul((1-fy) * fx))
-        .add(this.getPixel(rx, dy).mul(fy * fx));
-
-    c.clamp();
-
-    return c;
+Color.colormap = function( ratio ) {
+    if( ratio < 0.25 ) {
+        // blue and cyan
+        var t = ratio / 0.25;
+        return Color.interpolate(Color.CYAN, Color.BLUE, t);
+    }
+    else if( ratio < 0.5 ) {
+        // cyan and green
+        var t = (ratio - 0.25) / 0.25;
+        return Color.interpolate(Color.GREEN, Color.CYAN, t);
+    }
+    else if( ratio < 0.75 ) {
+        // yellow and red
+        var t = (ratio - 0.5) / 0.25;
+        return Color.interpolate(Color.YELLOW, Color.GREEN, t);
+    }
+    else {
+        // yellow and red
+        var t = (ratio - 0.75) / 0.25;
+        return Color.interpolate(Color.RED, Color.YELLOW, t);
+    }
 };
 
-RGBAImage.prototype.setPixel = function(x, y, c) {
-    var idx = (y * this.w + x) * this.channels;
-    this.data[idx] = c.r;
-    this.data[idx+1] = c.g;
-    this.data[idx+2] = c.b;
-    this.data[idx+3] = c.a;
-};
-
-RGBAImage.prototype.uploadTexture = function( ctx, texId )
-{
-    var w = this.w;
-    var h = this.h;
-
-    ctx.bindTexture(ctx.TEXTURE_2D, texId);
-    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST);
-    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, ctx.NEAREST);
-    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE);
-    ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE);
-    ctx.texImage2D(ctx.TEXTURE_2D, 0,  ctx.RGBA, w, h, 0, ctx.RGBA, ctx.UNSIGNED_BYTE, this.data);
-};
-
-RGBAImage.prototype.toImageData = function( ctx ) {
-    var imgData = ctx.createImageData(this.w, this.h);
-    imgData.data.set(this.data);
-    return imgData;
-};
-*/
 
 function ImageBase(w, h) {
     this.channels = 4;
@@ -165,12 +119,22 @@ function ImageBase(w, h) {
     this.data = undefined;
 }
 
-ImageBase.prototyp.map = function( fun ) {
+ImageBase.prototype.map = function( fun ) {
     for(var y=0;y<this.h;y++) {
         for(var x=0;x<this.w;x++) {
             fun(x, y, this.getPixel(x, y));
         }
     }
+};
+
+ImageBase.prototype.apply = function( fun ) {
+    for(var y=0;y<this.h;y++) {
+        for(var x=0;x<this.w;x++) {
+            this.setPixel(x, y, fun(this.getPixel(x, y)));
+        }
+    }
+
+    return this;
 };
 
 ImageBase.prototype.getPixel = function(x, y) {
@@ -241,7 +205,7 @@ ImageBase.prototype.setImage = function( img ) {
     this.data = new Uint8Array(this.w*this.h*this.channels);
     this.data.set(img.data);
     return this;
-}
+};
 
 function RGBAImage( w, h, data )
 {
@@ -277,6 +241,13 @@ function RGBAImage( w, h, data )
         var imgData = ctx.createImageData(this.w, this.h);
         imgData.data.set(this.data);
         return imgData;
+    };
+
+    that.render = function( cvs ) {
+        cvs.width = this.w;
+        cvs.height = this.h;
+        var ctx = cvs.getContext('2d');
+        ctx.putImageData(this.toImageData(ctx), 0, 0);
     };
 
     return that;

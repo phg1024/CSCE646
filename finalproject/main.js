@@ -1,4 +1,5 @@
 var canvas, context;
+var rescanvas, rescontext;
 
 var sourceImages;
 
@@ -118,44 +119,94 @@ function gsolve(Z, exposures, l, w) {
     var Atb = numeric.ccsMV(At, b);
 
     var g = numeric.ccsLUPSolve(numeric.ccsLUP(AtA), Atb);
-    return g;
+    return g.slice(0, 256);
 }
 
-function hdr(sourceimgs, gr, gg, gb, w) {
+function hdr(sourceimgs, gr, gg, gb, weights) {
     var tmpimg = sourceimgs[0];
     var w = tmpimg.w, h = tmpimg.h;
     var npixels = tmpimg.w * tmpimg.h;
-    var nexposures = sourceImages.length;
+    var nexposures = sourceimgs.length;
 
     var hdrmap = new RGBAImagef(w, h);
+    hdrmap.apply(function(c) {
+        return new Color(0, 0, 0, 0);
+    });
     var summap = new RGBAImagef(w, h);
-    var m = new RGBAImagef(w, h);
+    summap.apply(function(c) {
+        return new Color(0, 0, 0, 0);
+    });
 
     for(var i=0;i<nexposures;i++) {
+        console.log('processing the ' + i + 'th out of ' + nexposures + ' images ...');
         var si = sourceimgs[i];
+        var dt = Math.log(si.deltaT);
         // accumulate the weights in the sum map
         si.map(function(x, y, c) {
-            var wr = w[c.r];
-            var wg = w[c.g];
-            var wb = w[c.b];
+
+            // get the weights using the pixel values
+            var wr = weights[c.r];
+            var wg = weights[c.g];
+            var wb = weights[c.b];
+
+            // accumulate the weights
             var sc = summap.getPixel(x, y);
             summap.setPixel(x, y, new Color(sc.r + wr, sc.g + wg, sc.b + wb, 0));
-        });
 
-        si.map(function(x, y, c) {
-            var dr = gr[c.r] - si.deltaT;
-            var dg = gg[c.g] - si.deltaT;
-            var db = gb[c.b] - si.deltaT;
-            m.setPixel(x, y, new Color(dr, dg, db, 0));
-        });
+            var dr = gr[c.r] - dt;
+            var dg = gg[c.g] - dt;
+            var db = gb[c.b] - dt;
 
-        // handle saturated pixels
+            var hc = hdrmap.getPixel(x, y);
+            hdrmap.setPixel(x, y, new Color(
+                hc.r + wr * dr,
+                hc.g + wg * dg,
+                hc.b + wb * db,
+                0
+            ));
+
+            var saturated = (c.r == 255 || c.g == 255 || c.b == 255);
+            if( saturated ) {
+                summap.setPixel(x, y, new Color(0, 0, 0, 1));
+                hdrmap.setPixel(x, y, new Color(0, 0, 0, 1));
+            }
+        });
     }
 
-    //
+    // handle saturated pixels
+    var slast = sourceimgs[sourceimgs.length - 1];
+    var slast_dt = Math.log(slast.deltaT);
+    console.log(slast.deltaT);
+    hdrmap.map(function(x, y, c) {
+        var saturated = (c.a > 0);
+        if( saturated ) {
+            var sc = slast.getPixel(x, y);
+            var dr = gr[sc.r] - slast_dt;
+            var dg = gg[sc.g] - slast_dt;
+            var db = gb[sc.b] - slast_dt;
+
+            hdrmap.setPixel(x, y, new Color(dr, dg, db, 0));
+            summap.setPixel(x, y, new Color(1.0, 1.0, 1.0, 0));
+        }
+    });
+
+    hdrmap.map(function(x, y, c) {
+        var s = summap.getPixel(x, y);
+        var r = Math.exp(c.r / s.r);
+        var g = Math.exp(c.g / s.g);
+        var b = Math.exp(c.b / s.b);
+
+        hdrmap.setPixel(x, y, new Color(r, g, b, 1.0));
+    });
+
+    return hdrmap;
 }
 
 function generateRadianceMap() {
+    // sort the source images by their exposure time
+    sourceImages.sort(function(a, b) { return b.deltaT - a.deltaT;} );
+    console.log(sourceImages);
+
     var tmpimg = sourceImages[0];
     var w = tmpimg.w, h = tmpimg.h;
     var npixels = tmpimg.w * tmpimg.h;
@@ -176,6 +227,8 @@ function generateRadianceMap() {
         })(i, 0, 255);
     }
 
+    console.log(weights);
+
     // sample the source images
     var samples = sampleSourceImages( sourceImages );
 
@@ -192,7 +245,74 @@ function generateRadianceMap() {
     var gb = gsolve(samples.zb, exposures, lmda, weights);
 
     // assemble the hdr radiance map
-    var hdrmap = hdr(sourceImages, gr, gg, gb, w);
+    var hdrmap = hdr(sourceImages, gr, gg, gb, weights);
+
+    // visualize the hdr map
+    var luminance = new RGBAImagef(w, h);
+    var maxLumin = 0, minLumin = Number.MAX_VALUE;
+    hdrmap.map(function(x, y, c){
+        var lev = c.r * 0.2125 + c.g * 0.7154 + c.g * 0.0721;
+        luminance.setPixel(x, y, new Color(lev, lev, lev, 1.0));
+
+        maxLumin = Math.max(maxLumin, lev);
+        minLumin = Math.min(minLumin, lev);
+    });
+
+    return {
+        hdrmap: hdrmap,
+        luminance: luminance,
+        maxLumin: maxLumin,
+        minLumin: minLumin
+    };
+}
+
+// reinhard global operator
+function tonemapping( radiancemap ) {
+    var epsilon = 1e-4;
+    var a = 0.72;
+    var saturation = 0.6;
+
+    var himg = radiancemap.hdrmap;
+    var limg = radiancemap.luminance;
+
+    var w = himg.w;
+    var h = himg.h;
+    var npixels = w * h;
+
+    var Lsum = 0;
+    limg.map(function(x, y, c) {
+        Lsum += Math.log(epsilon + c.r);
+    });
+    var key = Math.exp(Lsum / npixels);
+    var factor = a / key;
+
+    var scaledLumin = new RGBAImagef(w, h);
+    limg.map(function(x, y, c) {
+        scaledLumin.setPixel(x, y, c.mul(factor));
+    });
+
+    var ldrLuminanceMap = new RGBAImagef(w, h);
+    scaledLumin.map(function(x, y, c) {
+        ldrLuminanceMap.setPixel(x, y, c.mul(1.0 / (c.r+1.0)));
+    });
+
+    var I = new RGBAImage(w, h);
+    // log linear mapping
+    I.map(function(x, y, c) {
+        var lev = limg.getPixel(x, y).r;
+        var ldlev = limg.getPixel(x, y).r;
+        var hc = himg.getPixel(x, y);
+
+        var nc = new Color(
+            Math.pow(hc.r / lev, saturation) * ldlev,
+            Math.pow(hc.g / lev, saturation) * ldlev,
+            Math.pow(hc.b / lev, saturation) * ldlev,
+            255
+        );
+        I.setPixel(x, y, nc.round().clamp());
+    });
+
+    return I;
 }
 
 window.onload = (function(){
@@ -201,9 +321,36 @@ window.onload = (function(){
     canvas = document.getElementById("mycanvas");
     context = canvas.getContext("2d");
 
+    rescanvas = document.getElementById("rescanvas");
+    rescontext = rescanvas.getContext('2d');
+
     $('#genButton').click( function(){
         console.log("generating hdr radiance map ...");
-        generateRadianceMap();
+        var rmap = generateRadianceMap();
+        var himg = rmap.hdrmap;
+        var limg = rmap.luminance;
+
+        console.log(rmap);
+
+        var minL = rmap.minLumin;
+        var maxL = rmap.maxLumin;
+        var diffL = maxL - minL;
+        console.log('max lumin = ' + rmap.maxLumin);
+        console.log('min lumin = ' + rmap.minLumin);
+
+        // visualize the luminance map
+        var I = new RGBAImage(limg.w, limg.h);
+        limg.map(function(x, y, c) {
+            var lev = c.r;
+            var ratio = (lev - minL) /diffL;
+            // interpolate
+            I.setPixel(x, y, Color.colormap(ratio));
+        });
+
+        I.render(canvas);
+
+        var It = tonemapping( rmap );
+        It.render(rescanvas);
     });
 
     // set up callback for uploading file
