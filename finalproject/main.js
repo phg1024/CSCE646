@@ -283,7 +283,7 @@ function tonemapping( radiancemap ) {
     limg.map(function(x, y, c) {
         Lsum += Math.log(epsilon + c.r);
     });
-    var key = Math.exp(Lsum / npixels);
+    var key = Math.exp(Lsum / npixels );
     var factor = a / key;
 
     var scaledLumin = new RGBAImagef(w, h);
@@ -300,7 +300,7 @@ function tonemapping( radiancemap ) {
     // log linear mapping
     I.map(function(x, y, c) {
         var lev = limg.getPixel(x, y).r;
-        var ldlev = limg.getPixel(x, y).r;
+        var ldlev = ldrLuminanceMap.getPixel(x, y).r * 255;
         var hc = himg.getPixel(x, y);
 
         var nc = new Color(
