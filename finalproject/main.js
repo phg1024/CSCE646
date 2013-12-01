@@ -2,9 +2,12 @@ var canvas, context;
 var rescanvas, rescontext;
 
 var sourceImages;
+var rmap = {};       // radiancemap
+var needupdate;
 
 function parseDeltaT( filename ) {
     var s = filename.match(/\d+/g);
+    if( !s ) return undefined;
     var norm = parseFloat(s[0]);
     var denorm = parseFloat(s[1]);
     return norm/denorm;
@@ -22,7 +25,11 @@ function uploadImages( files ) {
                 img.onload = function(e) {
                     var I = RGBAImage.fromImage(this, canvas);
                     I.filename = filename;
-                    I.deltaT = parseDeltaT(filename);
+                    (EXIF.getData(file, function(){
+                        var expTime = EXIF.getTag(this, "ExposureTime");
+                        I.deltaT = parseFloat(expTime);
+                    }));
+
                     sourceImages.push(I);
                     img.width = 256;
                     img.className = 'sourceimg';
@@ -34,6 +41,20 @@ function uploadImages( files ) {
             reader.readAsDataURL(file);
         })(files[i]);
     }
+
+    // if the exposure time is not found in EXIF, try to find it from the file name
+    for(var i=0;i<sourceImages.length;i++) {
+        var si = sourceImages[i];
+        if( isNaN(si.deltaT) || !si.deltaT ) si.deltaT = parseDeltaT(filename);
+        if( isNaN(si.deltaT) || !si.deltaT ) {
+            // no exposure time found, yell loudly
+            alert( 'Failed to find exposure time for image ' + si.filename + ', abort.' );
+            throw 'Failed to find exposure time information.';
+        }
+    }
+    console.log(sourceImages);
+
+    rmap.needupdate = true;
 }
 
 function sampleSourceImages( sourceImages ) {
@@ -203,6 +224,13 @@ function hdr(sourceimgs, gr, gg, gb, weights) {
 }
 
 function generateRadianceMap() {
+    if( !rmap.needupdate ) return;
+
+    if( !sourceImages.length || sourceImages.length < 2 ) {
+        alert('Not enough images to perform reconstruction. You need at least 2 images.');
+        throw 'Not enough images.';
+    }
+
     // sort the source images by their exposure time
     sourceImages.sort(function(a, b) { return b.deltaT - a.deltaT;} );
     console.log(sourceImages);
@@ -234,6 +262,14 @@ function generateRadianceMap() {
 
     var exposures = [];
     for(var i=0;i<nexposures;i++) {
+        // if the exposure time is not found in EXIF, try to find it from the file name
+        var si = sourceImages[i];
+        if( isNaN(si.deltaT) || !si.deltaT ) si.deltaT = parseDeltaT(si.filename);
+        if( isNaN(si.deltaT) || !si.deltaT ) {
+                // no exposure time found, yell loudly
+                alert( 'Failed to find exposure time for image ' + si.filename + ', abort.' );
+                throw 'Failed to find exposure time information.';
+        }
         exposures.push(Math.log(sourceImages[i].deltaT));
     }
 
@@ -258,7 +294,8 @@ function generateRadianceMap() {
         minLumin = Math.min(minLumin, lev);
     });
 
-    return {
+    rmap.needupdate = false;
+    rmap = {
         hdrmap: hdrmap,
         luminance: luminance,
         maxLumin: maxLumin,
@@ -267,52 +304,16 @@ function generateRadianceMap() {
 }
 
 // reinhard global operator
-function tonemapping( radiancemap ) {
-    var epsilon = 1e-4;
-    var a = 0.72;
-    var saturation = 0.6;
-
-    var himg = radiancemap.hdrmap;
-    var limg = radiancemap.luminance;
-
-    var w = himg.w;
-    var h = himg.h;
-    var npixels = w * h;
-
-    var Lsum = 0;
-    limg.map(function(x, y, c) {
-        Lsum += Math.log(epsilon + c.r);
-    });
-    var key = Math.exp(Lsum / npixels );
-    var factor = a / key;
-
-    var scaledLumin = new RGBAImagef(w, h);
-    limg.map(function(x, y, c) {
-        scaledLumin.setPixel(x, y, c.mul(factor));
-    });
-
-    var ldrLuminanceMap = new RGBAImagef(w, h);
-    scaledLumin.map(function(x, y, c) {
-        ldrLuminanceMap.setPixel(x, y, c.mul(1.0 / (c.r+1.0)));
-    });
-
-    var I = new RGBAImage(w, h);
-    // log linear mapping
-    I.map(function(x, y, c) {
-        var lev = limg.getPixel(x, y).r;
-        var ldlev = ldrLuminanceMap.getPixel(x, y).r * 255;
-        var hc = himg.getPixel(x, y);
-
-        var nc = new Color(
-            Math.pow(hc.r / lev, saturation) * ldlev,
-            Math.pow(hc.g / lev, saturation) * ldlev,
-            Math.pow(hc.b / lev, saturation) * ldlev,
-            255
-        );
-        I.setPixel(x, y, nc.round().clamp());
-    });
-
-    return I;
+function tonemapping( radiancemap, method ) {
+    switch( method ) {
+        case 'reinhard':
+        default: {
+            return reinhard( radiancemap );
+        }
+        case 'bilateral': {
+            return bilateral_tonemapping( radiancemap );
+        }
+    }
 }
 
 window.onload = (function(){
@@ -326,7 +327,7 @@ window.onload = (function(){
 
     $('#genButton').click( function(){
         console.log("generating hdr radiance map ...");
-        var rmap = generateRadianceMap();
+        generateRadianceMap();
         var himg = rmap.hdrmap;
         var limg = rmap.luminance;
 
@@ -347,9 +348,14 @@ window.onload = (function(){
             I.setPixel(x, y, Color.colormap(ratio));
         });
 
+        var ww = Math.min(I.w, 800);
+        var hh = I.h * (ww / I.w);
+
+        I = imresize(I, ww, hh);
         I.render(canvas);
 
-        var It = tonemapping( rmap );
+        var It = tonemapping( rmap, $('#tmselect').val() );
+        It = imresize(It, ww, hh);
         It.render(rescanvas);
     });
 

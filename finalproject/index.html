@@ -3,8 +3,14 @@
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
     <script type="text/javascript" src="jquery-1.10.2.js"></script>
+
+    <!-- NumericJS -->
     <script type="text/javascript" src="numericjs/numeric.js"></script>
     <script type="text/javascript" src="numericjs/iterative.js"></script>
+    <!-- ExifJS -->
+    <script type="text/javascript" src="exifjs/binaryajax.js"></script>
+    <script type="text/javascript" src="exifjs/exif.js"></script>
+
     <script type="text/javascript" src="point.js"></script>
     <script type="text/javascript" src="vector.js"></script>
     <script type="text/javascript" src="matrix.js"></script>
@@ -13,6 +19,7 @@
     <script type="text/javascript" src="imageutils.js"></script>
     <script type="text/javascript" src="transformation.js"></script>
     <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="tonemapping.js"></script>
     <script type="text/javascript" src="main.js"></script>
     <style>
         p.operations{
@@ -61,6 +68,10 @@
                                 <output id="list"></output>
                             </p>
                             <p>
+                                <select id="tmselect">
+                                    <option value="reinhard">Reinhard</option>
+                                    <option value="bilateral">Bilateral</option>
+                                </select>
                                 <button id="genButton">Generate</button>
                             </p>
                         </div>

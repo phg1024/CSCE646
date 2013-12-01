@@ -29,12 +29,15 @@ function clamp(v, lower, upper)
 }
 
 // bilateral filter
-function bilateral(src, sigmap, sigmaf, size) {
+function bilateralf(src, sigmap, sigmaf, size) {
+    var size = size || 3.0;
+    var sigmap = sigmap || 1.0;
+    var sigmaf = sigmaf || 10.0;
+
+
     var h = src.h,
         w = src.w;
-    var dst = new RGBAImage(w, h);
-    var data = dst.data,
-        data2 = src.data;
+    var dst = new RGBAImagef(w, h);
 
     var fp = new Filter.blurn(size, sigmap);
     var sigmaf2 = sigmaf * sigmaf * 2;
@@ -60,7 +63,6 @@ function bilateral(src, sigmap, sigmaf, size) {
                 for (var j=-wf, fj=0;j<=wf;j++,fj++)
                 {
                     var px = clamp(j+x,0,w-1);
-                    var pidx = (py * w + px) * 4;
 
                     var weight = fp.value[fidx++];
 
@@ -78,14 +80,77 @@ function bilateral(src, sigmap, sigmaf, size) {
                 }
             }
 
-            r = clamp((r)/wsum, 0.0, 255.0);
-            g = clamp((g)/wsum, 0.0, 255.0);
-            b = clamp((b)/wsum, 0.0, 255.0);
+            var invwsum = 1.0 / wsum;
 
-            data[idx] = r;
-            data[idx+1] = g;
-            data[idx+2] = b;
-            data[idx+3] = data2[idx+3];
+            r *= invwsum;
+            g *= invwsum;
+            b *= invwsum;
+
+            dst.setPixel(x, y, new Color(r, g, b, c0.a));
+        }
+    }
+    return dst;
+}
+
+// bilateral filter
+function bilateral(src, sigmap, sigmaf, size) {
+    var size = size || 3.0;
+    var sigmap = sigmap || 1.0;
+    var sigmaf = sigmaf || 10.0;
+
+
+    var h = src.h,
+        w = src.w;
+    var dst = new RGBAImage(w, h);
+
+    var fp = new Filter.blurn(size, sigmap);
+    var sigmaf2 = sigmaf * sigmaf * 2;
+
+    var wf = Math.floor(size / 2);
+    var hf = Math.floor(size / 2);
+
+    for (var y=0;y<h;y++)
+    {
+        for (var x=0;x<w;x++)
+        {
+            var fidx = 0;
+            var wsum = 0;
+            var r0, g0, b0;
+            var c0 = src.getPixel(x, y);
+            r0 = c0.r, g0 = c0.g, b0 = c0.b;
+            var r, g, b;
+            r = g = b = 0;
+            var idx = (y*w+x)*4;
+            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            {
+                var py = clamp(i+y,0,h-1);
+                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                {
+                    var px = clamp(j+x,0,w-1);
+
+                    var weight = fp.value[fidx++];
+
+                    var c = src.getPixel(px, py);
+                    var dr = c.r - r0;
+                    var dg = c.g - g0;
+                    var db = c.b - b0;
+
+                    weight *= Math.exp(-(dr*dr+dg*dg+db*db)/(sigmaf2));
+                    wsum += weight;
+
+                    r += c.r * weight;
+                    g += c.g * weight;
+                    b += c.b * weight;
+                }
+            }
+
+            var invwsum = 1.0 / wsum;
+
+            r *= invwsum;
+            g *= invwsum;
+            b *= invwsum;
+
+            dst.setPixel(x, y, new Color(r, g, b, c0.a));
         }
     }
     return dst;
