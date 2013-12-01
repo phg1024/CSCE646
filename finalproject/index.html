@@ -34,6 +34,9 @@
         .sourceimg {
             border: 1px solid yellow;
         }
+        #sourceimages {
+            text-indent: 0;
+        }
     </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
@@ -54,8 +57,22 @@
                 <h3>Recovering HDR Radiance Map and Tonemapping</h3>
             </div>
 
+            <div align="center">
+            <p>Upload Images:
+                <input type="file" id="files" name="files[]" multiple/>
+                <output id="list"></output>
+            </p>
+            <p>
+                <select id="tmselect">
+                    <option value="reinhard">Reinhard</option>
+                    <option value="bilateral">Bilateral</option>
+                </select>
+                <button id="genButton">Generate</button>
+            </p>
+            </div>
+
+            <p align="center">Source Images</p>
             <div id="sourceimages" border=0 padding="0" width=90% align=center>
-            <p>Source Images</p>
             </div>
 
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
@@ -63,17 +80,6 @@
                 <tr>
                     <td align=center>
                         <div class="submissiondes">
-                            <p>Upload Images:
-                                <input type="file" id="files" name="files[]" multiple/>
-                                <output id="list"></output>
-                            </p>
-                            <p>
-                                <select id="tmselect">
-                                    <option value="reinhard">Reinhard</option>
-                                    <option value="bilateral">Bilateral</option>
-                                </select>
-                                <button id="genButton">Generate</button>
-                            </p>
                         </div>
                         <div>
                             <canvas id="mycanvas" border=0 width=640px height=480px></canvas>

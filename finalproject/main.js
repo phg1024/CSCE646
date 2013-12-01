@@ -349,7 +349,7 @@ window.onload = (function(){
         });
 
         var ww = Math.min(I.w, 800);
-        var hh = I.h * (ww / I.w);
+        var hh = Math.round(I.h * (ww / I.w));
 
         I = imresize(I, ww, hh);
         I.render(canvas);
