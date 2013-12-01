@@ -14,6 +14,9 @@ function parseDeltaT( filename ) {
 }
 
 function uploadImages( files ) {
+    $('#div_res').hide();
+    $('#div_hdrmap').hide();
+
     $('#sourceimages').empty();
     sourceImages = [];
     for(var i=0;i<files.length;i++) {
@@ -55,6 +58,8 @@ function uploadImages( files ) {
     console.log(sourceImages);
 
     radmap.needupdate = true;
+
+    $('#div_source').show();
 }
 
 function sampleSourceImages( sourceImages ) {
@@ -310,17 +315,25 @@ function tonemapping( radiancemap, method ) {
     switch( method ) {
         case 'reinhard':
         default: {
-            var options = {};
+            var options = {
+                a: $('#avalue').val(),
+                gamma: $('#gammavalue').val()
+            };
             return reinhard( radiancemap, options );
         }
         case 'bilateral': {
-            var options = {};
+            var options = {
+                dR: $('#drvalue').val(),
+                gamma: $('#gammavalue2').val()
+            };
             return bilateral_tonemapping( radiancemap, options );
         }
+        /*
         case 'gradient': {
             var options = {};
             return gradient_tonemapping( radiancemap, options );
         }
+        */
     }
 }
 
@@ -341,8 +354,8 @@ window.onload = (function(){
 
         console.log(radmap);
 
-        var minL = radmap.minLumin;
-        var maxL = radmap.maxLumin;
+        var minL = Math.log(radmap.minLumin + 1e-16);
+        var maxL = Math.log(radmap.maxLumin + 1e-16);
         var diffL = maxL - minL;
         console.log('max lumin = ' + radmap.maxLumin);
         console.log('min lumin = ' + radmap.minLumin);
@@ -350,7 +363,7 @@ window.onload = (function(){
         // visualize the luminance map
         var I = new RGBAImage(limg.w, limg.h);
         limg.map(function(x, y, c) {
-            var ratio = (c - minL) / diffL;
+            var ratio = (Math.log(c + 1e-16) - minL) / diffL;
             // interpolate
             I.setPixel(x, y, Color.colormap(ratio));
         });
@@ -360,10 +373,30 @@ window.onload = (function(){
 
         I = imresize(I, ww, hh);
         I.render(canvas);
+        $('#div_hdrmap').show();
 
         var It = tonemapping( radmap, $('#tmselect').val() );
         It = imresize(It, ww, hh);
         It.render(rescanvas);
+
+        $('#div_res').show();
+
+    });
+
+    $('#div_res').hide();
+    $('#div_hdrmap').hide();
+    $('#div_source').hide();
+    $('#control_bilateral').hide();
+
+    $('#tmselect').change(function() {
+        if( $('#tmselect').val() == 'bilateral' ) {
+            $('#control_reinhard').hide();
+            $('#control_bilateral').show();
+        }
+        else {
+            $('#control_bilateral').hide();
+            $('#control_reinhard').show();
+        }
     });
 
     // set up callback for uploading file

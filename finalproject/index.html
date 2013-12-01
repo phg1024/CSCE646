@@ -54,15 +54,22 @@
 
             <div align=center>
                 <h2>Final Project</h2>
-                <h3>Recovering HDR Radiance Map and Tonemapping</h3>
+                <h3>Recovering HDR Radiance Map and Tone Mapping</h3>
             </div>
 
             <div align="center">
+                <p align="left">
+                   <b>Usage</b>: Please download the <a href="testImages.zip">test images</a> first. The use the <em>Choose Files</em>
+                    button to select a set of multiple exposure images to perform HDR image reconstruction and tone mapping.
+                    After selecting the images, the source images will appear in the page, and you can hit <em>Generate</em>
+                    button to start.
+                </p>
             <p>Upload Images:
                 <input type="file" id="files" name="files[]" multiple/>
                 <output id="list"></output>
             </p>
             <p>
+                Tone Mapping Operator:
                 <select id="tmselect">
                     <option value="reinhard">Reinhard</option>
                     <option value="bilateral">Bilateral</option>
@@ -70,10 +77,16 @@
                 </select>
                 <button id="genButton">Generate</button>
             </p>
-            </div>
-
-            <p align="center">Source Images</p>
-            <div id="sourceimages" border=0 padding="0" width=90% align=center>
+                <p id="control_reinhard">
+                    Luminance Scale Factor: <input id="avalue" type="text" value="0.6">
+                    &nbsp
+                    Gamma: <input id="gammavalue" type="text" value="0.5">
+                </p>
+                <p id="control_bilateral">
+                    Dynamic Range:<input id="drvalue" type="text" value="4.0">
+                    &nbsp
+                    Gamma: <input id="gammavalue2" type="text" value="0.5">
+                </p>
             </div>
 
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
@@ -82,23 +95,24 @@
                     <td align=center>
                         <div class="submissiondes">
                         </div>
-                        <div>
-                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
-                        </div>
-                        <div>
+                        <div id="div_res">
+                            <p>Tone Mapped Image:</p>
                             <canvas id="rescanvas" border=0 width=640px height=480px></canvas>
                         </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td align="center">
-                        <div id="pascii">
+                        <div id="div_hdrmap">
+                            <p>HDR Radiance Map (log scale):</p>
+                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
                         </div>
-                        <canvas id="bitmap"></canvas>
                     </td>
                 </tr>
-
             </table>
+            <div id="div_source">
+                <p align="center">Source Images</p>
+                <div id="sourceimages" border=0 padding="0" width=90% align=center>
+                </div>
+            </div>
+
+            <p><b>Results</b></p>
 
         </div>
     </div>
