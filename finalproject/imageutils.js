@@ -20,6 +20,28 @@ function imresize(__src, w, h)
     return dst;
 }
 
+// resize single channel image
+function imresizef(src, w, h) {
+    var iw = src.w, ih = src.h;
+    // bilinear interpolation
+    var dst = new MonoImagef(w, h);
+
+    var ystep = 1.0 / (h-1);
+    var xstep = 1.0 / (w-1);
+    for(var i=0;i<h;i++)
+    {
+        var y = i * ystep;
+
+        for(var j=0;j<w;j++)
+        {
+            var x = j * xstep;
+
+            dst.setPixel(j, i, src.sample(x * (iw-1), y * (ih-1)));
+        }
+    }
+    return dst;
+}
+
 function clamp(v, lower, upper)
 {
     var res = v;
@@ -28,7 +50,50 @@ function clamp(v, lower, upper)
     return res;
 }
 
-// bilateral filter
+// guassian blur for single channel image
+function gaussianf(src, sigma, size) {
+    var size = size || 3.0;
+    var sigma = sigma || 1.0;
+
+    var h = src.h,
+        w = src.w;
+    var dst = new MonoImagef(w, h);
+
+    var fp = new Filter.blurn(size, sigma);
+    var wf = Math.floor(size / 2);
+    var hf = Math.floor(size / 2);
+
+    for (var y=0;y<h;y++)
+    {
+        for (var x=0;x<w;x++)
+        {
+            var fidx = 0;
+            var wsum = 0;
+            var c1 = 0;
+            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            {
+                var py = clamp(i+y,0,h-1);
+                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                {
+                    var px = clamp(j+x,0,w-1);
+
+                    var weight = fp.value[fidx++];
+
+                    var c = src.getPixel(px, py);
+                    wsum += weight;
+                    c1 += c * weight;
+                }
+            }
+
+            c1 /= wsum;
+
+            dst.setPixel(x, y, c1);
+        }
+    }
+    return dst;
+}
+
+// bilateral filter for single channel image
 function bilateralf(src, sigmap, sigmaf, size) {
     var size = size || 3.0;
     var sigmap = sigmap || 1.0;
@@ -37,7 +102,7 @@ function bilateralf(src, sigmap, sigmaf, size) {
 
     var h = src.h,
         w = src.w;
-    var dst = new RGBAImagef(w, h);
+    var dst = new MonoImagef(w, h);
 
     var fp = new Filter.blurn(size, sigmap);
     var sigmaf2 = sigmaf * sigmaf * 2;
@@ -51,12 +116,8 @@ function bilateralf(src, sigmap, sigmaf, size) {
         {
             var fidx = 0;
             var wsum = 0;
-            var r0, g0, b0;
             var c0 = src.getPixel(x, y);
-            r0 = c0.r, g0 = c0.g, b0 = c0.b;
-            var r, g, b;
-            r = g = b = 0;
-            var idx = (y*w+x)*4;
+            var c1 = 0;
             for (var i=-hf, fi=0;i<=hf;i++,fi++)
             {
                 var py = clamp(i+y,0,h-1);
@@ -67,26 +128,18 @@ function bilateralf(src, sigmap, sigmaf, size) {
                     var weight = fp.value[fidx++];
 
                     var c = src.getPixel(px, py);
-                    var dr = c.r - r0;
-                    var dg = c.g - g0;
-                    var db = c.b - b0;
+                    var dc = c - c0;
 
-                    weight *= Math.exp(-(dr*dr+dg*dg+db*db)/(sigmaf2));
+                    weight *= Math.exp(-(dc*dc)/(sigmaf2));
                     wsum += weight;
 
-                    r += c.r * weight;
-                    g += c.g * weight;
-                    b += c.b * weight;
+                    c1 += c * weight;
                 }
             }
 
-            var invwsum = 1.0 / wsum;
+            c1 /= wsum;
 
-            r *= invwsum;
-            g *= invwsum;
-            b *= invwsum;
-
-            dst.setPixel(x, y, new Color(r, g, b, c0.a));
+            dst.setPixel(x, y, c1);
         }
     }
     return dst;

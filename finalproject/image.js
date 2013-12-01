@@ -177,6 +177,43 @@ ImageBase.prototype.setPixel = function(x, y, c) {
     this.data[idx+3] = c.a;
 };
 
+function MonoImagef(w, h, data) {
+    var that = new ImageBase(w, h);
+    that.channels = 1;
+    that.data = new Float32Array(w*h);
+    data && that.data.set(data);
+
+    // override
+    that.getPixel = function(x, y) {
+        return this.data[y*this.w + x];
+    };
+
+    that.setPixel = function(x, y, val) {
+        return this.data[y*this.w+x] = val;
+    };
+
+    that.sample = function(x, y) {
+        var w = this.w, h = this.h;
+        var ty = Math.floor(y);
+        var dy = Math.ceil(y);
+
+        var lx = Math.floor(x);
+        var rx = Math.ceil(x);
+
+        var fx = x - lx;
+        var fy = y - ty;
+
+        var c = this.getPixel(lx, ty) * (1-fy) * (1-fx)
+            + this.getPixel(lx, dy) * fy * (1-fx)
+            + this.getPixel(rx, ty) * (1-fy) * fx
+            + this.getPixel(rx, dy) * fy * fx;
+
+        return c;
+    };
+
+    return that;
+}
+
 function RGBAImagef(w, h, data) {
     var that = new ImageBase(w, h);
     that.data = new Float32Array(w*h*that.channels);
@@ -198,14 +235,6 @@ function RGBAImagef(w, h, data) {
 
     return that;
 }
-
-ImageBase.prototype.setImage = function( img ) {
-    this.w = img.w;
-    this.h = img.h;
-    this.data = new Uint8Array(this.w*this.h*this.channels);
-    this.data.set(img.data);
-    return this;
-};
 
 function RGBAImage( w, h, data )
 {
