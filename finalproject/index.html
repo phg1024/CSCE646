@@ -62,24 +62,24 @@
             </div>
             <div align="center">
                 <p align="left">
-                   <b>Usage</b>: Please download the <a href="testImages.zip">test images</a> first. The use the <em>Choose Files</em>
+                    <b>Usage</b>: Please download the <a href="testImages.zip">test images</a> first. The use the <em>Choose Files</em>
                     button to select a set of multiple exposure images to perform HDR image reconstruction and tone mapping.
                     After selecting the images, the source images will appear in the page, and you can hit <em>Generate</em>
                     button to start.
                 </p>
-            <p>Upload Images:
-                <input type="file" id="files" name="files[]" multiple/>
-                <output id="list"></output>
-            </p>
-            <p>
-                Tone Mapping Operator:
-                <select id="tmselect">
-                    <option value="reinhard">Reinhard</option>
-                    <option value="bilateral">Bilateral</option>
-                    <!--<option value="gradient">Gradient</option>-->
-                </select>
-                <button id="genButton">Generate</button>
-            </p>
+                <p>Upload Images:
+                    <input type="file" id="files" name="files[]" multiple/>
+                    <output id="list"></output>
+                </p>
+                <p>
+                    Tone Mapping Operator:
+                    <select id="tmselect">
+                        <option value="reinhard">Reinhard</option>
+                        <option value="bilateral">Bilateral</option>
+                        <!--<option value="gradient">Gradient</option>-->
+                    </select>
+                    <button id="genButton">Generate</button>
+                </p>
                 <p id="control_reinhard">
                     Luminance Scale Factor: <input id="avalue" type="text" value="0.6">
                     &nbsp
@@ -89,6 +89,9 @@
                     Dynamic Range:<input id="drvalue" type="text" value="4.0">
                     &nbsp
                     Gamma: <input id="gammavalue2" type="text" value="0.5">
+                </p>
+                <p>
+                    <progress id="prog" max="70" min="0">%</progress>
                 </p>
             </div>
 
