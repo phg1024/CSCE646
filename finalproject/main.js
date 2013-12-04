@@ -348,6 +348,7 @@ window.onload = (function(){
 
     $('#genButton').click( function(){
         console.log("generating hdr radiance map ...");
+
         generateRadianceMap();
         var himg = radmap.hdrmap;
         var limg = radmap.luminance;
@@ -380,13 +381,13 @@ window.onload = (function(){
         It.render(rescanvas);
 
         $('#div_res').show();
-
     });
 
     $('#div_res').hide();
     $('#div_hdrmap').hide();
     $('#div_source').hide();
     $('#control_bilateral').hide();
+    $('#prog').hide();
 
     $('#tmselect').change(function() {
         if( $('#tmselect').val() == 'bilateral' ) {
