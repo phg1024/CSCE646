@@ -119,6 +119,56 @@ function bilateral_tonemapping( radiancemap, options ) {
     return I;
 }
 
+function ahe_tonemapping( radiancemap, options ) {
+    var epsilon = 1e-16;
+    var gamma = options.gamma || 0.5;
+
+    var himg = radiancemap.hdrmap;
+    var limg = radiancemap.luminance;
+    var w = himg.w;
+    var h = himg.h;
+    var npixels = w * h;
+
+    // log luminance
+    var loglimg = new MonoImagef(w, h);
+    limg.map(function(x, y, c) {
+        var loglev = Math.log(c + epsilon);
+        loglimg.setPixel(x, y, loglev);
+    });
+
+    var logmax = Math.log(radiancemap.maxLumin + epsilon);
+    var logmin = Math.log(radiancemap.minLumin + epsilon);
+    var logdiff = logmax - logmin;
+
+    // adaptive histogram equalization
+    // histogram equalization
+    var logequal = ahef(loglimg, logmin, logmax);
+
+    // map the equalized log lumin to 0, 1
+    var ldrLuminanceMap = new MonoImagef(w, h);
+
+    logequal.map(function(x, y, c) {
+        ldrLuminanceMap.setPixel(x, y, Math.exp((c - logmax) / (logdiff)));
+    });
+
+    var I = new RGBAImage(w, h);
+    I.map(function(x, y, c) {
+        var lev = limg.getPixel(x, y);
+        var ldlev = ldrLuminanceMap.getPixel(x, y) * 255;
+        var hc = himg.getPixel(x, y);
+
+        var nc = new Color(
+            Math.pow(hc.r / lev, gamma) * ldlev,
+            Math.pow(hc.g / lev, gamma) * ldlev,
+            Math.pow(hc.b / lev, gamma) * ldlev,
+            255
+        );
+        I.setPixel(x, y, nc.round().clamp());
+    });
+
+    return I;
+}
+
 // not completed yet
 function gradient_tonemapping( radiancemap, options ) {
     var epsilon = 1e-16;
@@ -148,7 +198,6 @@ function gradient_tonemapping( radiancemap, options ) {
         pog.push(gi);
     }
     console.log(pog[pog.length-1].w + ' ' + pog[pog.length-1].h);
-
 
 
     var ldrLuminanceMap = new MonoImagef(w, h);
