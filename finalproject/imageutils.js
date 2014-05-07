@@ -444,10 +444,42 @@ function diff(img1, img2) {
 }
 
 // build histogram of specified image region
-function histogram(img, x1, y1, x2, y2, num_bins)
+function histogramf(img, x1, y1, x2, y2, num_bins, minval, maxval)
 {
     if( num_bins == undefined )
         num_bins = 256;
+
+    var minval = minval || 0;
+    var maxval = maxval || 255;
+    var diffval = maxval - minval;
+
+    var h = img.h;
+    var w = img.w;
+    var hist = [];
+    for(var i=0;i<num_bins;i++)
+        hist[i] = 0;
+
+    for(var y=y1;y<y2;y++)
+    {
+        for(var x=x1;x<x2;x++)
+        {
+            var idx = (y * w + x);
+            var val = Math.floor(((img.data[idx] - minval) / diffval) * (num_bins-1));
+            hist[val]++;
+        }
+    }
+    return hist;
+}
+
+// build histogram of specified image region
+function histogram(img, x1, y1, x2, y2, num_bins, minval, maxval)
+{
+    if( num_bins == undefined )
+        num_bins = 256;
+
+    var minval = minval || 0;
+    var maxval = maxval || 255;
+    var diffval = maxval - minval;
 
     var h = img.h;
     var w = img.w;
@@ -460,11 +492,10 @@ function histogram(img, x1, y1, x2, y2, num_bins)
         for(var x=x1;x<x2;x++)
         {
             var idx = (y * w + x) * 4;
-            var val = Math.floor((img.data[idx] / 256.0) * num_bins);
+            var val = Math.floor(((img.data[idx] - minval) / diffval) * (num_bins-1));
             hist[val]++;
         }
     }
-
     return hist;
 }
 
@@ -520,6 +551,108 @@ function equalize(__src, amount)
     }
 
     dst = add(dst, __src, amount);
+
+    return dst;
+}
+
+// adaptive histogram equalization for a single channel, blended with original image
+// amount is between 0 and 1
+function ahef(__src, minval, maxval)
+{
+    // find a good window size
+    var row = __src.h,
+        col = __src.w;
+
+    var amount = amount || 0.5;
+
+    // tile size
+    var tilesize = [128, 128];
+
+    // number of bins
+    var num_bins = 256;
+
+    // number of tiles in x and y direction
+    var xtiles = Math.ceil(col / tilesize[0]);
+    var ytiles = Math.ceil(row / tilesize[1]);
+
+    var cdfs = new Array(ytiles);
+    for(var i=0;i<ytiles;i++)
+        cdfs[i] = new Array(xtiles);
+
+    var inv_tile_size = [1.0 / tilesize[0], 1.0 / tilesize[1]];
+
+    var binWidth = 256 / num_bins;
+
+    // create histograms
+    for(var i=0;i<ytiles;i++)
+    {
+        var y0 = i * tilesize[1];
+        var y1 = Math.min(y0+tilesize[1], row);
+        for(var j=0;j<xtiles;j++)
+        {
+            var x0 = j * tilesize[0];
+            var x1 = Math.min(x0+tilesize[0], col);
+            var hist = histogramf(__src, x0, y0, x1, y1, num_bins, minval, maxval);
+
+            var cdf = buildcdf( hist );
+
+            var total = cdf[255];
+            for(var k=0;k<256;k++)
+                cdf[k] = Math.round(cdf[k] / total * 255.0);
+
+            cdfs[i][j] = cdf;
+        }
+    }
+
+    var dst = new MonoImagef(col, row);
+    var data = dst.data,
+        data2 = __src.data;
+
+    console.log(xtiles);
+    console.log(ytiles);
+
+    console.log(row);
+    console.log(col);
+
+    var idx = 0;
+    for(var y=0;y<row;y++)
+    {
+        for(var x=0;x<col;x++, idx+=4)
+        {
+            // intensity of current pixel
+            var I = __src.data[idx];
+
+            // bin index
+            var bin = Math.floor(I / binWidth);
+
+            // current tile
+            var tx = x * inv_tile_size[0] - 0.5;
+            var ty = y * inv_tile_size[1] - 0.5;
+
+            var xl = Math.max(Math.floor(tx), 0);
+            var xr = Math.min(xl+1, xtiles-1);
+
+            var yt = Math.max(Math.floor(ty), 0);
+            var yd = Math.min(yt+1, ytiles-1);
+
+            var fx = tx - xl;
+            var fy = ty - yt;
+
+            var cdf11 = cdfs[yt][xl][bin];
+            var cdf12 = cdfs[yd][xl][bin];
+            var cdf21 = cdfs[yt][xr][bin];
+            var cdf22 = cdfs[yd][xr][bin];
+
+            // bilinear interpolation
+            var Iout = (1 - fx) * (1 - fy) * cdf11
+                + (1 - fx) * 	   fy  * cdf12
+                +      fx  * (1 - fy) * cdf21
+                +      fx  *      fy  * cdf22;
+
+            var ratio = Iout / I;
+            data[idx] = data2[idx] * ratio;
+        }
+    }
 
     return dst;
 }

@@ -4,6 +4,23 @@
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
     <script type="text/javascript" src="jquery-1.10.2.js"></script>
 
+    <!-- FancyBox -->
+    <!-- Add mousewheel plugin (this is optional) -->
+    <script type="text/javascript" src="./fancybox/lib/jquery.mousewheel-3.0.6.pack.js"></script>
+
+    <!-- Add fancyBox -->
+    <link rel="stylesheet" href="./fancybox/source/jquery.fancybox.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/jquery.fancybox.pack.js"></script>
+
+    <!-- Optionally add helpers - button, thumbnail and/or media -->
+    <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-buttons.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-buttons.js"></script>
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-media.js"></script>
+
+    <link rel="stylesheet" href="./fancybox/source/helpers/jquery.fancybox-thumbs.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="./fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
+
+
     <!-- NumericJS -->
     <script type="text/javascript" src="numericjs/numeric.js"></script>
     <script type="text/javascript" src="numericjs/iterative.js"></script>
@@ -37,6 +54,32 @@
         #sourceimages {
             text-indent: 0;
         }
+
+        .rawsequence, .resimg {
+            height: auto;
+            width: 100%;
+        }
+
+        .references {
+            position: relative;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .references li {
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .results {
+
+        }
+
+        .results p {
+            text-align: center;
+            font-size: 12px;
+
+        }
     </style>
 </head>
 <body text="#000000" bgcolor="#ffffff">
@@ -49,81 +92,341 @@
     </div>
 </header>
 <article>
-    <div id="maincontent">
-        <div class="content">
+<div id="maincontent">
+<div class="content">
 
-            <div align=center>
-                <h2>Final Project</h2>
-                <h3>Recovering HDR Radiance Map and Tone Mapping</h3>
+<div align=center>
+    <h2>Final Project</h2>
+    <h3>Recovering HDR Radiance Map and Tone Mapping</h3>
+</div>
+
+<div align="center">
+    <p align="left">
+        <b>Usage</b>: Please download the <a href="testImages.zip">test images</a> first. The use the <em>Choose Files</em>
+        button to select a set of multiple exposure images to perform HDR image reconstruction and tone mapping.
+        After selecting the images, the source images will appear in the page, and you can hit <em>Generate</em>
+        button to start.
+    </p>
+    <p>Upload Images:
+        <input type="file" id="files" name="files[]" multiple/>
+        <output id="list"></output>
+    </p>
+    <p>
+        Tone Mapping Operator:
+        <select id="tmselect">
+            <option value="reinhard">Reinhard</option>
+            <option value="bilateral">Bilateral</option>
+            <option value="ahe">Adaptive Histogram Equalization</option>
+            <!--<option value="gradient">Gradient</option>-->
+        </select>
+        <button id="genButton">Generate</button>
+    </p>
+    <p id="control_reinhard">
+        Luminance Scale Factor: <input id="avalue" type="text" value="0.6">
+        &nbsp
+        Gamma: <input id="gammavalue" type="text" value="0.5">
+    </p>
+    <p id="control_bilateral">
+        Dynamic Range:<input id="drvalue" type="text" value="4.0">
+        &nbsp
+        Gamma: <input id="gammavalue2" type="text" value="0.5">
+    </p>
+    <p>
+        <progress id="prog" max="70" min="0">%</progress>
+    </p>
+</div>
+
+<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+
+    <tr>
+        <td align=center>
+            <div class="submissiondes">
             </div>
-
-            <div>
-                <a href="http://dl.acm.org/citation.cfm?id=258884">Recovering high dynamic range radiance maps from photographs</a>
+            <div id="div_res">
+                <p>Tone Mapped Image:</p>
+                <canvas id="rescanvas" border=0 width=640px height=480px></canvas>
             </div>
-            <div align="center">
-                <p align="left">
-                    <b>Usage</b>: Please download the <a href="testImages.zip">test images</a> first. The use the <em>Choose Files</em>
-                    button to select a set of multiple exposure images to perform HDR image reconstruction and tone mapping.
-                    After selecting the images, the source images will appear in the page, and you can hit <em>Generate</em>
-                    button to start.
-                </p>
-                <p>Upload Images:
-                    <input type="file" id="files" name="files[]" multiple/>
-                    <output id="list"></output>
-                </p>
-                <p>
-                    Tone Mapping Operator:
-                    <select id="tmselect">
-                        <option value="reinhard">Reinhard</option>
-                        <option value="bilateral">Bilateral</option>
-                        <!--<option value="gradient">Gradient</option>-->
-                    </select>
-                    <button id="genButton">Generate</button>
-                </p>
-                <p id="control_reinhard">
-                    Luminance Scale Factor: <input id="avalue" type="text" value="0.6">
-                    &nbsp
-                    Gamma: <input id="gammavalue" type="text" value="0.5">
-                </p>
-                <p id="control_bilateral">
-                    Dynamic Range:<input id="drvalue" type="text" value="4.0">
-                    &nbsp
-                    Gamma: <input id="gammavalue2" type="text" value="0.5">
-                </p>
-                <p>
-                    <progress id="prog" max="70" min="0">%</progress>
-                </p>
+            <div id="div_hdrmap">
+                <p>HDR Radiance Map (log scale):</p>
+                <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
             </div>
-
-            <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
-
-                <tr>
-                    <td align=center>
-                        <div class="submissiondes">
-                        </div>
-                        <div id="div_res">
-                            <p>Tone Mapped Image:</p>
-                            <canvas id="rescanvas" border=0 width=640px height=480px></canvas>
-                        </div>
-                        <div id="div_hdrmap">
-                            <p>HDR Radiance Map (log scale):</p>
-                            <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            <div id="div_source">
-                <p align="center">Source Images</p>
-                <div id="sourceimages" border=0 padding="0" width=90% align=center>
-                </div>
-            </div>
-
-            <p><b>Results</b></p>
-
-        </div>
+        </td>
+    </tr>
+</table>
+<div id="div_source">
+    <p align="center">Source Images</p>
+    <div id="sourceimages" border=0 padding="0" width=90% align=center>
     </div>
-    </div>
-    </div>
+</div>
+
+<p><b>Results</b></p>
+<div class="results">
+<b><p>Belgium Room</p></b>
+<p>Raw Sequence</p>
+<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+    <tr>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_1000.jpg" title="&Delta;t = 1/1000 s">
+                <img class="rawsequence" src="images_belg/belg_1_1000.jpg">
+            </a>
+            <p>&Delta;t = 1/1000 s</p>
+        </td>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_500.jpg" title="&Delta;t = 1/500 s">
+                <img class="rawsequence" src="images_belg/belg_1_500.jpg">
+            </a>
+            <p>&Delta;t = 1/500 s</p>
+        </td>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_250.jpg" title="&Delta;t = 1/250 s">
+                <img class="rawsequence" src="images_belg/belg_1_250.jpg">
+            </a>
+            <p>&Delta;t = 1/250 s</p>
+        </td>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_125.jpg" title="&Delta;t = 1/125 s">
+
+                <img class="rawsequence" src="images_belg/belg_1_125.jpg">
+            </a>
+            <p>&Delta;t = 1/125 s</p>
+        </td>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_60.jpg" title="&Delta;t = 1/60 s">
+
+                <img class="rawsequence" src="images_belg/belg_1_60.jpg">
+            </a>
+            <p>&Delta;t = 1/60 s</p>
+        </td>
+    </tr>
+    <tr>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_30.jpg" title="&Delta;t = 1/30 s">
+
+                <img class="rawsequence" src="images_belg/belg_1_30.jpg"></a>
+            <p>&Delta;t = 1/30 s</p>
+        </td>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_15.jpg" title="&Delta;t = 1/15 s">
+
+                <img class="rawsequence" src="images_belg/belg_1_15.jpg"></a>
+            <p>&Delta;t = 1/15 s</p>
+        </td>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_8.jpg" title="&Delta;t = 1/8 s">
+
+                <img class="rawsequence" src="images_belg/belg_1_8.jpg"></a>
+            <p>&Delta;t = 1/8 s</p>
+        </td>
+        <td width="20%">
+            <a class="fbox" href="images_belg/belg_1_4.jpg" title="&Delta;t = 1/4 s">
+
+                <img class="rawsequence" src="images_belg/belg_1_4.jpg">
+            </a>
+            <p>&Delta;t = 1/4 s</p>
+        </td>
+    </tr>
+</table>
+<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+    <tr>
+        <td width="50%">
+            <a class="fbox" href="gallery/belgium_r.png" title="HDR Radiance Map">
+                <img class="resimg" src="gallery/belgium_r.png">
+            </a>
+            <p>Reconstructed HDR Radiance Map</p>
+        </td>
+        <td width="50%">
+            <a class="fbox" href="gallery/belgium.png" title="Tone-mapped with Reinhard's algorithm">
+                <img class="resimg" src="gallery/belgium.png">
+            </a>
+            <p>Tone-mapped with Reinhard's algorithm</p>
+        </td>
+    </tr>
+    <tr>
+        <td width="50%">
+            <a class="fbox" href="gallery/belgium_b.png" title="Tone-mapped with Bilateral Filtering">
+                <img class="resimg" src="gallery/belgium_b.png">
+            </a>
+            <p>Tone-mapped with Bilateral Filtering</p>
+        </td>
+    </tr>
+</table>
+<b><p>Memorial</p></b>
+<p>Raw Sequence</p>
+<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+    <tr>
+        <td width="12.5%">
+            <a class="fbox" href="images_memorial/memorial_1_4.png" title="&Delta;t = 1/4 s">
+            <img class="rawsequence" src="images_memorial/memorial_1_4.png"></a>
+            <p>&Delta;t = 1/4 s</p>
+        </td>
+        <td width="12.5%">
+            <a class="fbox" href="images_memorial/memorial_1_2.png" title="&Delta;t = 1/2 s">
+            <img class="rawsequence" src="images_memorial/memorial_1_2.png"></a>
+            <p>&Delta;t = 1/2 s</p>
+        </td>
+        <td width="12.5%">
+            <a class="fbox" href="images_memorial/memorial_1_1.png" title="&Delta;t = 1 s">
+            <img class="rawsequence" src="images_memorial/memorial_1_1.png"></a>
+            <p>&Delta;t = 1 s</p>
+        </td>
+        <td width="12.5%">
+            <a class="fbox" href="images_memorial/memorial_2_1.png" title="&Delta;t = 2 s">
+            <img class="rawsequence" src="images_memorial/memorial_2_1.png"></a>
+            <p>&Delta;t = 2 s</p>
+        </td>
+        <td width="12.5%">
+            <a class="fbox" href="images_memorial/memorial_4_1.png" title="&Delta;t = 4 s">
+            <img class="rawsequence" src="images_memorial/memorial_4_1.png"></a>
+            <p>&Delta;t = 4 s</p>
+        </td>
+        <td width="12.5%">
+            <a class="fbox" href="images_memorial/memorial_8_1.png" title="&Delta;t = 8 s">
+            <img class="rawsequence" src="images_memorial/memorial_8_1.png"></a>
+            <p>&Delta;t = 8 s</p>
+        </td>
+        <td width="12.5%">
+            <a class="fbox" href="images_memorial/memorial_16_1.png" title="&Delta;t = 16 s">
+            <img class="rawsequence" src="images_memorial/memorial_16_1.png"></a>
+            <p>&Delta;t = 16 s</p>
+        </td>
+        <td width="12.5%">
+            <a class="fbox" href="images_memorial/memorial_32_1.png" title="&Delta;t = 32 s">
+            <img class="rawsequence" src="images_memorial/memorial_32_1.png"></a>
+            <p>&Delta;t = 32 s</p>
+        </td>
+    </tr>
+</table>
+<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+    <tr>
+        <td width="50%">
+            <a class="fbox" href="gallery/memorial_r.png" title="HDR Radiance Map">
+                <img class="resimg" src="gallery/memorial_r.png">
+            </a>
+            <p>HDR Radiance Map</p>
+        </td>
+        <td width="50%">
+            <a class="fbox" href="gallery/memorial.png" title="Tone-mapped with Reinhard's algorithm">
+                <img class="resimg" src="gallery/memorial.png">
+            </a>
+            <p>Tone-mapped with Reinhard's algorithm</p>
+        </td>
+    </tr>
+    <tr>
+        <td width="50%">
+            <a class="fbox" href="gallery/memorial_b.png" title="Tone-mapped with Bilateral Filtering">
+                <img class="resimg" src="gallery/memorial_b.png">
+            </a>
+            <p>Tone-mapped with Bilateral Filtering</p>
+        </td>
+    </tr>
+</table>
+<b><p>Window</p></b>
+<p>Raw Sequence</p>
+    <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+        <tr>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_1_4000.jpg" title="&Delta;t = 1/4000 s">
+                    <img class="rawsequence" src="images/window_exp_1_4000.jpg">
+                </a>
+                <p>&Delta;t = 1/4000 s</p>
+            </td>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_1_1000.jpg" title="&Delta;t = 1/1000 s">
+                    <img class="rawsequence" src="images/window_exp_1_1000.jpg">
+                </a>
+                <p>&Delta;t = 1/1000 s</p>
+            </td>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_1_250.jpg" title="&Delta;t = 1/250 s">
+                    <img class="rawsequence" src="images/window_exp_1_250.jpg">
+                </a>
+                <p>&Delta;t = 1/250 s</p>
+            </td>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_1_60.jpg" title="&Delta;t = 1/60 s">
+                    <img class="rawsequence" src="images/window_exp_1_60.jpg">
+                </a>
+                <p>&Delta;t = 1/60 s</p>
+            </td>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_1_15.jpg" title="&Delta;t = 1/15 s">
+                    <img class="rawsequence" src="images/window_exp_1_15.jpg">
+                </a>
+                <p>&Delta;t = 1/15 s</p>
+            </td>
+        </tr>
+        <tr>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_1_4.jpg" title="&Delta;t = 1/4 s">
+                    <img class="rawsequence" src="images/window_exp_1_4.jpg">
+                </a>
+                <p>&Delta;t = 1/4 s</p>
+            </td>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_1_1.jpg" title="&Delta;t = 1 s">
+                    <img class="rawsequence" src="images/window_exp_1_1.jpg">
+                </a>
+                <p>&Delta;t = 1/1 s</p>
+            </td>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_4_1.jpg" title="&Delta;t = 4 s">
+                    <img class="rawsequence" src="images/window_exp_4_1.jpg">
+                </a>
+                <p>&Delta;t = 4 s</p>
+            </td>
+            <td width="20%">
+                <a class="fbox" href="images/window_exp_15_1.jpg" title="&Delta;t = 15 s">
+                    <img class="rawsequence" src="images/window_exp_15_1.jpg">
+                </a>
+                <p>&Delta;t = 15 s</p>
+            </td>
+        </tr>
+    </table>
+
+<table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
+    <tr>
+        <td width="50%">
+            <a class="fbox" href="gallery/window_r.png" title="HDR Radiance Map">
+                <img class="resimg" src="gallery/window_r.png">
+            </a>
+            <p>HDR Radiance Map</p>
+        </td>
+        <td width="50%">
+            <a class="fbox" href="gallery/window.png" title="Tone-mapped with Reinhard's algorithm">
+                <img class="resimg" src="gallery/window.png">
+            </a>
+            <p>Tone-mapped with Reinhard's algorithm</p>
+        </td>
+    </tr>
+    <tr>
+        <td width="50%">
+            <a class="fbox" href="gallery/window_b.png" title="Tone-mapped with Bilateral Filtering">
+                <img class="resimg" src="gallery/window_b.png">
+            </a>
+            <p>Tone-mapped with Bilateral Filtering</p>
+        </td>
+    </tr>
+</table>
+</div>
+
+<p><b>References</b></p>
+<div class="references">
+    <ol>
+        <li>Paul E. Debevec and Jitendra Malik. 1997. <a href="http://dl.acm.org/citation.cfm?id=258884">Recovering high dynamic range radiance maps from photographs</a>.<br>
+            In Proceedings of the 24th annual conference on Computer graphics and interactive techniques (SIGGRAPH '97). ACM Press/Addison-Wesley Publishing Co., New York, NY, USA, 369-378.</li>
+        <li>
+            Frédo Durand and Julie Dorsey. 2002. <a href="http://dl.acm.org/citation.cfm?id=566574">Fast bilateral filtering for the display of high-dynamic-range images</a>. <br>
+            In Proceedings of the 29th annual conference on Computer graphics and interactive techniques (SIGGRAPH '02). ACM, New York, NY, USA, 257-266.
+        </li>
+        <li>
+            Erik Reinhard, Michael Stark, Peter Shirley, and James Ferwerda. 2002. <a href="http://dl.acm.org/citation.cfm?id=566575">Photographic tone reproduction for digital images</a>. <br>
+            In Proceedings of the 29th annual conference on Computer graphics and interactive techniques (SIGGRAPH '02). ACM, New York, NY, USA, 267-276.
+        </li>
+    </ol>
+
+</div>
+</div>
+</div>
 </article>
 <footer>
     <div class="info">

@@ -328,6 +328,9 @@ function tonemapping( radiancemap, method ) {
             };
             return bilateral_tonemapping( radiancemap, options );
         }
+        case 'ahe': {
+            return ahe_tonemapping( radiancemap, {} );
+        }
         /*
         case 'gradient': {
             var options = {};
@@ -348,7 +351,7 @@ window.onload = (function(){
 
     $('#genButton').click( function(){
         console.log("generating hdr radiance map ...");
-
+        $('#prog').show();
         generateRadianceMap();
         var himg = radmap.hdrmap;
         var limg = radmap.luminance;
@@ -380,6 +383,7 @@ window.onload = (function(){
         It = imresize(It, ww, hh);
         It.render(rescanvas);
 
+        $('#prog').hide();
         $('#div_res').show();
     });
 
@@ -403,5 +407,15 @@ window.onload = (function(){
     // set up callback for uploading file
     $('#files').change( function(e){
         handleFileSelect(e);
+    });
+});
+
+$(document).ready(function(){
+    $('.fbox').fancybox({
+        helpers: {
+            title : {
+                type : 'float'
+            }
+        }
     });
 });
