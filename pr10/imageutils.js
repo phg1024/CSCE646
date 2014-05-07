@@ -20,6 +20,28 @@ function imresize(__src, w, h)
     return dst;
 }
 
+// resize single channel image
+function imresizef(src, w, h) {
+    var iw = src.w, ih = src.h;
+    // bilinear interpolation
+    var dst = new MonoImagef(w, h);
+
+    var ystep = 1.0 / (h-1);
+    var xstep = 1.0 / (w-1);
+    for(var i=0;i<h;i++)
+    {
+        var y = i * ystep;
+
+        for(var j=0;j<w;j++)
+        {
+            var x = j * xstep;
+
+            dst.setPixel(j, i, src.sample(x * (iw-1), y * (ih-1)));
+        }
+    }
+    return dst;
+}
+
 function clamp(v, lower, upper)
 {
     var res = v;
@@ -28,13 +50,111 @@ function clamp(v, lower, upper)
     return res;
 }
 
+// guassian blur for single channel image
+function gaussianf(src, sigma, size) {
+    var size = size || 3.0;
+    var sigma = sigma || 1.0;
+
+    var h = src.h,
+        w = src.w;
+    var dst = new MonoImagef(w, h);
+
+    var fp = new Filter.blurn(size, sigma);
+    var wf = Math.floor(size / 2);
+    var hf = Math.floor(size / 2);
+
+    for (var y=0;y<h;y++)
+    {
+        for (var x=0;x<w;x++)
+        {
+            var fidx = 0;
+            var wsum = 0;
+            var c1 = 0;
+            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            {
+                var py = clamp(i+y,0,h-1);
+                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                {
+                    var px = clamp(j+x,0,w-1);
+
+                    var weight = fp.value[fidx++];
+
+                    var c = src.getPixel(px, py);
+                    wsum += weight;
+                    c1 += c * weight;
+                }
+            }
+
+            c1 /= wsum;
+
+            dst.setPixel(x, y, c1);
+        }
+    }
+    return dst;
+}
+
+// bilateral filter for single channel image
+function bilateralf(src, sigmap, sigmaf, size) {
+    var size = size || 3.0;
+    var sigmap = sigmap || 1.0;
+    var sigmaf = sigmaf || 10.0;
+
+
+    var h = src.h,
+        w = src.w;
+    var dst = new MonoImagef(w, h);
+
+    var fp = new Filter.blurn(size, sigmap);
+    var sigmaf2 = sigmaf * sigmaf * 2;
+
+    var wf = Math.floor(size / 2);
+    var hf = Math.floor(size / 2);
+
+    for (var y=0;y<h;y++)
+    {
+        for (var x=0;x<w;x++)
+        {
+            var fidx = 0;
+            var wsum = 0;
+            var c0 = src.getPixel(x, y);
+            var c1 = 0;
+            for (var i=-hf, fi=0;i<=hf;i++,fi++)
+            {
+                var py = clamp(i+y,0,h-1);
+                for (var j=-wf, fj=0;j<=wf;j++,fj++)
+                {
+                    var px = clamp(j+x,0,w-1);
+
+                    var weight = fp.value[fidx++];
+
+                    var c = src.getPixel(px, py);
+                    var dc = c - c0;
+
+                    weight *= Math.exp(-(dc*dc)/(sigmaf2));
+                    wsum += weight;
+
+                    c1 += c * weight;
+                }
+            }
+
+            c1 /= wsum;
+
+            dst.setPixel(x, y, c1);
+        }
+    }
+    return dst;
+}
+
 // bilateral filter
 function bilateral(src, sigmap, sigmaf, size) {
+    var size = size || 3.0;
+    var sigmap = sigmap || 1.0;
+    var sigmaf = sigmaf || 10.0;
+
+
     var h = src.h,
         w = src.w;
     var dst = new RGBAImage(w, h);
-    var data = dst.data,
-        data2 = src.data;
 
     var fp = new Filter.blurn(size, sigmap);
     var sigmaf2 = sigmaf * sigmaf * 2;
@@ -60,7 +180,6 @@ function bilateral(src, sigmap, sigmaf, size) {
                 for (var j=-wf, fj=0;j<=wf;j++,fj++)
                 {
                     var px = clamp(j+x,0,w-1);
-                    var pidx = (py * w + px) * 4;
 
                     var weight = fp.value[fidx++];
 
@@ -78,14 +197,13 @@ function bilateral(src, sigmap, sigmaf, size) {
                 }
             }
 
-            r = clamp((r)/wsum, 0.0, 255.0);
-            g = clamp((g)/wsum, 0.0, 255.0);
-            b = clamp((b)/wsum, 0.0, 255.0);
+            var invwsum = 1.0 / wsum;
 
-            data[idx] = r;
-            data[idx+1] = g;
-            data[idx+2] = b;
-            data[idx+3] = data2[idx+3];
+            r *= invwsum;
+            g *= invwsum;
+            b *= invwsum;
+
+            dst.setPixel(x, y, new Color(r, g, b, c0.a));
         }
     }
     return dst;
