@@ -3,6 +3,14 @@
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
     <link rel='stylesheet' type='text/css' href='../style.css' media="screen, print, projection">
     <script type="text/javascript" src="jquery-1.10.2.js"></script>
+
+    <!-- NumericJS -->
+    <script type="text/javascript" src="numericjs/numeric.js"></script>
+    <script type="text/javascript" src="numericjs/iterative.js"></script>
+    <!-- ExifJS -->
+    <script type="text/javascript" src="exifjs/binaryajax.js"></script>
+    <script type="text/javascript" src="exifjs/exif.js"></script>
+
     <script type="text/javascript" src="point.js"></script>
     <script type="text/javascript" src="vector.js"></script>
     <script type="text/javascript" src="matrix.js"></script>
@@ -11,6 +19,7 @@
     <script type="text/javascript" src="imageutils.js"></script>
     <script type="text/javascript" src="transformation.js"></script>
     <script type="text/javascript" src="utils.js"></script>
+    <script type="text/javascript" src="tonemapping.js"></script>
     <script type="text/javascript" src="main.js"></script>
     <style>
         p.operations{
@@ -22,17 +31,11 @@
         td{
             align: center
         }
-        #pascii {
-            overflow: auto;
-            font-family: courier;
-            font-size: 8px;
-            background-color: black;
+        .sourceimg {
+            border: 1px solid yellow;
         }
-        #bitmap {
-            width: 0px;
-            height: 0px;
-            background-color: black;
-            font-color: white;
+        #sourceimages {
+            text-indent: 0;
         }
     </style>
 </head>
@@ -51,45 +54,71 @@
 
             <div align=center>
                 <h2>Final Project</h2>
-                <h3>ASCII Art Generator</h3>
+                <h3>Recovering HDR Radiance Map and Tone Mapping</h3>
+            </div>
+
+            <div>
+                <a href="http://dl.acm.org/citation.cfm?id=258884">Recovering high dynamic range radiance maps from photographs</a>
+            </div>
+            <div align="center">
+                <p align="left">
+                    <b>Usage</b>: Please download the <a href="testImages.zip">test images</a> first. The use the <em>Choose Files</em>
+                    button to select a set of multiple exposure images to perform HDR image reconstruction and tone mapping.
+                    After selecting the images, the source images will appear in the page, and you can hit <em>Generate</em>
+                    button to start.
+                </p>
+                <p>Upload Images:
+                    <input type="file" id="files" name="files[]" multiple/>
+                    <output id="list"></output>
+                </p>
+                <p>
+                    Tone Mapping Operator:
+                    <select id="tmselect">
+                        <option value="reinhard">Reinhard</option>
+                        <option value="bilateral">Bilateral</option>
+                        <!--<option value="gradient">Gradient</option>-->
+                    </select>
+                    <button id="genButton">Generate</button>
+                </p>
+                <p id="control_reinhard">
+                    Luminance Scale Factor: <input id="avalue" type="text" value="0.6">
+                    &nbsp
+                    Gamma: <input id="gammavalue" type="text" value="0.5">
+                </p>
+                <p id="control_bilateral">
+                    Dynamic Range:<input id="drvalue" type="text" value="4.0">
+                    &nbsp
+                    Gamma: <input id="gammavalue2" type="text" value="0.5">
+                </p>
+                <p>
+                    <progress id="prog" max="70" min="0">%</progress>
+                </p>
             </div>
 
             <table border=0 cellspacing=5 cellpadding=5 width=90% align=center>
 
                 <tr>
                     <td align=center>
-                        <div>
+                        <div class="submissiondes">
+                        </div>
+                        <div id="div_res">
+                            <p>Tone Mapped Image:</p>
+                            <canvas id="rescanvas" border=0 width=640px height=480px></canvas>
+                        </div>
+                        <div id="div_hdrmap">
+                            <p>HDR Radiance Map (log scale):</p>
                             <canvas id="mycanvas" border=0 width=640px height=480px></canvas>
                         </div>
-                        <div class="submissiondes">
-                            <p>
-                                Image:
-                                <select id="imgselect">
-                                    <option value="landscape">Landscape</option>
-                                    <option value="seal">Seal</option>
-                                    <option value="buck">Buck</option>
-                                    <option value="waterfall">Waterfall</option>
-                                </select>
-                                &nbsp or &nbsp Upload:
-                                <input type="file" id="files" name="files[]" />
-                                <output id="list"></output>
-                            </p>
-                            <p>
-                                Block Size:&nbsp<input type="text" id="sizeText" size="3" value="2">
-                                <button id="genButton">Generate</button>
-                            </p>
-                        </div>
                     </td>
                 </tr>
-                <tr>
-                    <td align="center">
-                        <div id="pascii">
-                        </div>
-                        <canvas id="bitmap"></canvas>
-                    </td>
-                </tr>
-
             </table>
+            <div id="div_source">
+                <p align="center">Source Images</p>
+                <div id="sourceimages" border=0 padding="0" width=90% align=center>
+                </div>
+            </div>
+
+            <p><b>Results</b></p>
 
         </div>
     </div>

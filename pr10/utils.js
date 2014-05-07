@@ -55,6 +55,7 @@ function canvasresize(__width, __height)
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
 
+    var flist = [];
     // Loop through the FileList and render image files as thumbnails.
     for (var i = 0, f; f = files[i]; i++) {
 
@@ -63,50 +64,9 @@ function handleFileSelect(evt) {
             continue;
         }
 
-        uploadImage( f );
-    }
-}
-
-function uploadImage( file ) {
-    var fr, img;
-
-    console.log('loading image ' + file);
-
-    if (typeof window.FileReader !== 'function') {
-        write("The file API isn't supported on this browser yet.");
-        return;
+        console.log(f);
+        flist.push(f);
     }
 
-    fr = new FileReader();
-    fr.onload = createImage;
-    fr.readAsDataURL(file);
-
-    function createImage() {
-        img = new Image();
-        img.onload = imageLoaded;
-        img.src = fr.result;
-    }
-
-    function imageLoaded() {
-        curImg = RGBAImage.fromImage(img, context);
-
-        var width = curImg.w;
-        var height = curImg.h;
-        if( width > 800 )
-        {
-            height = Math.floor(height * (800.0/width));
-            width = 800;
-            curImg = imresize(curImg, width, height);
-        }
-
-        if( height > 800 )
-        {
-            width = Math.floor(width * (800.0/height));
-            height = 800;
-            curImg = imresize(curImg, width, height);
-        }
-        canvasresize(width, height);
-
-        context.putImageData(curImg.toImageData(context), 0, 0);
-    }
+    uploadImages( flist );
 }
